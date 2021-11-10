@@ -12,14 +12,29 @@ const double SNOWBALL_DURATION = 0.6;
 const double SNOWBALL_VELOCITY = km_per_hr(50);
 
 int main() {
-	std::cout << "Hello World!\n";
+	cout << "Hello World!\n";
+
+	framework.Initialize();
+	while (true) {
+		framework.Update();
+
+		Sleep(FRAME_TIME);
+	}
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
+	while (true) {
+
+	}
+
 	return 0;
 }
 
 DWORD WINAPI GameProcess(LPVOID arg) {
+	while (true) {
+
+	}
+
 	return 0;
 }
 
@@ -42,7 +57,7 @@ CBullet::CBullet()
 void CBullet::OnUpdate(double frame_advance) {
 	lifetime -= frame_advance;
 	if (lifetime <= 0) {
-		framework.instance_kill(this);
+		framework.Kill(this);
 	}
 
 	GameInstance::OnUpdate(frame_advance);

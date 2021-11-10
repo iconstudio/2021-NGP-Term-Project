@@ -5,6 +5,10 @@
 // 최대 플레이어 수
 const int PLAYERS_NUMBER_MAX = 10;
 
+// 프레임 수
+const int FRAMERATE = 60;
+const double FRAME_TIME = (1.0 / FRAMERATE);
+
 enum PACKETS : int {
 	CLIENT_PING = 0				// 빈 패킷을 보낼 때 사용하는 메시지
 	, CLIENT_KEY_INPUT			// 입력을 보낼 때 사용하는 메시지

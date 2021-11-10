@@ -54,21 +54,21 @@ public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
-	void init();
-	void update();
+	void Initialize();
+	void msg_update();
+	void Update();
 
-	void delta_start();
-	void delta_inspect();
-	double get_elapsed_second() const;
+	void StartDelta();
+	void InspectDelta();
 
 	template<class Predicate>
 	void for_each_instances(Predicate predicate);
 
 	template<class _GameClass = GameInstance>
-	_GameClass* instance_create(int x = 0, int y = 0);
+	_GameClass* Instantiate(int x = 0, int y = 0);
 
 	template<class _GameClass = GameInstance>
-	void instance_kill(_GameClass* target);
+	void Kill(_GameClass* target);
 
 	SERVER_STATES status;
 	HANDLE players[PLAYERS_NUMBER_MAX];
@@ -104,7 +104,7 @@ inline void ServerFramework::for_each_instances(Predicate predicate) {
 }
 
 template<class _GameClass>
-inline _GameClass* ServerFramework::instance_create(int x, int y) {
+inline _GameClass* ServerFramework::Instantiate(int x, int y) {
 	auto result = new _GameClass();
 	result->x = x;
 	result->y = y;
@@ -116,7 +116,7 @@ inline _GameClass* ServerFramework::instance_create(int x, int y) {
 }
 
 template<class _GameClass>
-inline void ServerFramework::instance_kill(_GameClass* target) {
+inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
 	});

@@ -77,31 +77,29 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 ServerFramework::~ServerFramework() {}
 
-void ServerFramework::init() {
-	delta_start();
+void ServerFramework::Initialize() {
+	StartDelta();
 }
 
-void ServerFramework::update() {
-	delta_inspect();
+void ServerFramework::Update() {
+	InspectDelta();
 
-	delta_time = get_elapsed_second();
+	// get a elapsed second
+	delta_time =  ((double)elapsed / (double)tick_type::period::den);
+
 	for_each_instances([&](GameInstance*& inst) {
 		inst->OnUpdate(delta_time);
 	});
 
-	delta_start();
+	StartDelta();
 }
 
-void ServerFramework::delta_start() {
+void ServerFramework::StartDelta() {
 	clock_previos = std::chrono::system_clock::now();
 }
 
-void ServerFramework::delta_inspect() {
+void ServerFramework::InspectDelta() {
 	clock_now = std::chrono::system_clock::now();
 
 	elapsed = std::chrono::duration_cast<tick_type>(clock_now - clock_previos).count();
-}
-
-double ServerFramework::get_elapsed_second() const {
-	return ((double)elapsed / (double)tick_type::period::den);
 }
