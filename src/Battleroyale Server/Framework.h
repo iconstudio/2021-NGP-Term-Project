@@ -62,6 +62,10 @@ public:
 	void Kill(_GameClass* target);
 
 	SERVER_STATES status;
+
+private:
+	SOCKET my_socket;
+	SOCKADDR_IN	server_address;
 	HANDLE players[PLAYERS_NUMBER_MAX];
 
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체

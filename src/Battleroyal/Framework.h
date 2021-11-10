@@ -44,6 +44,10 @@ public:
 
 	CLIENT_STATES status;
 
+	COLORREF background_color = COLOR_WHITE;
+	const int WORLD_W, WORLD_H;
+
+private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	int	player_index = 0;
@@ -51,10 +55,6 @@ public:
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;
 
-	COLORREF background_color = COLOR_WHITE;
-	const int WORLD_W, WORLD_H;
-
-private:
 	class CInputChecker {
 	public:
 		int time = -1;
