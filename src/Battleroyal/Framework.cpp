@@ -52,7 +52,7 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_oldhBit = (HBITMAP)SelectObject(surface_double, m_hBit);
 
 	// 초기화
-	//Render::draw_clear(surface_double, world_w, world_h, background_color);
+	Render::draw_clear(surface_double, WORLD_W, WORLD_H, background_color);
 
 	HDC surface_back = CreateCompatibleDC(surface_app);
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
@@ -72,12 +72,12 @@ void ClientFramework::Render(HWND window) {
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
-	//Render::draw_end(surface_double, m_oldhBit, m_hBit);
+	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
 	// 백 버퍼 -> 화면 버퍼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
 			   , surface_back, 0, 0, view.w, view.h, SRCCOPY);
-	//Render::draw_end(surface_back, m_newoldBit, m_newBit);
+	Render::draw_end(surface_back, m_newoldBit, m_newBit);
 
 	DeleteDC(surface_back);
 	DeleteDC(surface_double);

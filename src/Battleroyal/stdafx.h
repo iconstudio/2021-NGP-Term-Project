@@ -81,3 +81,15 @@ inline double point_distance(double x1, double y1, double x2, double y2) {
 inline double point_direction(double x1, double y1, double x2, double y2) {
 	return radtodeg(atan2(y1 - y2, x2 - x1));
 }
+
+namespace Render {
+void transform_set(HDC, XFORM&);
+void transform_set_identity(HDC);
+void transform_set_rotation(HDC);
+
+void draw_clear(HDC, int width, int height, COLORREF color = 0);
+BOOL draw_rectangle(HDC, int, int, int, int);
+void draw_end(HDC, HGDIOBJ, HGDIOBJ);
+
+static XFORM transform_identity{ 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
+}

@@ -29,6 +29,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return FALSE;
 	}
 
+	// 코드
+	framework.background_color = COLOR_NAVY;
+
 	MSG msg;
 	while (true) {
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -56,57 +59,57 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// 렌더링 타이머
 		case WM_TIMER:
 		{
-			framework.update();
-			Render::refresh(hwnd);
+			framework.Update();
+			InvalidateRect(hwnd, NULL, FALSE);
 		}
 		break;
 
 		// 마우스 왼쪽 누름
 		case WM_LBUTTONDOWN:
 		{
-			framework.on_mousedown(MK_LBUTTON, lParam);
+			framework.OnMouseDown(MK_LBUTTON, lParam);
 		}
 		break;
 
 		// 마우스 왼쪽 뗌
 		case WM_LBUTTONUP:
 		{
-			framework.on_mouseup(MK_LBUTTON, lParam);
+			framework.OnMouseUp(MK_LBUTTON, lParam);
 		}
 		break;
 
 		// 마우스 오른쪽 누름
 		case WM_RBUTTONDOWN:
 		{
-			framework.on_mousedown(MK_RBUTTON, lParam);
+			framework.OnMouseDown(MK_RBUTTON, lParam);
 		}
 		break;
 
 		// 마우스 오른쪽 뗌
 		case WM_RBUTTONUP:
 		{
-			framework.on_mouseup(MK_RBUTTON, lParam);
+			framework.OnMouseUp(MK_RBUTTON, lParam);
 		}
 		break;
 
 		// 마우스 휠 누름
 		case WM_MBUTTONDOWN:
 		{
-			framework.on_mousedown(MK_MBUTTON, lParam);
+			framework.OnMouseDown(MK_MBUTTON, lParam);
 		}
 		break;
 
 		// 마우스 휠 뗌
 		case WM_MBUTTONUP:
 		{
-			framework.on_mouseup(MK_MBUTTON, lParam);
+			framework.OnMouseUp(MK_MBUTTON, lParam);
 		}
 		break;
 
 		// 렌더링
 		case WM_PAINT:
 		{
-			framework.draw(hwnd);
+			framework.Render(hwnd);
 		}
 		break;
 
