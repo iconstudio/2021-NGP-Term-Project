@@ -14,15 +14,25 @@ const double SNOWBALL_VELOCITY = km_per_hr(50);
 int main() {
 	cout << "Hello World!\n";
 
+	WSADATA wsadata;
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+		return 0;
+	}
+
 	framework.Initialize();
 	while (true) {
 		framework.Update();
+		cout << "Sleep: " << FRAME_TIME << endl;
 
 		Sleep(FRAME_TIME);
 	}
+
+	return 0;
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
+	CCharacter* player_character;
+
 	while (true) {
 
 	}
@@ -31,6 +41,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 }
 
 DWORD WINAPI GameProcess(LPVOID arg) {
+	CCharacter* player_character;
+
 	while (true) {
 
 	}
