@@ -58,8 +58,7 @@ bool GameInstance::IsCollideWith(GameInstance*& other) {
 }
 
 ServerFramework::ServerFramework(int rw, int rh)
-	: delta_time(0.0), elapsed(0)
-	, WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
+	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
 	, client_number(0), player_captain(-1) {
 
@@ -75,31 +74,24 @@ ServerFramework::ServerFramework(int rw, int rh)
 	}
 }
 
-ServerFramework::~ServerFramework() {}
+ServerFramework::~ServerFramework() {
+	closesocket(my_socket);
+
+	for (HANDLE player : players) {
+		CloseHandle(player);
+	}
+
+	CloseHandle(event_receives);
+	CloseHandle(event_game_process);
+	CloseHandle(event_send_renders);
+}
 
 void ServerFramework::Initialize() {
-	StartDelta();
+	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 }
 
 void ServerFramework::Update() {
-	InspectDelta();
-
-	// get a elapsed second
-	delta_time =  ((double)elapsed / (double)tick_type::period::den);
-
 	ForeachInstances([&](GameInstance*& inst) {
-		inst->OnUpdate(delta_time);
+		inst->OnUpdate(FRAME_TIME);
 	});
-
-	StartDelta();
-}
-
-void ServerFramework::StartDelta() {
-	clock_previos = std::chrono::system_clock::now();
-}
-
-void ServerFramework::InspectDelta() {
-	clock_now = std::chrono::system_clock::now();
-
-	elapsed = std::chrono::duration_cast<tick_type>(clock_now - clock_previos).count();
 }

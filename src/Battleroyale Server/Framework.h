@@ -49,9 +49,6 @@ public:
 	void Initialize();
 	void Update();
 
-	void StartDelta();
-	void InspectDelta();
-
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 
@@ -65,7 +62,7 @@ public:
 
 private:
 	SOCKET my_socket;
-	SOCKADDR_IN	server_address;
+	SOCKADDR_IN	my_address;
 	HANDLE players[PLAYERS_NUMBER_MAX];
 
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
@@ -81,12 +78,6 @@ private:
 
 	vector<GameInstance*> instances;
 	vector<int> player_queue;
-
-	using tick_type = std::chrono::microseconds;
-	using clock_type = std::chrono::system_clock::time_point;
-	clock_type clock_previos, clock_now;
-	LONGLONG elapsed;
-	double delta_time;
 };
 
 template<class Predicate>
