@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Battleroyale.h" />
+    <ClInclude Include="CommonDatas.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />

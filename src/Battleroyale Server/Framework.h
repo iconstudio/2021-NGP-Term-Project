@@ -12,14 +12,6 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
-struct GameUpdateMessage {
-	int players_count;
-
-	int target_player;
-	int player_hp;
-	double player_x, player_y, player_direction;
-};
-
 class GameInstance {
 public:
 	GameInstance();

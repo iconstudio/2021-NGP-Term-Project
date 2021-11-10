@@ -1,6 +1,19 @@
 #pragma once
 #include "pch.h"
+#include "Sprite.h"
+#include "CommonDatas.h"
 
+
+enum CLIENT_STATES : int {
+	TITLE = 0 // 타이틀 화면
+	, LOBBY // 로비
+	, GAME // 게임
+	, SPECTATOR // 게임 관전
+	, GAME_OVER // 게임 완료
+	, GAME_RESTART // 게임 다시 참가
+	, EXIT // 클라이언트 종료
+
+};
 
 typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
 
@@ -29,6 +42,12 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	CLIENT_STATES status;
+
+	SOCKET my_socket;
+	SOCKADDR_IN	server_address;
+	int	player_index = 0;
+
 	COLORREF background_color = COLOR_WHITE;
 	const int WORLD_W, WORLD_H;
 
@@ -50,6 +69,7 @@ private:
 	int view_target_player;
 
 	PAINTSTRUCT painter;
+	vector<GameSprite*> sprites;
 };
 
 class WindowsClient {
