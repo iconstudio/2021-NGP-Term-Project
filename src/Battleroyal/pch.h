@@ -7,7 +7,24 @@
 #ifndef PCH_H
 #define PCH_H
 
-// 여기에 미리 컴파일하려는 헤더 추가
 #include "stdafx.h"
+
+constexpr COLORREF COLOR_BLACK = RGB(0, 0, 0);
+constexpr COLORREF COLOR_WHITE = RGB(255, 255, 255);
+constexpr COLORREF COLOR_GREY = RGB(128, 128, 128);
+constexpr COLORREF COLOR_LTGREY = RGB(192, 192, 192);
+constexpr COLORREF COLOR_DKGREY = RGB(64, 64, 64);
+constexpr COLORREF COLOR_SEMIBLACK = RGB(224, 224, 224);
+
+constexpr COLORREF COLOR_SALMON = RGB(255, 128, 128);
+constexpr COLORREF COLOR_RED = RGB(255, 0, 0);
+constexpr COLORREF COLOR_MAROON = RGB(128, 0, 0);
+constexpr COLORREF COLOR_LIME = RGB(0, 255, 0);
+constexpr COLORREF COLOR_GREEN = RGB(0, 128, 0);
+constexpr COLORREF COLOR_BLUE = RGB(0, 0, 255);
+constexpr COLORREF COLOR_NAVY = RGB(20, 18, 149);
+constexpr COLORREF COLOR_ORANGE = RGB(255, 128, 0);
+constexpr COLORREF COLOR_YELLOW = RGB(255, 255, 0);
+constexpr COLORREF COLOR_GOLD = RGB(223, 130, 20);
 
 #endif //PCH_H

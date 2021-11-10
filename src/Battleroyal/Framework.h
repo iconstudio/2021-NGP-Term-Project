@@ -16,15 +16,40 @@ public:
 
 	void Initialize();
 	void Update();
-	void Render();
+	void Render(HWND window);
 
-	void on_mousedown(WPARAM button, LPARAM cursor);
-	void on_mouseup(WPARAM button, LPARAM cursor);
-	void on_keydown(WPARAM key);
-	void on_keyup(WPARAM key);
-	void input_register(WPARAM virtual_button);
-	bool input_check(WPARAM virtual_button);
-	bool input_check_pressed(WPARAM virtual_button);
+	void InputRegister(WPARAM virtual_button);
+	bool InputCheck(WPARAM virtual_button);
+	bool InputCheckPressed(WPARAM virtual_button);
+
+	void OnMouseDown(WPARAM button, LPARAM cursor);
+	void OnMouseUp(WPARAM button, LPARAM cursor);
+
+	void ViewTrackEnable(bool flag);
+	void ViewSetTarget(int target_player);
+	void ViewSetPosition(int vx, int vy);
+
+	COLORREF background_color = COLOR_WHITE;
+	const int WORLD_W, WORLD_H;
+
+private:
+	class CInputChecker {
+	public:
+		int time = -1;
+
+		void on_press() { time++; }
+		void on_release() { time = -1; }
+		bool is_pressing() const { return (0 <= time); }
+		bool is_pressed() const { return (0 == time); }
+	};
+
+	map<WPARAM, CInputChecker> key_checkers;
+
+	struct { int x, y, w, h, xoff, yoff; } view, port;
+	bool view_track_enabled;
+	int view_target_player;
+
+	PAINTSTRUCT painter;
 };
 
 class WindowsClient {
