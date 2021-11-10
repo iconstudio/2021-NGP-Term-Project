@@ -55,14 +55,13 @@ public:
 	~ServerFramework();
 
 	void Initialize();
-	void msg_update();
 	void Update();
 
 	void StartDelta();
 	void InspectDelta();
 
 	template<class Predicate>
-	void for_each_instances(Predicate predicate);
+	void ForeachInstances(Predicate predicate);
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -95,7 +94,7 @@ public:
 };
 
 template<class Predicate>
-inline void ServerFramework::for_each_instances(Predicate predicate) {
+inline void ServerFramework::ForeachInstances(Predicate predicate) {
 	if (!instances.empty()) {
 		auto CopyList = vector<GameInstance*>(instances);
 

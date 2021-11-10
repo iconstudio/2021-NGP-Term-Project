@@ -87,7 +87,7 @@ void ServerFramework::Update() {
 	// get a elapsed second
 	delta_time =  ((double)elapsed / (double)tick_type::period::den);
 
-	for_each_instances([&](GameInstance*& inst) {
+	ForeachInstances([&](GameInstance*& inst) {
 		inst->OnUpdate(delta_time);
 	});
 
