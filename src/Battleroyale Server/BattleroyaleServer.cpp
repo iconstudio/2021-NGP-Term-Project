@@ -20,13 +20,7 @@ int main() {
 	}
 
 	framework.Initialize();
-
-	while (true) {
-		framework.Update();
-		cout << "Sleep: " << FRAME_TIME << endl;
-
-		Sleep(FRAME_TIME);
-	}
+	framework.Startup();
 
 	return 0;
 }
