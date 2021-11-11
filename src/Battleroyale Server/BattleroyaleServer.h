@@ -3,9 +3,6 @@
 #include "CommonDatas.h"
 
 
-DWORD WINAPI CommunicateProcess(LPVOID arg);
-DWORD WINAPI GameProcess(LPVOID arg);
-
 class CCharacter : public GameInstance {
 public:
 	CCharacter();
