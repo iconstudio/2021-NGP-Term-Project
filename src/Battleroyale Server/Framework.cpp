@@ -55,6 +55,17 @@ void ServerFramework::Update() {
 	switch (status) {
 		case LISTEN:
 		{
+			SOCKADDR_IN address;
+			int address_length = sizeof(address);
+
+			int result = accept(my_socket, (SOCKADDR*)&address, &address_length);
+			if (SOCKET_ERROR == result) {
+				// 오류
+				cerr << "accept 오류!";
+				return;
+			}
+
+
 
 		}
 		break;
@@ -64,6 +75,27 @@ void ServerFramework::Update() {
 
 		}
 		break;
+
+		case GAME:
+		{
+
+		}
+		break;
+
+		case GAME_OVER:
+		{
+
+		}
+		break;
+
+		case GAME_RESTART:
+		{
+
+		}
+		break;
+
+		case EXIT: {}
+			break;
 
 		default:
 			break;
