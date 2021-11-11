@@ -76,28 +76,28 @@ void ClientFramework::Update() {
 
 		case GAME:
 		{
-
+			// 코드
+			if (view_track_enabled) {
+				if (view_target_player != -1) {
+					//ViewSetPosition(view_target->x, view_target->y);
+				}
+			}
 		}
 		break;
 
 
 		case SPECTATOR:
 		{
-
+			if (view_track_enabled) {
+				if (view_target_player != -1) {
+					//ViewSetPosition(view_target->x, view_target->y);
+				}
+			}
 		}
 		break;
 
-
 		default:
 			break;
-	}
-
-	// 코드
-
-	if (view_track_enabled) {
-		if (view_target_player != -1) {
-			//ViewSetPosition(view_target->x, view_target->y);
-		}
 	}
 }
 
