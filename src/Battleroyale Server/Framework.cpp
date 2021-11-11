@@ -31,24 +31,26 @@ ServerFramework::~ServerFramework() {
 	CloseHandle(event_send_renders);
 }
 
-void ServerFramework::Initialize() {
+bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
 		// 오류
-		return;
+		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
 		// 오류
-		return;
+		return false;
 	}
 
 	int result = listen(my_socket, PLAYERS_NUMBER_MAX + 1);
 	if (SOCKET_ERROR == result) {
 		// 오류
-		return;
+		return false;
 	}
+
+	return true;
 }
 
 void ServerFramework::Update() {
