@@ -1,6 +1,33 @@
 #include "pch.h"
 #include "Framework.h"
 
+// 소켓 함수 오류 출력 후 종료
+void ErrorQuit(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+// 소켓 함수 오류 출력
+void DisplayError(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
