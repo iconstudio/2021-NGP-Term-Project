@@ -87,7 +87,7 @@ void ServerFramework::Update() {
 			SOCKADDR_IN address;
 			int address_length = sizeof(address);
 
-			int result = accept(my_socket, (SOCKADDR*)&address, &address_length);
+			int result = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
 			if (SOCKET_ERROR == result) {
 				// 오류
 				cerr << "accept 오류!";

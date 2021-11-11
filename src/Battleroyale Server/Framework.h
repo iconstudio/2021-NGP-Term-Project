@@ -50,7 +50,7 @@ public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
-	void Initialize();
+	bool Initialize();
 	void Update();
 
 	void PlayerConnect(int player);
