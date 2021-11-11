@@ -1,7 +1,8 @@
 #include "pch.h"
+#include "CommonDatas.h"
 #include "Framework.h"
 
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â ÈÄ Á¾·á
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥ í›„ ì¢…ë£Œ
 void ErrorQuit(std::string msg)
 {
 	LPVOID lpMsgBuf;
@@ -9,14 +10,14 @@ void ErrorQuit(std::string msg)
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	// ÇÁ·ÎÁ§Æ® ¼³Á¤ÀÇ ¹®ÀÚ ÁıÇÕ ¸ÖÆ¼¹ÙÀÌÆ®·Î º¯°æÇÏ¿© »ç¿ë
+	// í”„ë¡œì íŠ¸ ì„¤ì •ì˜ ë¬¸ì ì§‘í•© ë©€í‹°ë°”ì´íŠ¸ë¡œ ë³€ê²½í•˜ì—¬ ì‚¬ìš©
 	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
 	exit(true);
 }
 
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥
 void DisplayError(std::string msg)
 {
 	LPVOID lpMsgBuf;
@@ -32,7 +33,10 @@ void DisplayError(std::string msg)
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
-	, client_number(0), player_captain(-1) {
+	, my_socket(0), my_address(), client_number(0)
+	, player_number_last(0), player_captain(-1) {
+
+	players.reserve(PLAYERS_NUMBER_MAX);
 
 	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
 
@@ -49,10 +53,12 @@ ServerFramework::ServerFramework(int rw, int rh)
 ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
-	for (HANDLE player : player_handles) {
-		CloseHandle(player);
+	for (auto& player : players) {
+		CloseHandle(player->client_handle);
 	}
+	players.clear();
 
+	CloseHandle(thread_game_process);
 	CloseHandle(event_receives);
 	CloseHandle(event_game_process);
 	CloseHandle(event_send_renders);
@@ -61,63 +67,81 @@ ServerFramework::~ServerFramework() {
 bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return false;
 	}
 
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	my_address.sin_port = htons(SERVERPORT);		// ¼­¹ö Æ÷Æ® Ãß°¡ ÇÊ¿ä
+  my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		// ¿À·ù
 		ErrorQuit("bind()");
 		return false;
 	}
 
 	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
-		// ¿À·ù
 		ErrorQuit("listen()");
 		return false;
 	}
 
+	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 	return true;
 }
 
-void ServerFramework::Update() {
+void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			SOCKADDR_IN address;
-			int address_length = sizeof(address);
+			cout << "ì²«ë²ˆì§¸ í´ë¼ì´ì–¸íŠ¸ ëŒ€ê¸° ì¤‘" << endl;
 
-			int result = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
-			if (SOCKET_ERROR == result) {
-				// ¿À·ù
-				cerr << "accept ¿À·ù!";
-				return;
+			while (true) {
+				SOCKET new_client = PlayerConnect(0);
+				if (INVALID_SOCKET == new_client) {
+					cerr << "accept ì˜¤ë¥˜!";
+					return;
+				}
+
+				// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´ ì ‘ì†
+				SetStatus(LOBBY);
+				break;
 			}
-
-
 		}
 		break;
 
 		case LOBBY:
 		{
+			cout << "ëŒ€ê¸°ì‹¤ ì…ì¥" << endl;
 
+			while (true) {
+				SOCKET new_client = PlayerConnect(0);
+				if (INVALID_SOCKET == new_client) {
+					cerr << "ë¡œë¹„: accept ì˜¤ë¥˜!";
+					return;
+				}
+
+				if (status != LOBBY) {
+					break;
+				}
+			}
 		}
 		break;
 
 		case GAME:
 		{
+			while (true) {
 
+				//cout << "Sleep: " << FRAME_TIME << endl;
+
+				Sleep(FRAME_TIME);
+			}
 		}
 		break;
 
@@ -143,6 +167,46 @@ void ServerFramework::Update() {
 	ForeachInstances([&](GameInstance*& inst) {
 		inst->OnUpdate(FRAME_TIME);
 	});
+}
+
+SOCKET ServerFramework::PlayerConnect(int player) {
+	SOCKADDR_IN address;
+	int address_length = sizeof(address);
+
+	SOCKET new_client = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
+	if (INVALID_SOCKET == new_client) {
+		// ì˜¤ë¥˜
+		return new_client;
+	}
+
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, nullptr, 0, NULL);
+
+	players.emplace_back(new PlayerInfo(new_client, new_thread, player_number_last++));
+	client_number++;
+
+	return new_client;
+}
+
+void ServerFramework::PlayerDisconnect(int player) {
+	auto dit = find_if(players.begin(), players.end(), [player](PlayerInfo* pi) {
+		return (pi->index == player);
+	});
+
+	if (dit != players.end()) {
+		closesocket((*dit)->client_socket);
+		CloseHandle((*dit)->client_handle);
+		players.erase(dit);
+
+		client_number--;
+	}
+}
+
+void ServerFramework::SetStatus(SERVER_STATES state) {
+	if (status != state) {
+		cout << "ì„œë²„ ìƒíƒœ ë³€ê²½: " << status << " -> " << state << endl;
+
+		status = state;
+	}
 }
 
 GameInstance::GameInstance()
@@ -198,4 +262,10 @@ bool GameInstance::IsCollideWith(GameInstance*& other) {
 			 || other->GetBoundBT() <= GetBoundTP()
 			 || GetBoundRT() < other->GetBoundLT()
 			 || GetBoundBT() < other->GetBoundTP());
+}
+
+PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
+	client_socket = sk;
+	client_handle = hd;
+	index = id;
 }

@@ -20,12 +20,7 @@ int main() {
 		return 0;
 	}
 
-	while (true) {
-		framework.Update();
-		cout << "Sleep: " << FRAME_TIME << endl;
-
-		Sleep(FRAME_TIME);
-	}
+	framework.Startup();
 
 	WSACleanup();
 }
