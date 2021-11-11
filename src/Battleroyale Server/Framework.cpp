@@ -32,6 +32,12 @@ ServerFramework::~ServerFramework() {
 }
 
 void ServerFramework::Initialize() {
+	WSADATA wsadata;
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+		// 오류
+		return;
+	}
+
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
 		// 오류
@@ -43,8 +49,6 @@ void ServerFramework::Initialize() {
 		// 오류
 		return;
 	}
-
-
 }
 
 void ServerFramework::Update() {
