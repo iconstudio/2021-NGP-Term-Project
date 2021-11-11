@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "CommonDatas.h"
 #include "Framework.h"
 
 
@@ -53,6 +54,17 @@ void ServerFramework::Initialize() {
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
+		// 오류
+		return;
+	}
+
+	ZeroMemory(&my_address, sizeof(my_address));
+	my_address.sin_family = AF_INET;
+	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	my_address.sin_port = htons(COMMON_PORT);
+
+	int result = bind(my_socket, (SOCKADDR*)(&my_address), sizeof(my_address));
+	if (SOCKET_ERROR == result) {
 		// 오류
 		return;
 	}
