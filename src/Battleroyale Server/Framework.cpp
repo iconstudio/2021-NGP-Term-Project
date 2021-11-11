@@ -22,7 +22,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
-	for (HANDLE player : players) {
+	for (HANDLE player : player_handles) {
 		CloseHandle(player);
 	}
 
@@ -64,7 +64,6 @@ void ServerFramework::Update() {
 				cerr << "accept ¿À·ù!";
 				return;
 			}
-
 
 
 		}

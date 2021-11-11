@@ -40,6 +40,10 @@ private:
 	bool dead;
 };
 
+struct PlayerInfo {
+	SOCKET client_socket;
+	int index; // 플레이어 번호
+};
 
 class ServerFramework {
 public:
@@ -48,6 +52,9 @@ public:
 
 	void Initialize();
 	void Update();
+
+	void PlayerConnect(int player);
+	void PlayerDisconnect(int player);
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
@@ -63,7 +70,9 @@ public:
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
-	HANDLE players[PLAYERS_NUMBER_MAX];
+
+	vector<PlayerInfo*> players; // 플레이어 목록
+	HANDLE player_handles[PLAYERS_NUMBER_MAX];
 
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
@@ -73,11 +82,12 @@ private:
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
-	int	client_number;
-	int	player_captain;
+	int	client_number; // 지금 접속한 플레이어의 수
+	int player_number_last; // 마지막에 추가된 플레이어의 번호
+	int	player_captain; // 방장 플레이어
 
 	vector<GameInstance*> instances;
-	vector<int> player_queue;
+	vector<int> player_msg_queue;
 };
 
 template<class Predicate>
