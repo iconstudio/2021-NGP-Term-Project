@@ -69,7 +69,7 @@ void ServerFramework::Initialize() {
 		return;
 	}
 
-	int result = listen(my_socket, PLAYERS_NUMBER_MAX + 1);
+	result = listen(my_socket, PLAYERS_NUMBER_MAX + 1);
 	if (SOCKET_ERROR == result) {
 		// ¿À·ù
 		return;
