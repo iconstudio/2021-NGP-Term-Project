@@ -39,8 +39,8 @@ ServerFramework::ServerFramework(int rw, int rh)
 	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
 	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
 		double dir = dir_increment * i;
-		int cx = (int)(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
-		int cy = (int)(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
+		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
+		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
 
 		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
 	}
