@@ -20,6 +20,7 @@ int main() {
 	}
 
 	framework.Initialize();
+
 	while (true) {
 		framework.Update();
 		cout << "Sleep: " << FRAME_TIME << endl;
