@@ -58,8 +58,8 @@ void ServerFramework::Update() {
 			SOCKADDR_IN address;
 			int address_length = sizeof(address);
 
-			int result = accept(my_socket, (SOCKADDR*)&address, &address_length);
-			if (SOCKET_ERROR == result) {
+			SOCKET client = accept(my_socket, (SOCKADDR*)&address, &address_length);
+			if (INVALID_SOCKET == client) {
 				// 오류
 				cerr << "accept 오류!";
 				return;
