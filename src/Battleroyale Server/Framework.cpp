@@ -5,7 +5,10 @@
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
-	, client_number(0), player_captain(-1) {
+	, my_socket(0), my_address(), client_number(0)
+	, player_number_last(0), player_captain(-1) {
+
+	players.reserve(PLAYERS_NUMBER_MAX);
 
 	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
 
@@ -22,13 +25,23 @@ ServerFramework::ServerFramework(int rw, int rh)
 ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
-	for (HANDLE player : player_handles) {
-		CloseHandle(player);
+	for (auto& player : players) {
+		CloseHandle(player->client_handle);
 	}
+	players.clear();
 
+	CloseHandle(thread_game_process);
 	CloseHandle(event_receives);
 	CloseHandle(event_game_process);
 	CloseHandle(event_send_renders);
+}
+
+void ServerFramework::SetStatus(SERVER_STATES state) {
+	if (status != state) {
+		cout << "서버 상태 변경: " << status << " -> " << state << endl;
+
+		status = state;
+	}
 }
 
 void ServerFramework::Initialize() {
@@ -49,35 +62,56 @@ void ServerFramework::Initialize() {
 		// 오류
 		return;
 	}
+
+	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 }
 
-void ServerFramework::Update() {
+void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			SOCKADDR_IN address;
-			int address_length = sizeof(address);
+			cout << "첫번째 클라이언트 대기 중" << endl;
 
-			SOCKET client = accept(my_socket, (SOCKADDR*)&address, &address_length);
-			if (INVALID_SOCKET == client) {
-				// 오류
-				cerr << "accept 오류!";
-				return;
+			while (true) {
+				SOCKET new_client = PlayerConnect(0);
+				if (INVALID_SOCKET == new_client) {
+					cerr << "accept 오류!";
+					return;
+				}
+
+				// 첫번째 플레이어 접속
+				SetStatus(LOBBY);
+				break;
 			}
-
-
 		}
 		break;
 
 		case LOBBY:
 		{
+			cout << "대기실 입장" << endl;
 
+			while (true) {
+				SOCKET new_client = PlayerConnect(0);
+				if (INVALID_SOCKET == new_client) {
+					cerr << "로비: accept 오류!";
+					return;
+				}
+
+				if (status != LOBBY) {
+					break;
+				}
+			}
 		}
 		break;
 
 		case GAME:
 		{
+			while (true) {
 
+				//cout << "Sleep: " << FRAME_TIME << endl;
+
+				Sleep(FRAME_TIME);
+			}
 		}
 		break;
 
@@ -103,6 +137,38 @@ void ServerFramework::Update() {
 	ForeachInstances([&](GameInstance*& inst) {
 		inst->OnUpdate(FRAME_TIME);
 	});
+}
+
+SOCKET ServerFramework::PlayerConnect(int player) {
+	SOCKADDR_IN address;
+	int address_length = sizeof(address);
+
+	SOCKET new_client = accept(my_socket, (SOCKADDR*)&address, &address_length);
+	if (INVALID_SOCKET == new_client) {
+		// 오류
+		return new_client;
+	}
+
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, nullptr, 0, NULL);
+
+	players.emplace_back(new PlayerInfo(new_client, new_thread, player_number_last++));
+	client_number++;
+
+	return new_client;
+}
+
+void ServerFramework::PlayerDisconnect(int player) {
+	auto dit = find_if(players.begin(), players.end(), [player](PlayerInfo* pi) {
+		return (pi->index == player);
+	});
+
+	if (dit != players.end()) {
+		closesocket((*dit)->client_socket);
+		CloseHandle((*dit)->client_handle);
+		players.erase(dit);
+
+		client_number--;
+	}
 }
 
 GameInstance::GameInstance()
@@ -158,4 +224,10 @@ bool GameInstance::IsCollideWith(GameInstance*& other) {
 			 || other->GetBoundBT() <= GetBoundTP()
 			 || GetBoundRT() < other->GetBoundLT()
 			 || GetBoundBT() < other->GetBoundTP());
+}
+
+PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
+	client_socket = sk;
+	client_handle = hd;
+	index = id;
 }

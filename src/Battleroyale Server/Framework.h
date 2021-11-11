@@ -3,6 +3,18 @@
 #include "CommonDatas.h"
 
 
+
+DWORD WINAPI CommunicateProcess(LPVOID arg);
+DWORD WINAPI GameProcess(LPVOID arg);
+
+struct PlayerInfo {
+	SOCKET client_socket;
+	HANDLE client_handle;
+	int index; // 플레이어 번호
+
+	PlayerInfo(SOCKET sk, HANDLE hd, int id);
+};
+
 enum SERVER_STATES : int {
 	LISTEN = 0			// 클라이언트 접속 대기
 	, LOBBY				// 로비
@@ -40,20 +52,16 @@ private:
 	bool dead;
 };
 
-struct PlayerInfo {
-	SOCKET client_socket;
-	int index; // 플레이어 번호
-};
-
 class ServerFramework {
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
+	void SetStatus(SERVER_STATES state);
 	void Initialize();
-	void Update();
+	void Startup();
 
-	void PlayerConnect(int player);
+	SOCKET PlayerConnect(int player);
 	void PlayerDisconnect(int player);
 
 	template<class Predicate>
@@ -72,8 +80,9 @@ private:
 	SOCKADDR_IN	my_address;
 
 	vector<PlayerInfo*> players; // 플레이어 목록
-	HANDLE player_handles[PLAYERS_NUMBER_MAX];
+	//HANDLE player_handles[PLAYERS_NUMBER_MAX];
 
+	HANDLE thread_game_process;
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
