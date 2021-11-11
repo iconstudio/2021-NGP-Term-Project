@@ -2,6 +2,33 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥ í›„ ì¢…ë£Œ
+void ErrorQuit(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// í”„ë¡œì íŠ¸ ì„¤ì •ì˜ ë¬¸ì ì§‘í•© ë©€í‹°ë°”ì´íŠ¸ë¡œ ë³€ê²½í•˜ì—¬ ì‚¬ìš©
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥
+void DisplayError(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
@@ -16,8 +43,8 @@ ServerFramework::ServerFramework(int rw, int rh)
 	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
 	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
 		double dir = dir_increment * i;
-		int cx = (int)(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
-		int cy = (int)(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
+		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
+		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
 
 		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
 	}
@@ -37,61 +64,52 @@ ServerFramework::~ServerFramework() {
 	CloseHandle(event_send_renders);
 }
 
-void ServerFramework::SetStatus(SERVER_STATES state) {
-	if (status != state) {
-		cout << "¼­¹ö »óÅÂ º¯°æ: " << status << " -> " << state << endl;
-
-		status = state;
-	}
-}
-
-void ServerFramework::Initialize() {
+bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ¿À·ù
-		return;
+		// ì˜¤ë¥˜
+		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ¿À·ù
-		return;
+		// ì˜¤ë¥˜
+		return false;
 	}
 
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	my_address.sin_port = htons(COMMON_PORT);
+  my_address.sin_port = htons(COMMON_PORT);
 
-	int result = bind(my_socket, (SOCKADDR*)(&my_address), sizeof(my_address));
-	if (SOCKET_ERROR == result) {
-		// ¿À·ù
-		return;
+	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
+		ErrorQuit("bind()");
+		return false;
 	}
 
-	result = listen(my_socket, PLAYERS_NUMBER_MAX + 1);
-	if (SOCKET_ERROR == result) {
-		// ¿À·ù
-		return;
+	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
+		ErrorQuit("listen()");
+		return false;
 	}
 
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+	return true;
 }
 
 void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			cout << "Ã¹¹øÂ° Å¬¶óÀÌ¾ğÆ® ´ë±â Áß" << endl;
+			cout << "ì²«ë²ˆì§¸ í´ë¼ì´ì–¸íŠ¸ ëŒ€ê¸° ì¤‘" << endl;
 
 			while (true) {
 				SOCKET new_client = PlayerConnect(0);
 				if (INVALID_SOCKET == new_client) {
-					cerr << "accept ¿À·ù!";
+					cerr << "accept ì˜¤ë¥˜!";
 					return;
 				}
 
-				// Ã¹¹øÂ° ÇÃ·¹ÀÌ¾î Á¢¼Ó
+				// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´ ì ‘ì†
 				SetStatus(LOBBY);
 				break;
 			}
@@ -100,12 +118,12 @@ void ServerFramework::Startup() {
 
 		case LOBBY:
 		{
-			cout << "´ë±â½Ç ÀÔÀå" << endl;
+			cout << "ëŒ€ê¸°ì‹¤ ì…ì¥" << endl;
 
 			while (true) {
 				SOCKET new_client = PlayerConnect(0);
 				if (INVALID_SOCKET == new_client) {
-					cerr << "·Îºñ: accept ¿À·ù!";
+					cerr << "ë¡œë¹„: accept ì˜¤ë¥˜!";
 					return;
 				}
 
@@ -155,9 +173,9 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
 
-	SOCKET new_client = accept(my_socket, (SOCKADDR*)&address, &address_length);
+	SOCKET new_client = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
 	if (INVALID_SOCKET == new_client) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return new_client;
 	}
 
@@ -180,6 +198,14 @@ void ServerFramework::PlayerDisconnect(int player) {
 		players.erase(dit);
 
 		client_number--;
+	}
+}
+
+void ServerFramework::SetStatus(SERVER_STATES state) {
+	if (status != state) {
+		cout << "ì„œë²„ ìƒíƒœ ë³€ê²½: " << status << " -> " << state << endl;
+
+		status = state;
 	}
 }
 

@@ -14,15 +14,15 @@ const double SNOWBALL_VELOCITY = km_per_hr(50);
 int main() {
 	cout << "Hello World!\n";
 
-	WSADATA wsadata;
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+	if (!framework.Initialize())
+	{
+		WSACleanup();
 		return 0;
 	}
 
-	framework.Initialize();
 	framework.Startup();
 
-	return 0;
+	WSACleanup();
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
