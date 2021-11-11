@@ -71,9 +71,20 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
-	int result = listen(my_socket, PLAYERS_NUMBER_MAX + 1);
-	if (SOCKET_ERROR == result) {
+	ZeroMemory(&my_address, sizeof(my_address));
+	my_address.sin_family = AF_INET;
+	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	my_address.sin_port = htons(SERVERPORT);		// 서버 포트 추가 필요
+
+	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
 		// 오류
+		ErrorQuit("bind()");
+		return false;
+	}
+
+	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
+		// 오류
+		ErrorQuit("listen()");
 		return false;
 	}
 
