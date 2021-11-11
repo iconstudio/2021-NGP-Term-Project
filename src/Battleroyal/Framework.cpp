@@ -13,9 +13,35 @@ ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	port.x = (CLIENT_W - pw) * 0.5;
 }
 
-ClientFramework::~ClientFramework() {}
+ClientFramework::~ClientFramework() {
+	closesocket(my_socket);
+}
 
 void ClientFramework::Initialize() {
+	WSADATA wsadata;
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+		// 오류
+		return;
+	}
+
+	my_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (INVALID_SOCKET == my_socket) {
+		// 오류
+		return;
+	}
+
+	auto address_size = sizeof(server_address);
+	ZeroMemory(&server_address, address_size);
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
+	server_address.sin_port = htons(SERVER_PT);
+
+	int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
+	if (SOCKET_ERROR == result) {
+		// 오류
+		return;
+	}
+
 	InputRegister(MK_LBUTTON);
 	InputRegister(MK_RBUTTON);
 	InputRegister(MK_MBUTTON);
@@ -33,6 +59,37 @@ void ClientFramework::Update() {
 		} else if (check & 0x8000) {
 			state.on_press();
 		}
+	}
+
+	switch (status) {
+		case TITLE:
+		{
+
+		}
+		break;
+
+		case LOBBY:
+		{
+
+		}
+		break;
+
+		case GAME:
+		{
+
+		}
+		break;
+
+
+		case SPECTATOR:
+		{
+
+		}
+		break;
+
+
+		default:
+			break;
 	}
 
 	// 코드

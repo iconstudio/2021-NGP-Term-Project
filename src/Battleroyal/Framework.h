@@ -3,6 +3,8 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
 	TITLE = 0 // 타이틀 화면

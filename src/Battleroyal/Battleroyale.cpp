@@ -8,8 +8,8 @@
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
-WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+WCHAR szTitle[MAX_LOADSTRING];			// 제목 표시줄 텍스트입니다.
+WCHAR szWindowClass[MAX_LOADSTRING];	// 기본 창 클래스 이름입니다.
 
 WindowsClient game_client{ CLIENT_W, CLIENT_H };
 ClientFramework framework{ GAME_SCENE_W, GAME_SCENE_H, VIEW_W, VIEW_H, PORT_W, PORT_H };
@@ -29,8 +29,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		return FALSE;
 	}
 
+	framework.Initialize();
+
 	// 코드
 	framework.background_color = COLOR_NAVY;
+
 
 	MSG msg;
 	while (true) {
