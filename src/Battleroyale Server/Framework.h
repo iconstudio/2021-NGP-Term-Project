@@ -7,6 +7,9 @@
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
+void ErrorQuit(std::string msg);
+void ErrorDisplay(std::string msg);
+
 struct PlayerInfo {
 	SOCKET client_socket;
 	HANDLE client_handle;
@@ -81,7 +84,6 @@ private:
 	SOCKADDR_IN	my_address;
 
 	vector<PlayerInfo*> players; // 플레이어 목록
-	//HANDLE player_handles[PLAYERS_NUMBER_MAX];
 
 	HANDLE thread_game_process;
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체

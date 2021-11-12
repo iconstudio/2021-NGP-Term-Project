@@ -2,33 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-// 소켓 함수 오류 출력 후 종료
-void ErrorQuit(std::string msg)
-{
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
-
-	LocalFree(lpMsgBuf);
-	exit(true);
-}
-
-// 소켓 함수 오류 출력
-void DisplayError(std::string msg)
-{
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
-
-	LocalFree(lpMsgBuf);
-}
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
@@ -38,7 +11,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 
-	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
+	PLAYER_SPAWN_PLACES = new int*[PLAYERS_NUMBER_MAX];
 
 	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
 	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
@@ -80,7 +53,7 @@ bool ServerFramework::Initialize() {
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-  my_address.sin_port = htons(COMMON_PORT);
+	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
 		ErrorQuit("bind()");
@@ -93,6 +66,7 @@ bool ServerFramework::Initialize() {
 	}
 
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+
 	return true;
 }
 
@@ -121,7 +95,7 @@ void ServerFramework::Startup() {
 			cout << "대기실 입장" << endl;
 
 			while (true) {
-				SOCKET new_client = PlayerConnect(0);
+				SOCKET new_client = PlayerConnect(player_number_last);
 				if (INVALID_SOCKET == new_client) {
 					cerr << "로비: accept 오류!";
 					return;
@@ -137,8 +111,9 @@ void ServerFramework::Startup() {
 		case GAME:
 		{
 			while (true) {
-
-				//cout << "Sleep: " << FRAME_TIME << endl;
+				ForeachInstances([&](GameInstance*& inst) {
+					inst->OnUpdate(FRAME_TIME);
+				});
 
 				Sleep(FRAME_TIME);
 			}
@@ -158,15 +133,11 @@ void ServerFramework::Startup() {
 		break;
 
 		case EXIT: {}
-			break;
+				 break;
 
 		default:
 			break;
 	}
-
-	ForeachInstances([&](GameInstance*& inst) {
-		inst->OnUpdate(FRAME_TIME);
-	});
 }
 
 SOCKET ServerFramework::PlayerConnect(int player) {
@@ -268,4 +239,28 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
 	client_handle = hd;
 	index = id;
+}
+
+void ErrorQuit(std::string msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+void ErrorDisplay(std::string msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
 }
