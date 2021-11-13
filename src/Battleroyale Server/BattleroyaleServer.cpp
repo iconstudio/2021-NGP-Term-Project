@@ -41,10 +41,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (SOCKET_ERROR == result) {
-			//framework.PlayerDisconnect(client_info);
+			framework.PlayerDisconnect(client_info);
 			break;
 		} else if (0 == result) {
-			//framework.PlayerDisconnect(client_info);
+			framework.PlayerDisconnect(client_info);
 			break;
 		}
 
