@@ -27,9 +27,58 @@ int main() {
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	CCharacter* player_character;
+	SOCKET client_socket = reinterpret_cast<SOCKET>(&arg);
 
 	while (true) {
+		PacketMessage* packet = nullptr;
+		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
+						  , sizeof(PacketMessage), MSG_WAITALL);
+		if (SOCKET_ERROR == result) {
+			break;
+		} else if (0 == result) {
+			break;
+		}
+		
+		int data_size = packet->size;
 
+		void* data = nullptr;
+		if (0 < data_size) {
+			result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
+		}
+
+		switch (framework.status) {
+			case LOBBY:
+			{
+				cout << "대기실 입장" << endl;
+
+
+			}
+			break;
+
+			case GAME:
+			{
+
+			}
+			break;
+
+			case GAME_OVER:
+			{
+
+			}
+			break;
+
+			case GAME_RESTART:
+			{
+
+			}
+			break;
+
+			case EXIT: {}
+					 break;
+
+			default:
+				break;
+		}
 	}
 
 	return 0;
