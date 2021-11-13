@@ -80,7 +80,7 @@ void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			//cout << "첫번째 클라이언트 대기 중" << endl;
+			cout << "첫번째 클라이언트 대기 중" << endl;
 
 			while (true) {
 				SOCKET new_client = PlayerConnect(0);
@@ -101,14 +101,14 @@ void ServerFramework::Startup() {
 			cout << "대기실 입장" << endl;
 
 			while (true) {
+				if (status != LOBBY) {
+					break;
+				}
+
 				SOCKET new_client = PlayerConnect(player_number_last);
 				if (INVALID_SOCKET == new_client) {
 					cerr << "로비: accept 오류!";
 					return;
-				}
-
-				if (status != LOBBY) {
-					break;
 				}
 			}
 		}
@@ -158,7 +158,6 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 
 
 	auto client_info = new PlayerInfo(new_client, 0, player_number_last++);
-	//HANDLE new_thread =
 	CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, (LPDWORD)(&client_info->client_handle));
 
 	players.emplace_back(client_info);
@@ -175,6 +174,7 @@ void ServerFramework::PlayerDisconnect(int player) {
 	if (dit != players.end()) {
 		closesocket((*dit)->client_socket);
 		CloseHandle((*dit)->client_handle);
+		Kill((*dit)->player_character);
 		players.erase(dit);
 
 		client_number--;
