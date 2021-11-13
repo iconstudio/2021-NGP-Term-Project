@@ -114,17 +114,6 @@ void ClientFramework::Update() {
 
 			// ÄÚµå
 			SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
-			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
-			if (retval == SOCKET_ERROR)
-			{
-				DisplayError("send()");
-			}
-
-			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
-			if (retval == SOCKET_ERROR)
-			{
-				DisplayError("send()");
-			}
 
 			if (view_track_enabled) {
 				if (view_target_player != -1) {
