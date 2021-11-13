@@ -1,6 +1,7 @@
 ﻿#include "BattleroyaleServer.h"
 #include "pch.h"
 #include "CommonDatas.h"
+#include "Framework.h"
 
 
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };

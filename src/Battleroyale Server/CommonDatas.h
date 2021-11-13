@@ -26,7 +26,7 @@ enum PACKETS : int {
 };
 
 struct PacketMessage {
-	const PACKETS type;
+	PACKETS type;
 	int size;
 };
 
@@ -44,7 +44,7 @@ enum RENDER_TYPES : int {
 };
 
 struct RenderInstance {
-	const RENDER_TYPES instance_type;
+	RENDER_TYPES instance_type;
 
 	int sprite_index;
 	double x, y, angle;
