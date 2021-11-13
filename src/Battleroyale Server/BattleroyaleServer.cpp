@@ -39,19 +39,20 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		int data_size = 0;
 		void* data = nullptr;
 
+		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
+								  , sizeof(PacketMessage), MSG_WAITALL);
+		if (SOCKET_ERROR == result) {
+			framework.PlayerDisconnect(player_index);
+			break;
+		} else if (0 == result) {
+			framework.PlayerDisconnect(player_index);
+			break;
+		}
+
 		switch (framework.status) {
 			case LOBBY:
 			{
 				// 방장의 게임 시작 메시지
-				int result = recv(client_socket, reinterpret_cast<char*>(&packet)
-								  , sizeof(PacketMessage), MSG_WAITALL);
-				if (SOCKET_ERROR == result) {
-					framework.PlayerDisconnect(player_index);
-					break;
-				} else if (0 == result) {
-					framework.PlayerDisconnect(player_index);
-					break;
-				}
 
 				// 게임 초기화
 				if (player_index == framework.player_captain
@@ -69,17 +70,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				// 꾸준한 통신
 				while (true) {
 					WaitForSingleObject(framework.event_receives, INFINITE);
-
-					int result = recv(client_socket, reinterpret_cast<char*>(&packet)
-									  , sizeof(PacketMessage), MSG_WAITALL);
-					if (SOCKET_ERROR == result) {
-						break;
-					} else if (0 == result) {
-						break;
-					}
-
-					int data_size = packet->size;
-					void* data = nullptr;
 
 					if (0 < data_size) {
 						result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
@@ -112,6 +102,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		}
 	}
 
+	closesocket(client_socket);
 	return 0;
 }
 

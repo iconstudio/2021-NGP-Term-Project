@@ -179,7 +179,6 @@ void ServerFramework::PlayerDisconnect(int player) {
 	if (dit != players.end()) {
 		auto player = (*dit);
 
-		closesocket(player->client_socket);
 		CloseHandle(player->client_handle);
 
 		auto character = player->player_character;
