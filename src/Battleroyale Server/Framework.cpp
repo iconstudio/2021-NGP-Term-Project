@@ -65,6 +65,12 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
+	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
+	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 
 	return true;
@@ -150,9 +156,12 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 		return new_client;
 	}
 
-	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, nullptr, 0, NULL);
 
-	players.emplace_back(new PlayerInfo(new_client, new_thread, player_number_last++));
+	auto client_info = new PlayerInfo(new_client, 0, player_number_last++);
+	//HANDLE new_thread =
+	CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, (LPDWORD)(&client_info->client_handle));
+
+	players.emplace_back(client_info);
 	client_number++;
 
 	return new_client;
