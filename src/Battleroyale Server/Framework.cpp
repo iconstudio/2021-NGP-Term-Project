@@ -190,15 +190,14 @@ void ServerFramework::PlayerDisconnect(int player) {
 		players.erase(dit);
 		client_number--;
 
-		if (client_number < 2) { // 플레이어 0명 혹은 1명
+		// 플레이어 0명 혹은 1명
+		if (client_number < 2) {
 			switch (status) {
 				case LISTEN:
 				{
 					if (0 == client_number) {
 						players.clear();
 						instances.clear();
-					} else if (1 == client_number) {
-						player_captain = players.at(0)->index;
 					}
 				}
 				break;
@@ -206,7 +205,6 @@ void ServerFramework::PlayerDisconnect(int player) {
 				case LOBBY:
 				{
 					SetStatus(LISTEN);
-					player_captain = players.at(0)->index;
 				}
 				break;
 
@@ -216,16 +214,21 @@ void ServerFramework::PlayerDisconnect(int player) {
 				case EXIT: { /* 여기서 처리 안함 */ } break;
 				default: break;
 			}
-		} else if (player_captain == id) { // 방장이 나감
+		}
+
+		// 방장이 나감
+		if (player_captain == id) {
 			switch (status) {
 				case LISTEN:
 				{
-
-				} break;
+					if (0 < client_number)
+						player_captain = players.at(0)->index;
+				}
+				break;
 
 				case LOBBY:
 				{
-
+					player_captain = players.at(0)->index;
 				}
 				break;
 
