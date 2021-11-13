@@ -50,4 +50,21 @@ struct RenderInstance {
 	double x, y, angle;
 };
 
+int SendMyMessage(
+	SOCKET sk
+	, PACKETS type
+	, int size
+	, void* data
+) {
+	PacketMessage packet;
+	packet.type = type;
+	packet.size = size;
+
+	if (0 < size) {
+		return send(sk, reinterpret_cast<char*>(data), size, 0);
+	} else {
+		return send(sk, reinterpret_cast<char*>(&packet), sizeof(packet), 0);
+	}
+	
+}
 
