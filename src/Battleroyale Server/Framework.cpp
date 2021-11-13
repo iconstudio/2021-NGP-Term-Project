@@ -77,72 +77,77 @@ bool ServerFramework::Initialize() {
 }
 
 void ServerFramework::Startup() {
-	switch (status) {
-		case LISTEN:
-		{
-			cout << "Listening" << endl;
+	while (true) {
+		switch (status) {
+			case LISTEN:
+			{
+				cout << "Listening" << endl;
 
-			while (true) {
-				SOCKET new_client = PlayerConnect(0);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "accept 오류!";
-					return;
-				}
+				while (true) {
+					SOCKET new_client = PlayerConnect(0);
+					if (INVALID_SOCKET == new_client) {
+						cerr << "accept 오류!";
+						return;
+					}
 
-				// 첫번째 플레이어 접속
-				SetStatus(LOBBY);
-				break;
-			}
-		}
-		break;
-
-		case LOBBY:
-		{
-			cout << "대기실 입장" << endl;
-
-			while (true) {
-				if (status != LOBBY) {
+					// 첫번째 플레이어 접속
+					SetStatus(LOBBY);
 					break;
 				}
+			}
+			break;
 
-				SOCKET new_client = PlayerConnect(player_number_last);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "로비: accept 오류!";
-					return;
+			case LOBBY:
+			{
+				cout << "대기실 입장" << endl;
+
+				while (true) {
+					if (status != LOBBY) {
+						break;
+					}
+
+					SOCKET new_client = PlayerConnect(player_number_last);
+					if (INVALID_SOCKET == new_client) {
+						cerr << "로비: accept 오류!";
+						return;
+					}
 				}
 			}
-		}
-		break;
-
-		case GAME:
-		{
-			while (true) {
-				ForeachInstances([&](GameInstance*& inst) {
-					//inst->OnUpdate(FRAME_TIME);
-				});
-
-				Sleep(FRAME_TIME);
-			}
-		}
-		break;
-
-		case GAME_OVER:
-		{
-
-		}
-		break;
-
-		case GAME_RESTART:
-		{
-
-		}
-		break;
-
-		case EXIT: {}
-				 break;
-
-		default:
 			break;
+
+			case GAME:
+			{
+				while (true) {
+					ForeachInstances([&](GameInstance*& inst) {
+						//inst->OnUpdate(FRAME_TIME);
+					});
+
+					Sleep(FRAME_TIME);
+				}
+			}
+			break;
+
+			case GAME_OVER:
+			{
+
+			}
+			break;
+
+			case GAME_RESTART:
+			{
+
+			}
+			break;
+
+			case EXIT:
+			{
+				// 종료
+			}
+				return;
+
+			default:
+				break;
+		}
 	}
 }
 
