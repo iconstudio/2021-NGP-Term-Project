@@ -37,7 +37,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	while (true) {
 		PacketMessage* packet = nullptr;
 		int data_size = 0;
-		void* data = nullptr;
+		char* data = nullptr;
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
 								  , sizeof(PacketMessage), MSG_WAITALL);
@@ -73,12 +73,46 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (0 < data_size) {
-						result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
+						result = recv(client_socket, data, 1, MSG_WAITALL);
+						//result = recv(client_socket, data, data_size, MSG_WAITALL);
 					}
 
 					// 게임 초기화
 					if (packet->type == PACKETS::CLIENT_KEY_INPUT) {
-						
+						if (data) {
+							switch (*data) {
+								case 'W':
+								{
+									
+								}
+								break;
+
+								case 'A':
+								{
+
+								}
+								break;
+
+								case 'S':
+								{
+
+								}
+								break;
+
+								case 'D':
+								{
+
+								}
+								break;
+
+								case VK_SPACE:
+								{
+
+								}
+								break;
+
+							}
+						}
 					} // 다른 메시지는 버린다.
 
 					SetEvent(framework.event_game_process);
