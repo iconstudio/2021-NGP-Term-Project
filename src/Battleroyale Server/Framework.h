@@ -5,6 +5,7 @@
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);
+DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
 void ErrorQuit(std::string msg);
@@ -15,10 +16,12 @@ struct PlayerInfo {
 	HANDLE client_handle;
 	int index; // 플레이어 번호
 
+	CCharacter* player_character = nullptr;
+
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
 };
 
-enum SERVER_STATES : int {
+enum class SERVER_STATES : int {
 	LISTEN = 0			// 클라이언트 접속 대기
 	, LOBBY				// 로비
 	, GAME				// 게임
@@ -79,13 +82,20 @@ public:
 
 	SERVER_STATES status;
 
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
+	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
+	friend DWORD WINAPI GameProcess(LPVOID arg);
+
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 
 	vector<PlayerInfo*> players; // 플레이어 목록
 
+	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
+
+	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
@@ -98,6 +108,7 @@ private:
 	int player_number_last; // 마지막에 추가된 플레이어의 번호
 	int	player_captain; // 방장 플레이어
 
+	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
 	vector<int> player_msg_queue;
 };
