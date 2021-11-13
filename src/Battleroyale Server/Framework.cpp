@@ -74,7 +74,7 @@ void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			cout << "첫번째 클라이언트 대기 중" << endl;
+			//cout << "첫번째 클라이언트 대기 중" << endl;
 
 			while (true) {
 				SOCKET new_client = PlayerConnect(0);
