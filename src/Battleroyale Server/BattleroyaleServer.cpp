@@ -30,22 +30,21 @@ int main() {
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(&arg);
+	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
 	int player_index = client_info->index;
 
 	while (true) {
-		PacketMessage* packet = nullptr;
+		PACKETS packet;
 		int data_size = 0;
 		char* data = nullptr;
 
-		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
-								  , sizeof(PacketMessage), MSG_WAITALL);
+		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (SOCKET_ERROR == result) {
-			framework.PlayerDisconnect(player_index);
+			//framework.PlayerDisconnect(client_info);
 			break;
 		} else if (0 == result) {
-			framework.PlayerDisconnect(player_index);
+			//framework.PlayerDisconnect(client_info);
 			break;
 		}
 
@@ -56,7 +55,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 				// 게임 초기화
 				if (player_index == framework.player_captain
-					&& packet->type == PACKETS::CLIENT_GAME_START) {
+					&& packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
 						SetEvent(framework.event_game_start);
 						break;
@@ -78,7 +77,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					}
 
 					// 게임 초기화
-					if (packet->type == PACKETS::CLIENT_KEY_INPUT) {
+					if (packet == PACKETS::CLIENT_KEY_INPUT) {
 						auto character = reinterpret_cast<CCharacter*>(&client_info->player_character);
 
 						//TODO: 저것도 공유 자원인데 뮤텍스를 써야만 하나???
