@@ -71,13 +71,21 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				while (true) {
 					WaitForSingleObject(framework.event_receives, INFINITE);
 
+					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (0 < data_size) {
 						result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
 					}
 
+					// 게임 초기화
+					if (packet->type == PACKETS::CLIENT_KEY_INPUT) {
+						
+					} // 다른 메시지는 버린다.
 
+					SetEvent(framework.event_game_process);
 
 					WaitForSingleObject(framework.event_send_renders, FRAME_TIME);
+
+
 				}
 			}
 			break;
@@ -130,7 +138,19 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	CCharacter* player_character;
 
 	while (true) {
+		WaitForSingleObject(framework.event_game_process, INFINITE);
 
+		ResetEvent(framework.event_receives);
+
+		if (1 < framework.client_number) {
+			//
+
+
+			SetEvent(framework.event_send_renders);
+			break;
+		} else { // 게임 판정승 혹은 게임 강제 종료
+
+		}
 	}
 
 	return 0;
