@@ -70,12 +70,12 @@ void ClientFramework::Initialize() {
 		return;
 	}
 
-	InputRegister(VK_ESCAPE);
-	InputRegister(VK_UP);
-	InputRegister(VK_DOWN);
-	InputRegister(VK_LEFT);
-	InputRegister(VK_RIGHT);
+	InputRegister('w');
+	InputRegister('s');
 	InputRegister('a');
+	InputRegister('d');
+	InputRegister(VK_SPACE);
+	InputRegister(VK_ESCAPE);
 }
 
 void ClientFramework::Update() {
@@ -85,7 +85,6 @@ void ClientFramework::Update() {
 		short check = GetAsyncKeyState(key_pair.first);
 
 		auto state = key_pair.second;
-
 
 		if (HIBYTE(check) == 0) { // released
 			state.on_release();
@@ -109,22 +108,15 @@ void ClientFramework::Update() {
 
 		case GAME:
 		{
+			int itercount = 0;
 			PacketMessage gamemessage = { CLIENT_KEY_INPUT };
-			GameInput inputbutton = {};
 
-			// 코드
+			for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkers에서 값을 읽어 배열 제작
+				buttonsets[itercount] = (it->second.time == -1);
+				itercount++;
+			}
+
 			SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
-			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
-			if (retval == SOCKET_ERROR)
-			{
-				DisplayError("send()");
-			}
-
-			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
-			if (retval == SOCKET_ERROR)
-			{
-				DisplayError("send()");
-			}
 
 			if (view_track_enabled) {
 				if (view_target_player != -1) {
@@ -213,6 +205,7 @@ void ClientFramework::InputRegister(const WPARAM virtual_button) {
 
 bool ClientFramework::InputCheck(const WPARAM virtual_button) {
 	auto checker = key_checkers.find(virtual_button);
+
 	if (checker != key_checkers.end()) {
 		return checker->second.is_pressing();
 	}
