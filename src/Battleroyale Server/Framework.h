@@ -16,12 +16,12 @@ struct PlayerInfo {
 	HANDLE client_handle;
 	int index; // 플레이어 번호
 
-	CCharacter* player_character = nullptr;
+	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
 };
 
-enum class SERVER_STATES : int {
+enum SERVER_STATES : int {
 	LISTEN = 0			// 클라이언트 접속 대기
 	, LOBBY				// 로비
 	, GAME				// 게임
