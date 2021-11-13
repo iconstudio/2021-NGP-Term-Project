@@ -118,7 +118,7 @@ void ServerFramework::Startup() {
 		{
 			while (true) {
 				ForeachInstances([&](GameInstance*& inst) {
-					inst->OnUpdate(FRAME_TIME);
+					//inst->OnUpdate(FRAME_TIME);
 				});
 
 				Sleep(FRAME_TIME);
@@ -174,7 +174,10 @@ void ServerFramework::PlayerDisconnect(int player) {
 	if (dit != players.end()) {
 		closesocket((*dit)->client_socket);
 		CloseHandle((*dit)->client_handle);
-		Kill((*dit)->player_character);
+
+		auto character = (*dit)->player_character;
+		if (character)
+			Kill(character);
 		players.erase(dit);
 
 		client_number--;
