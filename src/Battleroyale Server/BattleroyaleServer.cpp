@@ -54,7 +54,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				}
 
 				// 게임 초기화
-				if (packet->type == PACKETS::CLIENT_GAME_START) {
+				if (player_index == framework.player_captain
+					&& packet->type == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
 						SetEvent(framework.event_game_start);
 						break;

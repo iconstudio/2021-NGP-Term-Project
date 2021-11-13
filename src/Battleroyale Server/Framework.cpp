@@ -156,6 +156,10 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 		return new_client;
 	}
 
+	// 첫번째 플레이어
+	if (client_number == 0) {
+		player_captain = player_number_last;
+	}
 
 	auto client_info = new PlayerInfo(new_client, 0, player_number_last++);
 	CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, (LPDWORD)(&client_info->client_handle));
@@ -171,16 +175,45 @@ void ServerFramework::PlayerDisconnect(int player) {
 		return (pi->index == player);
 	});
 
+	//TODO: 임계 영역 사용하기
 	if (dit != players.end()) {
-		closesocket((*dit)->client_socket);
-		CloseHandle((*dit)->client_handle);
+		auto player = (*dit);
 
-		auto character = (*dit)->player_character;
+		closesocket(player->client_socket);
+		CloseHandle(player->client_handle);
+
+		auto character = player->player_character;
 		if (character)
 			Kill(character);
-		players.erase(dit);
 
+		auto id = player->index;
+		players.erase(dit);
 		client_number--;
+
+		if (client_number < 2) { // 플레이어 0명 혹은 1명
+			switch (status) {
+				case LISTEN: {} break;
+				case LOBBY: {} break;
+
+				case GAME: { /* 여기서 처리 안함 */ } break;
+				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
+				case EXIT: { /* 여기서 처리 안함 */ } break;
+				default: break;
+			}
+		} else if (player_captain == id) { // 방장이 나감
+			switch (status) {
+				case LISTEN: {} break;
+				case LOBBY: {} break;
+
+				case GAME: { /* 여기서 처리 안함 */ } break;
+				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
+				case EXIT: { /* 여기서 처리 안함 */ } break;
+				default: break;
+			}
+		}
+
 	}
 }
 
