@@ -80,7 +80,7 @@ void ServerFramework::Startup() {
 	switch (status) {
 		case LISTEN:
 		{
-			cout << "첫번째 클라이언트 대기 중" << endl;
+			cout << "Listening" << endl;
 
 			while (true) {
 				SOCKET new_client = PlayerConnect(0);
@@ -183,7 +183,7 @@ void ServerFramework::PlayerDisconnect(int player) {
 
 		auto character = player->player_character;
 		if (character)
-			Kill(character);
+			Kill((GameInstance*)(character));
 
 		auto id = player->index;
 		players.erase(dit);
