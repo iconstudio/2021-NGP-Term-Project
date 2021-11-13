@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#define COMMON_PORT 9000
 
 
 // 최대 플레이어 수

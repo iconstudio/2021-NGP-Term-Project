@@ -3,13 +3,31 @@
 #include "CommonDatas.h"
 
 
+
+DWORD WINAPI CommunicateProcess(LPVOID arg);
+DWORD WINAPI GameInitializeProcess(LPVOID arg);
+DWORD WINAPI GameProcess(LPVOID arg);
+
+void ErrorQuit(std::string msg);
+void ErrorDisplay(std::string msg);
+
+struct PlayerInfo {
+	SOCKET client_socket;
+	HANDLE client_handle;
+	int index; // í”Œë ˆì´ì–´ ë²ˆí˜¸
+
+	void* player_character = nullptr;
+
+	PlayerInfo(SOCKET sk, HANDLE hd, int id);
+};
+
 enum SERVER_STATES : int {
-	LISTEN = 0			// Å¬¶óÀÌ¾ğÆ® Á¢¼Ó ´ë±â
-	, LOBBY				// ·Îºñ
-	, GAME				// °ÔÀÓ
-	, GAME_OVER			// °ÔÀÓ ¿Ï·á
-	, GAME_RESTART		// °ÔÀÓ ´Ù½Ã ½ÃÀÛ
-	, EXIT				// ¼­¹ö Á¾·á
+	LISTEN = 0			// í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ëŒ€ê¸°
+	, LOBBY				// ë¡œë¹„
+	, GAME				// ê²Œì„
+	, GAME_OVER			// ê²Œì„ ì™„ë£Œ
+	, GAME_RESTART		// ê²Œì„ ë‹¤ì‹œ ì‹œì‘
+	, EXIT				// ì„œë²„ ì¢…ë£Œ
 };
 
 class GameInstance {
@@ -36,18 +54,22 @@ public:
 
 private:
 	int sprite_index;
-	RECT box; // Ãæµ¹Ã¼
+	RECT box; // ì¶©ëŒì²´
 	bool dead;
 };
-
 
 class ServerFramework {
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
-	void Initialize();
-	void Update();
+	bool Initialize();
+	void Startup();
+
+	SOCKET PlayerConnect(int player);
+	void PlayerDisconnect(int player);
+ 
+	void SetStatus(SERVER_STATES state);
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
@@ -60,24 +82,35 @@ public:
 
 	SERVER_STATES status;
 
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
+	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
+	friend DWORD WINAPI GameProcess(LPVOID arg);
+
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
-	HANDLE players[PLAYERS_NUMBER_MAX];
 
-	HANDLE event_receives; // ÇÃ·¹ÀÌ¾îÀÇ ÀÔ·ÂÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_game_process; // Ãæµ¹ Ã³¸®¸¦ ÇÏ´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_send_renders; // ·»´õ¸µ Á¤º¸¸¦ º¸³»´Â ÀÌº¥Æ® °´Ã¼
+	vector<PlayerInfo*> players; // í”Œë ˆì´ì–´ ëª©ë¡
 
-	int **PLAYER_SPAWN_PLACES; // ÇÃ·¹ÀÌ¾î°¡ ¸Ç Ã³À½¿¡ »ı¼ºµÉ À§Ä¡ÀÇ ¹è¿­
+	HANDLE thread_game_starter;
+	HANDLE thread_game_process;
+
+	HANDLE event_game_start; // ê²Œì„ ì‹œì‘ì„ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_receives; // í”Œë ˆì´ì–´ì˜ ì…ë ¥ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_game_process; // ì¶©ëŒ ì²˜ë¦¬ë¥¼ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_send_renders; // ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+
+	int **PLAYER_SPAWN_PLACES; // í”Œë ˆì´ì–´ê°€ ë§¨ ì²˜ìŒì— ìƒì„±ë  ìœ„ì¹˜ì˜ ë°°ì—´
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
-	int	client_number;
-	int	player_captain;
+	int	client_number; // ì§€ê¸ˆ ì ‘ì†í•œ í”Œë ˆì´ì–´ì˜ ìˆ˜
+	int player_number_last; // ë§ˆì§€ë§‰ì— ì¶”ê°€ëœ í”Œë ˆì´ì–´ì˜ ë²ˆí˜¸
+	int	player_captain; // ë°©ì¥ í”Œë ˆì´ì–´
 
+	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-	vector<int> player_queue;
+	vector<int> player_msg_queue;
 };
 
 template<class Predicate>
