@@ -80,7 +80,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
 						auto character = reinterpret_cast<CCharacter*>(&client_info->player_character);
 
-						//TODO: 저것도 공유 자원인데 뮤텍스를 써야만 하나???
 						if (data) {
 							switch (*data) {
 								case 'W':
@@ -128,7 +127,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME_OVER:
 			{
+				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
 
+				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
+
+				}
 			}
 			break;
 
