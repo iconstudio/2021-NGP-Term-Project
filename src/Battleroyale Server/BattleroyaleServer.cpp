@@ -79,29 +79,32 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 게임 초기화
 					if (packet->type == PACKETS::CLIENT_KEY_INPUT) {
+						auto character = reinterpret_cast<CCharacter*>(&client_info->player_character);
+
+						//TODO: 저것도 공유 자원인데 뮤텍스를 써야만 하나???
 						if (data) {
 							switch (*data) {
 								case 'W':
 								{
-									
+									character->x -= PLAYER_MOVE_SPEED * FRAME_TIME;
 								}
 								break;
 
 								case 'A':
 								{
-
+									character->y -= PLAYER_MOVE_SPEED * FRAME_TIME;
 								}
 								break;
 
 								case 'S':
 								{
-
+									character->x += PLAYER_MOVE_SPEED * FRAME_TIME;
 								}
 								break;
 
 								case 'D':
 								{
-
+									character->y += PLAYER_MOVE_SPEED * FRAME_TIME;
 								}
 								break;
 
