@@ -169,9 +169,11 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
+	cout << "새 플레이어 접속: " << new_socket << endl;
+	cout << "현재 플레이어 수: " << ++client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
-	client_number++;
+	//client_number++;
 
 	return new_socket;
 }
@@ -186,6 +188,10 @@ void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
 		CloseHandle(player->client_handle);
 
 		auto id = player->index;
+		auto character = player->player_character;
+		if (character)
+			Kill((GameInstance*)(character));
+
 		players.erase(dit);
 		client_number--;
 
