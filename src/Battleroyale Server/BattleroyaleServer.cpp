@@ -78,7 +78,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 게임 초기화
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						auto character = reinterpret_cast<CCharacter*>(&client_info->player_character);
+						auto character = reinterpret_cast<CCharacter*>(client_info->player_character);
 
 						if (data) {
 							switch (*data) {
