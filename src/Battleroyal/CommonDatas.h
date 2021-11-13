@@ -26,7 +26,6 @@ enum PACKETS : int {
 
 struct PacketMessage {
 	const PACKETS type;
-	int size;
 };
 
 struct GameUpdateMessage {

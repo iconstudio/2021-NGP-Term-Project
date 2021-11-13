@@ -109,11 +109,11 @@ void ClientFramework::Update() {
 
 		case GAME:
 		{
-			PacketMessage gamemessage = { CLIENT_KEY_INPUT, sizeof(PacketMessage) };
+			PacketMessage gamemessage = { CLIENT_KEY_INPUT };
 			GameInput inputbutton = {};
 
 			// ÄÚµå
-			SendMessageToServer(my_socket, CLIENT_KEY_INPUT, sizeof(GameInput), (char*)key_checkers);
+			SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
 			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
 			if (retval == SOCKET_ERROR)
 			{
@@ -247,6 +247,11 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 	PacketMessage packet = { type };
 
 	int result = send(sock, (char*)(&packet), sizeof(packet), 0);
+	if (result == SOCKET_ERROR)
+	{
+		DisplayError("send()");
+		return result;
+	}
 	send(sock, data, sizeof(data), 0);
 
 	return result;
