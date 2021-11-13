@@ -2,6 +2,32 @@
 #include "Framework.h"
 #include "resource.h"
 
+void ErrorQuit(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+// 소켓 함수 오류 출력
+void DisplayError(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
@@ -19,7 +45,9 @@ ClientFramework::~ClientFramework() {
 
 void ClientFramework::Initialize() {
 	WSADATA wsadata;
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+	status = GAME;
+
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {	
 		// 오류
 		return;
 	}
@@ -42,17 +70,22 @@ void ClientFramework::Initialize() {
 		return;
 	}
 
-	InputRegister(MK_LBUTTON);
-	InputRegister(MK_RBUTTON);
-	InputRegister(MK_MBUTTON);
 	InputRegister(VK_ESCAPE);
+	InputRegister(VK_UP);
+	InputRegister(VK_DOWN);
+	InputRegister(VK_LEFT);
+	InputRegister(VK_RIGHT);
+	InputRegister('a');
 }
 
 void ClientFramework::Update() {
+	int retval;
+
 	for (auto& key_pair : key_checkers) {
 		short check = GetAsyncKeyState(key_pair.first);
 
 		auto state = key_pair.second;
+
 
 		if (HIBYTE(check) == 0) { // released
 			state.on_release();
@@ -76,7 +109,23 @@ void ClientFramework::Update() {
 
 		case GAME:
 		{
+			PacketMessage gamemessage = { CLIENT_KEY_INPUT, sizeof(PacketMessage) };
+			GameInput inputbutton = {};
+
 			// 코드
+			SendMessageToServer(my_socket, CLIENT_KEY_INPUT, sizeof(GameInput), (char*)key_checkers);
+			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
+			if (retval == SOCKET_ERROR)
+			{
+				DisplayError("send()");
+			}
+
+			retval = send(my_socket, (char*)&gamemessage, sizeof(PacketMessage), 0);
+			if (retval == SOCKET_ERROR)
+			{
+				DisplayError("send()");
+			}
+
 			if (view_track_enabled) {
 				if (view_target_player != -1) {
 					//ViewSetPosition(view_target->x, view_target->y);
@@ -193,6 +242,17 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
+int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
+
+	PacketMessage packet = { type };
+
+	int result = send(sock, (char*)(&packet), sizeof(packet), 0);
+	send(sock, data, sizeof(data), 0);
+
+	return result;
+
+}
+
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
 
@@ -211,12 +271,12 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	properties.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	properties.hbrBackground = CreateSolidBrush(0);
 	properties.lpszMenuName = NULL;
-	properties.lpszClassName = id;
+	properties.lpszClassName = (LPCSTR)id;
 	properties.hIconSm = LoadIcon(properties.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&properties);
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-	HWND hWnd = CreateWindow(id, title, window_attributes
+	HWND hWnd = CreateWindow((LPCSTR)id, (LPCSTR)title, window_attributes
 							 , CW_USEDEFAULT, 0, width, height
 							 , nullptr, nullptr, instance, nullptr);
 	instance = handle;

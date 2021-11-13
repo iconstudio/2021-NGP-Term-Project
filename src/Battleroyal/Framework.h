@@ -44,6 +44,8 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	int SendMessageToServer(SOCKET sk, PACKETS type, int size, char* data);
+
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;

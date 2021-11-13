@@ -23,7 +23,7 @@ int main() {
 
 	while (true) {
 		framework.Update();
-		cout << "Sleep: " << FRAME_TIME << endl;
+		//cout << "Sleep: " << FRAME_TIME << endl;
 
 		Sleep(FRAME_TIME);
 	}

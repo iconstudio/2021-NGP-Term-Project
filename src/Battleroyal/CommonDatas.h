@@ -49,4 +49,6 @@ struct RenderInstance {
 	double x, y, angle;
 };
 
-
+struct GameInput {
+	WPARAM button;
+};

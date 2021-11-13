@@ -32,11 +32,9 @@ ServerFramework::~ServerFramework() {
 }
 
 void ServerFramework::Initialize() {
-	WSADATA wsadata;
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// 오류
-		return;
-	}
+	SOCKET client_sock;
+	SOCKADDR_IN clientaddr;
+	int addrlen = sizeof(clientaddr);
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
@@ -49,6 +47,9 @@ void ServerFramework::Initialize() {
 		// 오류
 		return;
 	}
+
+	client_sock = accept(my_socket, (SOCKADDR*)&clientaddr, &addrlen);
+
 }
 
 void ServerFramework::Update() {
