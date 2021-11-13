@@ -44,6 +44,8 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	int SendGameMessage(SOCKET sk, PACKETS type, char data[]);
+
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;
@@ -53,6 +55,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	int	player_index = 0;
+	bool buttonsets[6];
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;

@@ -27,7 +27,6 @@ enum PACKETS : int {
 
 struct PacketMessage {
 	const PACKETS type;
-	int size;
 };
 
 struct GameUpdateMessage {
@@ -50,4 +49,6 @@ struct RenderInstance {
 	double x, y, angle;
 };
 
-
+struct GameInput {
+	WPARAM button;
+};
