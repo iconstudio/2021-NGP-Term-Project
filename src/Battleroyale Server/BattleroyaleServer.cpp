@@ -32,33 +32,34 @@ int main() {
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(&arg);
 	SOCKET client_socket = client_info->client_socket;
+	int player_index = client_info->index;
 
 	while (true) {
 		PacketMessage* packet = nullptr;
-		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
-						  , sizeof(PacketMessage), MSG_WAITALL);
-		if (SOCKET_ERROR == result) {
-			break;
-		} else if (0 == result) {
-			break;
-		}
-
-		int data_size = packet->size;
+		int data_size = 0;
 		void* data = nullptr;
-
-		if (0 < data_size) {
-			result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
-		}
 
 		switch (framework.status) {
 			case LOBBY:
 			{
 				// 방장의 게임 시작 메시지
-				if (packet->type == PACKETS::CLIENT_GAME_START) {
-					// 게임 초기화
-					SetEvent(framework.event_game_start);
+				int result = recv(client_socket, reinterpret_cast<char*>(&packet)
+								  , sizeof(PacketMessage), MSG_WAITALL);
+				if (SOCKET_ERROR == result) {
+					framework.PlayerDisconnect(player_index);
+					break;
+				} else if (0 == result) {
+					framework.PlayerDisconnect(player_index);
 					break;
 				}
+
+				// 게임 초기화
+				if (packet->type == PACKETS::CLIENT_GAME_START) {
+					if (1 < framework.client_number) {
+						SetEvent(framework.event_game_start);
+						break;
+					}
+				} // 다른 메시지는 버린다.
 			}
 			break;
 
@@ -66,7 +67,22 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 꾸준한 통신
 				while (true) {
-					WaitForSingleObject(framework.event_receives, FRAME_TIME);
+					WaitForSingleObject(framework.event_receives, INFINITE);
+
+					int result = recv(client_socket, reinterpret_cast<char*>(&packet)
+									  , sizeof(PacketMessage), MSG_WAITALL);
+					if (SOCKET_ERROR == result) {
+						break;
+					} else if (0 == result) {
+						break;
+					}
+
+					int data_size = packet->size;
+					void* data = nullptr;
+
+					if (0 < data_size) {
+						result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
+					}
 
 
 
