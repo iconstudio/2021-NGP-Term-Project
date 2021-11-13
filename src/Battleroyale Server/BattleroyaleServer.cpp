@@ -5,6 +5,9 @@
 
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
+normal_distribution<> server_distrubution;
+default_random_engine server_randomizer{0};
+
 const int PLAYER_HEALTH = 10;
 const double PLAYER_MOVE_SPEED = km_per_hr(20);
 const double PLAYER_ATTACK_COOLDOWN = 0.2;
@@ -26,8 +29,8 @@ int main() {
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-	CCharacter* player_character;
-	SOCKET client_socket = reinterpret_cast<SOCKET>(&arg);
+	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(&arg);
+	SOCKET client_socket = client_info->client_socket;
 
 	while (true) {
 		PacketMessage* packet = nullptr;
@@ -38,7 +41,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		} else if (0 == result) {
 			break;
 		}
-		
+
 		int data_size = packet->size;
 
 		void* data = nullptr;
@@ -49,14 +52,18 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.status) {
 			case LOBBY:
 			{
-				cout << "대기실 입장" << endl;
-
-
+				// 방장의 게임 시작 메시지
+				if (packet->type == PACKETS::CLIENT_GAME_START) {
+					// 게임 초기화
+					SetEvent(framework.event_game_start);
+				}
 			}
 			break;
 
 			case GAME:
 			{
+				// 꾸준한 통신
+
 
 			}
 			break;
@@ -79,6 +86,26 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			default:
 				break;
 		}
+	}
+
+	return 0;
+}
+
+DWORD __stdcall GameInitializeProcess(LPVOID arg) {
+	while (true) {
+		WaitForSingleObject(framework.event_game_start, INFINITE);
+
+		shuffle(framework.players. begin(), framework.players.end(), server_randomizer);
+		
+		auto sz = framework.players.size();
+		for (int i = 0; i < sz; ++i) {
+			auto player = framework.players.at(i);
+			auto places = framework.PLAYER_SPAWN_PLACES[i];
+			player->player_character = framework.Instantiate<CCharacter>(places[0], places[1]);
+		}
+
+		SetEvent(framework.event_receives);
+		framework.SetStatus(GAME);
 	}
 
 	return 0;
