@@ -44,8 +44,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		}
 
 		int data_size = packet->size;
-
 		void* data = nullptr;
+
 		if (0 < data_size) {
 			result = recv(client_socket, reinterpret_cast<char*>(&data), data_size, MSG_WAITALL);
 		}
@@ -56,19 +56,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				// 방장의 게임 시작 메시지
 				if (packet->type == PACKETS::CLIENT_GAME_START) {
 					// 게임 초기화
-					//SetEvent(framework.event_game_start);
-
-					shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
-
-					auto sz = framework.players.size();
-					for (int i = 0; i < sz; ++i) {
-						auto player = framework.players.at(i);
-						auto places = framework.PLAYER_SPAWN_PLACES[i];
-						player->player_character = framework.Instantiate<CCharacter>(places[0], places[1]);
-					}
-
-					SetEvent(framework.event_receives);
-					framework.SetStatus(GAME);
+					SetEvent(framework.event_game_start);
+					break;
 				}
 			}
 			break;
@@ -79,6 +68,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				while (true) {
 					WaitForSingleObject(framework.event_receives, FRAME_TIME);
 
+
+
+					WaitForSingleObject(framework.event_send_renders, FRAME_TIME);
 				}
 			}
 			break;
@@ -106,15 +98,12 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
-/*
-		TODO: 나중에 삭제하기
-*/
 DWORD __stdcall GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		WaitForSingleObject(framework.event_game_start, INFINITE);
 
 		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
-		
+
 		auto sz = framework.players.size();
 		for (int i = 0; i < sz; ++i) {
 			auto player = framework.players.at(i);
