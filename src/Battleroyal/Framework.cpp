@@ -45,7 +45,6 @@ ClientFramework::~ClientFramework() {
 
 void ClientFramework::Initialize() {
 	WSADATA wsadata;
-	status = GAME;
 
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {	
 		// ¿À·ù
@@ -96,13 +95,22 @@ void ClientFramework::Update() {
 	switch (status) {
 		case TITLE:
 		{
-
+			background_color = COLOR_YELLOW;
+			Sleep(1000);
+			status = LOBBY;
 		}
 		break;
 
 		case LOBBY:
 		{
-
+			background_color = COLOR_RED;
+			PACKETS packet = { CLIENT_GAME_START };
+			int result = send(my_socket, (char*)(&packet), sizeof(packet), 0);;
+			if (result == SOCKET_ERROR)
+			{
+				DisplayError("send()");
+			}
+			status = GAME;
 		}
 		break;
 
@@ -117,6 +125,7 @@ void ClientFramework::Update() {
 			}
 
 			SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
+			RecvGameMessage(my_socket);
 
 			if (view_track_enabled) {
 				if (view_target_player != -1) {
@@ -248,6 +257,11 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 	send(sock, data, sizeof(data), 0);
 
 	return result;
+
+}
+
+int ClientFramework::RecvGameMessage(SOCKET sock) {
+	recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
 
 }
 

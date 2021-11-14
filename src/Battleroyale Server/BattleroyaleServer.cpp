@@ -41,6 +41,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet)
 								  , sizeof(PacketMessage), MSG_WAITALL);
+
 		if (SOCKET_ERROR == result) {
 			framework.PlayerDisconnect(player_index);
 			break;
@@ -180,8 +181,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		ResetEvent(framework.event_receives);
 
 		if (1 < framework.client_number) {
-			//
-
 
 			SetEvent(framework.event_send_renders);
 			break;

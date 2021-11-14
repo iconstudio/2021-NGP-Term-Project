@@ -36,7 +36,6 @@ public:
 	void InputRegister(WPARAM virtual_button);
 	bool InputCheck(WPARAM virtual_button);
 	bool InputCheckPressed(WPARAM virtual_button);
-	bool InputCheckUp(WPARAM virtual_button);
 
 	void OnMouseDown(WPARAM button, LPARAM cursor);
 	void OnMouseUp(WPARAM button, LPARAM cursor);
@@ -45,7 +44,8 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
-	int SendGameMessage(SOCKET sk, PACKETS type, char data[]);
+	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
+	int RecvGameMessage(SOCKET sock);
 
 	CLIENT_STATES status;
 
