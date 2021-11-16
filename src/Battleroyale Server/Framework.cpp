@@ -335,20 +335,20 @@ void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
 	}
 }
 
-void ErrorAbort(std::string msg) {
+void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
 
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
 	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
 	exit(true);
 }
 
-void ErrorDisplay(std::string msg) {
+void ErrorDisplay(const char* msg) {
 	LPVOID lpMsgBuf;
 
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
