@@ -2,6 +2,32 @@
 #include "Framework.h"
 #include "resource.h"
 
+void ErrorQuit(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// ÌîÑÎ°úÏ†ùÌä∏ ÏÑ§Ï†ïÏùò Î¨∏Ïûê ÏßëÌï© Î©ÄÌã∞Î∞îÏù¥Ìä∏Î°ú Î≥ÄÍ≤ΩÌïòÏó¨ ÏÇ¨Ïö©
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+// ÏÜåÏºì Ìï®Ïàò Ïò§Î•ò Ï∂úÎ†•
+void DisplayError(std::string msg)
+{
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
@@ -19,14 +45,15 @@ ClientFramework::~ClientFramework() {
 
 void ClientFramework::Initialize() {
 	WSADATA wsadata;
+
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return;
 	}
 
@@ -36,19 +63,18 @@ void ClientFramework::Initialize() {
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(SERVER_PT);
 
-	int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
-	if (SOCKET_ERROR == result) {
-		// ø¿∑˘
-		return;
-	}
 
-	InputRegister(MK_LBUTTON);
-	InputRegister(MK_RBUTTON);
-	InputRegister(MK_MBUTTON);
+	InputRegister('w');
+	InputRegister('s');
+	InputRegister('a');
+	InputRegister('d');
+	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
 }
 
 void ClientFramework::Update() {
+	int retval;
+
 	for (auto& key_pair : key_checkers) {
 		short check = GetAsyncKeyState(key_pair.first);
 
@@ -56,48 +82,81 @@ void ClientFramework::Update() {
 
 		if (HIBYTE(check) == 0) { // released
 			state.on_release();
-		} else if (check & 0x8000) {
+		}
+		else if (check & 0x8000) {
 			state.on_press();
 		}
 	}
 
 	switch (status) {
-		case TITLE:
-		{
+	case TITLE:
+	{
+		background_color = COLOR_YELLOW;
+		Sleep(1000);
+		status = LOBBY;
 
+		auto address_size = sizeof(server_address);
+		int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
+		if (SOCKET_ERROR == result) {
+			// Ïò§Î•ò
+			return;
 		}
-		break;
+		RecvLobbyMessage(my_socket);
 
-		case LOBBY:
+	}
+	break;
+
+	case LOBBY:
+	{
+		background_color = COLOR_RED;
+		RecvLobbyMessage(my_socket);
+		if (player_captain == true)
 		{
-
+			PACKETS packet = { CLIENT_GAME_START };
+			int result = send(my_socket, (char*)(&packet), sizeof(packet), 0);;
+			if (result == SOCKET_ERROR)
+			{
+				DisplayError("send()");
+			}
+			status = GAME;
 		}
-		break;
+	}
+	break;
 
-		case GAME:
-		{
-			// ƒ⁄µÂ
-			if (view_track_enabled) {
-				if (view_target_player != -1) {
-					//ViewSetPosition(view_target->x, view_target->y);
-				}
+	case GAME:
+	{
+		int itercount = 0;
+		PacketMessage gamemessage = { CLIENT_KEY_INPUT };
+
+		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkersÏóêÏÑú Í∞íÏùÑ ÏùΩÏñ¥ Î∞∞Ïó¥ Ï†úÏûë
+			buttonsets[itercount] = (it->second.time == -1);
+			itercount++;
+		}
+
+		SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
+		RecvGameMessage(my_socket);
+
+		if (view_track_enabled) {
+			if (view_target_player != -1) {
+				//ViewSetPosition(view_target->x, view_target->y);
 			}
 		}
-		break;
+	}
+	break;
 
 
-		case SPECTATOR:
-		{
-			if (view_track_enabled) {
-				if (view_target_player != -1) {
-					//ViewSetPosition(view_target->x, view_target->y);
-				}
+	case SPECTATOR:
+	{
+		if (view_track_enabled) {
+			if (view_target_player != -1) {
+				//ViewSetPosition(view_target->x, view_target->y);
 			}
 		}
-		break;
+	}
+	break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 }
 
@@ -108,32 +167,32 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_hBit = CreateCompatibleBitmap(surface_app, WORLD_W, WORLD_H);
 	HBITMAP m_oldhBit = (HBITMAP)SelectObject(surface_double, m_hBit);
 
-	// √ ±‚»≠
+	// Ï¥àÍ∏∞Ìôî
 	Render::draw_clear(surface_double, WORLD_W, WORLD_H, background_color);
 
 	HDC surface_back = CreateCompatibleDC(surface_app);
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = (HBITMAP)SelectObject(surface_back, m_newBit);
 
-	// ∆ƒ¿Ã«¡∂Û¿Œ
-	/*
-	for_each_instances([&](GameInstance*& inst) {
-		if (inst->sprite_index) {
-			if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
-				|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
-				inst->on_render(surface_double);
-		} else {
-			inst->on_render(surface_double);
-		}
-	});*/
+	// ÌååÏù¥ÌîÑÎùºÏù∏
 
-	// ¿Ã¡ﬂ πˆ∆€ -> πÈ πˆ∆€
+	//for_each_instances([&](GameInstance*& inst) {
+	//	if (inst->sprite_index) {
+	//		if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
+	//			|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
+	//			inst->on_render(surface_double);
+	//	} else {
+	//		inst->on_render(surface_double);
+	//	}
+	//});
+
+	// Ïù¥Ï§ë Î≤ÑÌçº -> Î∞± Î≤ÑÌçº
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
-	// πÈ πˆ∆€ -> »≠∏È πˆ∆€
+	// Î∞± Î≤ÑÌçº -> ÌôîÎ©¥ Î≤ÑÌçº
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
-			   , surface_back, 0, 0, view.w, view.h, SRCCOPY);
+		, surface_back, 0, 0, view.w, view.h, SRCCOPY);
 	Render::draw_end(surface_back, m_newoldBit, m_newBit);
 
 	DeleteDC(surface_back);
@@ -164,6 +223,7 @@ void ClientFramework::InputRegister(const WPARAM virtual_button) {
 
 bool ClientFramework::InputCheck(const WPARAM virtual_button) {
 	auto checker = key_checkers.find(virtual_button);
+
 	if (checker != key_checkers.end()) {
 		return checker->second.is_pressing();
 	}
@@ -193,6 +253,35 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int temp;
+
+	recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//ÌîåÎ†àÏù¥Ïñ¥ indexÎ•º Î∞õÏïÑ
+
+	if (temp > 0) player_captain = false;					//0Ïù¥Î©¥ Î∞©Ïû• ÏïÑÎãàÎ©¥ Ï©åÎ¶¨
+	else player_captain = true;
+}
+
+int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
+
+	PacketMessage packet = { type };
+
+	int result = send(sock, (char*)(&packet), sizeof(packet), 0);
+	if (result == SOCKET_ERROR)
+	{
+		DisplayError("send()");
+		return result;
+	}
+	send(sock, data, sizeof(data), 0);
+
+	return result;
+
+}
+
+int ClientFramework::RecvGameMessage(SOCKET sock) {
+	recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+}
+
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
 
@@ -211,14 +300,14 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	properties.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	properties.hbrBackground = CreateSolidBrush(0);
 	properties.lpszMenuName = NULL;
-	properties.lpszClassName = id;
+	properties.lpszClassName = (LPCSTR)id;
 	properties.hIconSm = LoadIcon(properties.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&properties);
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-	HWND hWnd = CreateWindow(id, title, window_attributes
-							 , CW_USEDEFAULT, 0, width, height
-							 , nullptr, nullptr, instance, nullptr);
+	HWND hWnd = CreateWindow((LPCSTR)id, (LPCSTR)title, window_attributes
+		, CW_USEDEFAULT, 0, width, height
+		, nullptr, nullptr, instance, nullptr);
 	instance = handle;
 	title_caption = title;
 	class_id = id;

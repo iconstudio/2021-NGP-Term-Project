@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-#define COMMON_PORT 9000
+#define COMMON_PORT 15000
 
 
 // 최대 플레이어 수
@@ -27,7 +27,6 @@ enum PACKETS : int {
 
 struct PacketMessage {
 	const PACKETS type;
-	int size;
 };
 
 struct GameUpdateMessage {
@@ -45,9 +44,10 @@ enum RENDER_TYPES : int {
 
 struct RenderInstance {
 	const RENDER_TYPES instance_type;
-
 	int sprite_index;
 	double x, y, angle;
 };
 
-
+struct GameInput {
+	WPARAM button;
+};

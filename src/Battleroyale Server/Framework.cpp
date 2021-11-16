@@ -2,33 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-// 소켓 함수 오류 출력 후 종료
-void ErrorQuit(std::string msg)
-{
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
-
-	LocalFree(lpMsgBuf);
-	exit(true);
-}
-
-// 소켓 함수 오류 출력
-void DisplayError(std::string msg)
-{
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
-
-	LocalFree(lpMsgBuf);
-}
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
@@ -53,7 +26,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
-	for (auto& player : players) {
+	for (auto player : players) {
 		CloseHandle(player->client_handle);
 	}
 	players.clear();
@@ -83,122 +56,201 @@ bool ServerFramework::Initialize() {
 	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		ErrorQuit("bind()");
+		ErrorAbort("bind()");
 		return false;
 	}
 
 	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
-		ErrorQuit("listen()");
+		ErrorAbort("listen()");
 		return false;
 	}
 
-	thread_list.push_back(CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL));
+
+	//thread_list.push_back(CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL));
+
+	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
+	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
+	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 
 	return true;
 }
 
 void ServerFramework::Startup() {
-	switch (status) {
-	case LISTEN:
-	{
-		cout << "첫번째 클라이언트 대기 중" << endl;
+	while (true) {
+		switch (status) {
+			case LISTEN:
+			{
+				cout << "S: Listening" << endl;
 
-		while (true) {
-			SOCKET new_client = PlayerConnect(0);
-			if (INVALID_SOCKET == new_client) {
-				cerr << "accept 오류!";
-				return;
+				while (true) {
+					SOCKET new_client = PlayerConnect();
+					if (INVALID_SOCKET == new_client) {
+						cerr << "accept 오류!";
+						return;
+					}
+
+					// 첫번째 플레이어 접속
+					SetStatus(LOBBY);
+					break;
+				}
 			}
-
-			// 첫번째 플레이어 접속
-			SetStatus(LOBBY);
 			break;
-		}
-	}
-	break;
 
-	case LOBBY:
-	{
-		cout << "대기실 입장" << endl;
+			case LOBBY:
+			{
+				cout << "S: Entering Lobby" << endl;
 
-		while (true) {
-			SOCKET new_client = PlayerConnect(0);
-			if (INVALID_SOCKET == new_client) {
-				cerr << "로비: accept 오류!";
+				while (true) {
+					if (status != LOBBY) {
+						break;
+					}
+
+					SOCKET new_client = PlayerConnect();
+					if (INVALID_SOCKET == new_client) {
+						cerr << "로비: accept 오류!";
+						return;
+					}
+				}
+			}
+			break;
+
+			case GAME:
+			{
+				while (true) {
+					ForeachInstances([&](GameInstance*& inst) {
+						//inst->OnUpdate(FRAME_TIME);
+					});
+
+					Sleep(FRAME_TIME);
+				}
+			}
+			break;
+
+			case GAME_OVER:
+			{
+
+			}
+			break;
+
+			case GAME_RESTART:
+			{
+
+			}
+			break;
+
+			case EXIT:
+			{
+				// 종료
+			}
 				return;
-			}
 
-			if (status != LOBBY) {
+			default:
 				break;
-			}
 		}
 	}
-	break;
-
-	case GAME:
-	{
-		while (true) {
-
-			//cout << "Sleep: " << FRAME_TIME << endl;
-
-			Sleep(FRAME_TIME);
-		}
-	}
-	break;
-
-	case GAME_OVER:
-	{
-
-	}
-	break;
-
-	case GAME_RESTART:
-	{
-
-	}
-	break;
-
-	case EXIT: {}
-			 break;
-
-	default:
-		break;
-	}
-
-	ForeachInstances([&](GameInstance*& inst) {
-		inst->OnUpdate(FRAME_TIME);
-		});
 }
 
-SOCKET ServerFramework::PlayerConnect(int player) {
+SOCKET ServerFramework::PlayerConnect() {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
 
-	SOCKET new_client = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
-	if (INVALID_SOCKET == new_client) {
+	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
+	if (INVALID_SOCKET == new_socket) {
 		// 오류
-		return new_client;
+		return new_socket;
 	}
 
-	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, nullptr, 0, NULL);
+	// 첫번째 플레이어
+	if (client_number == 0) {
+		player_captain = player_number_last;
+	}
 
-	players.emplace_back(new PlayerInfo(new_client, new_thread, player_number_last++));
+	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
+	client_info->client_handle = new_thread;
+
+	cout << "새 플레이어 접속: " << new_socket << endl;
+	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+
+	players.emplace_back(client_info);
+
 	client_number++;
+	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
+			 , (char*)(client_number), sizeof(client_number));
 
-	return new_client;
+	return new_socket;
 }
 
-void ServerFramework::PlayerDisconnect(int player) {
-	auto dit = find_if(players.begin(), players.end(), [player](PlayerInfo* pi) {
-		return (pi->index == player);
-		});
+void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
+	auto dit = find(players.begin(), players.end(), player);
 
 	if (dit != players.end()) {
-		closesocket((*dit)->client_socket);
-		CloseHandle((*dit)->client_handle);
-		players.erase(dit);
+		auto player = (*dit);
 
+		CloseHandle(player->client_handle);
+
+		auto id = player->index;
+		auto character = player->player_character;
+		if (character)
+			Kill((GameInstance*)(character));
+
+		players.erase(dit);
 		client_number--;
+
+		// 플레이어 0명 혹은 1명
+		if (client_number < 2) {
+			switch (status) {
+				case LISTEN:
+				{
+					if (0 == client_number) {
+						players.clear();
+						instances.clear();
+					}
+				}
+				break;
+
+				case LOBBY:
+				{
+					SetStatus(LISTEN);
+				}
+				break;
+
+				case GAME: { /* 여기서 처리 안함 */ } break;
+				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
+				case EXIT: { /* 여기서 처리 안함 */ } break;
+				default: break;
+			}
+		}
+
+		// 방장이 나감
+		if (player_captain == id) {
+			switch (status) {
+				case LISTEN:
+				{
+					if (0 < client_number)
+						player_captain = players.at(0)->index;
+				}
+				break;
+
+				case LOBBY:
+				{
+					player_captain = players.at(0)->index;
+				}
+				break;
+
+				case GAME: { /* 여기서 처리 안함 */ } break;
+				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
+				case EXIT: { /* 여기서 처리 안함 */ } break;
+				default: break;
+			}
+		}
+
 	}
 }
 
@@ -211,9 +263,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 }
 
 GameInstance::GameInstance()
-	: owner(-1)
-	, sprite_index(0), box{}
-	, dead(false)
+	: owner(-1), sprite_index(0), box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
 
 GameInstance::~GameInstance() {}
@@ -269,4 +319,42 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
 	client_handle = hd;
 	index = id;
+}
+
+void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
+	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	if (SOCKET_ERROR == result) {
+		ErrorAbort("send 1");
+	}
+
+	if (buffer) {
+		result = send(socket, buffer, length, 0);
+		if (SOCKET_ERROR == result) {
+			ErrorAbort("send 2");
+		}
+	}
+}
+
+void ErrorAbort(std::string msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+void ErrorDisplay(std::string msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
 }
