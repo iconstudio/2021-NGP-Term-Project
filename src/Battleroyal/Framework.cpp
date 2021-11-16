@@ -46,7 +46,7 @@ ClientFramework::~ClientFramework() {
 void ClientFramework::Initialize() {
 	WSADATA wsadata;
 
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {	
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
 		// 오류
 		return;
 	}
@@ -63,11 +63,6 @@ void ClientFramework::Initialize() {
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(SERVER_PT);
 
-	int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
-	if (SOCKET_ERROR == result) {
-		// 오류
-		return;
-	}
 
 	InputRegister('w');
 	InputRegister('s');
@@ -87,23 +82,36 @@ void ClientFramework::Update() {
 
 		if (HIBYTE(check) == 0) { // released
 			state.on_release();
-		} else if (check & 0x8000) {
+		}
+		else if (check & 0x8000) {
 			state.on_press();
 		}
 	}
 
 	switch (status) {
-		case TITLE:
-		{
-			background_color = COLOR_YELLOW;
-			Sleep(1000);
-			status = LOBBY;
-		}
-		break;
+	case TITLE:
+	{
+		background_color = COLOR_YELLOW;
+		Sleep(1000);
+		status = LOBBY;
 
-		case LOBBY:
+		auto address_size = sizeof(server_address);
+		int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
+		if (SOCKET_ERROR == result) {
+			// 오류
+			return;
+		}
+		RecvLobbyMessage(my_socket);
+
+	}
+	break;
+
+	case LOBBY:
+	{
+		background_color = COLOR_RED;
+		RecvLobbyMessage(my_socket);
+		if (player_captain == true)
 		{
-			background_color = COLOR_RED;
 			PACKETS packet = { CLIENT_GAME_START };
 			int result = send(my_socket, (char*)(&packet), sizeof(packet), 0);;
 			if (result == SOCKET_ERROR)
@@ -112,42 +120,43 @@ void ClientFramework::Update() {
 			}
 			status = GAME;
 		}
-		break;
+	}
+	break;
 
-		case GAME:
-		{
-			int itercount = 0;
-			PacketMessage gamemessage = { CLIENT_KEY_INPUT };
+	case GAME:
+	{
+		int itercount = 0;
+		PacketMessage gamemessage = { CLIENT_KEY_INPUT };
 
-			for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkers에서 값을 읽어 배열 제작
-				buttonsets[itercount] = (it->second.time == -1);
-				itercount++;
-			}
+		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkers에서 값을 읽어 배열 제작
+			buttonsets[itercount] = (it->second.time == -1);
+			itercount++;
+		}
 
-			SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
-			RecvGameMessage(my_socket);
+		SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
+		RecvGameMessage(my_socket);
 
-			if (view_track_enabled) {
-				if (view_target_player != -1) {
-					//ViewSetPosition(view_target->x, view_target->y);
-				}
+		if (view_track_enabled) {
+			if (view_target_player != -1) {
+				//ViewSetPosition(view_target->x, view_target->y);
 			}
 		}
-		break;
+	}
+	break;
 
 
-		case SPECTATOR:
-		{
-			if (view_track_enabled) {
-				if (view_target_player != -1) {
-					//ViewSetPosition(view_target->x, view_target->y);
-				}
+	case SPECTATOR:
+	{
+		if (view_track_enabled) {
+			if (view_target_player != -1) {
+				//ViewSetPosition(view_target->x, view_target->y);
 			}
 		}
-		break;
+	}
+	break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 }
 
@@ -166,16 +175,16 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newoldBit = (HBITMAP)SelectObject(surface_back, m_newBit);
 
 	// 파이프라인
-	/*
-	for_each_instances([&](GameInstance*& inst) {
-		if (inst->sprite_index) {
-			if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
-				|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
-				inst->on_render(surface_double);
-		} else {
-			inst->on_render(surface_double);
-		}
-	});*/
+
+	//for_each_instances([&](GameInstance*& inst) {
+	//	if (inst->sprite_index) {
+	//		if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
+	//			|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
+	//			inst->on_render(surface_double);
+	//	} else {
+	//		inst->on_render(surface_double);
+	//	}
+	//});
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
@@ -183,7 +192,7 @@ void ClientFramework::Render(HWND window) {
 
 	// 백 버퍼 -> 화면 버퍼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
-			   , surface_back, 0, 0, view.w, view.h, SRCCOPY);
+		, surface_back, 0, 0, view.w, view.h, SRCCOPY);
 	Render::draw_end(surface_back, m_newoldBit, m_newBit);
 
 	DeleteDC(surface_back);
@@ -244,6 +253,15 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int temp;
+
+	recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
+
+	if (temp > 0) player_captain = false;					//0이면 방장 아니면 쩌리
+	else player_captain = true;
+}
+
 int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 
 	PacketMessage packet = { type };
@@ -262,7 +280,6 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
-
 }
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
@@ -289,8 +306,8 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 	HWND hWnd = CreateWindow((LPCSTR)id, (LPCSTR)title, window_attributes
-							 , CW_USEDEFAULT, 0, width, height
-							 , nullptr, nullptr, instance, nullptr);
+		, CW_USEDEFAULT, 0, width, height
+		, nullptr, nullptr, instance, nullptr);
 	instance = handle;
 	title_caption = title;
 	class_id = id;
