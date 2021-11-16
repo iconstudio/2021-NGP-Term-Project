@@ -101,7 +101,7 @@ void ClientFramework::Update() {
 			// 오류
 			return;
 		}
-		RecvLobbyMessage(my_socket);
+		RecvTitleMessage(my_socket);
 
 	}
 	break;
@@ -109,7 +109,6 @@ void ClientFramework::Update() {
 	case LOBBY:
 	{
 		background_color = COLOR_RED;
-		RecvLobbyMessage(my_socket);
 		if (player_captain == true)
 		{
 			PACKETS packet = { CLIENT_GAME_START };
@@ -253,7 +252,7 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+int ClientFramework::RecvTitleMessage(SOCKET sock) {
 	int temp;
 
 	recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아

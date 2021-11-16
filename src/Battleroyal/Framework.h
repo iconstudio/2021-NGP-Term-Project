@@ -44,7 +44,7 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
-	int RecvLobbyMessage(SOCKET sock);
+	int RecvTitleMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
 	int RecvGameMessage(SOCKET sock);
 
