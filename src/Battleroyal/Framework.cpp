@@ -254,11 +254,22 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 
 int ClientFramework::RecvTitleMessage(SOCKET sock) {
 	int temp;
+	int retval;
 
-	recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
+	retval = recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
 
 	if (temp > 0) player_captain = false;					//0이면 방장 아니면 쩌리
 	else player_captain = true;
+
+	return retval;
+}
+
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int retval;
+
+	retval = recv(sock, (char*)player_num, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
+
+	return retval;
 }
 
 int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
@@ -278,7 +289,11 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 }
 
 int ClientFramework::RecvGameMessage(SOCKET sock) {
-	recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+	int retval;
+
+	retval = recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+
+	return retval;
 }
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
