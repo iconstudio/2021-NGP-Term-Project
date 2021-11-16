@@ -65,7 +65,6 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
-
 	//thread_list.push_back(CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL));
 
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -180,7 +179,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	client_number++;
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , (char*)(client_number), sizeof(client_number));
+			 , reinterpret_cast<char*>(client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -196,7 +195,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
 		auto id = player->index;
 		auto character = player->player_character;
 		if (character)
-			Kill((GameInstance*)(character));
+			Kill(static_cast<GameInstance*>(character));
 
 		players.erase(dit);
 		client_number--;
@@ -322,7 +321,7 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
 	if (SOCKET_ERROR == result) {
 		ErrorAbort("send 1");
 	}
@@ -354,7 +353,7 @@ void ErrorDisplay(std::string msg) {
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+	std::cout << "[" << msg << "] " << static_cast<LPTSTR>(lpMsgBuf) << std::endl;
 
 	LocalFree(lpMsgBuf);
 }
