@@ -151,7 +151,7 @@ void ServerFramework::Startup() {
 	}
 }
 
-SOCKET ServerFramework::PlayerConnect(int player) {
+SOCKET ServerFramework::PlayerConnect() {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
 
