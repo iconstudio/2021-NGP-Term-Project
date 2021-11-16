@@ -67,27 +67,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 		break;
 
-			
-		// 키입력
-		case WM_KEYDOWN:
-			if (wParam == 'w' || wParam == 'W') framework.InputCheck('w');
-			else if (wParam == 's' || wParam == 'S') framework.InputCheck('s');
-			else if (wParam == 'a' || wParam == 'A') framework.InputCheck('a');
-			else if (wParam == 'd' || wParam == 'D') framework.InputCheck('d');
-			else;
-			break;
-
-		case WM_CHAR:
-			break;
-
-		case WM_KEYUP:
-			if (wParam == VK_UP) framework.InputCheckPressed(VK_UP);
-			else if (wParam == VK_DOWN) framework.InputCheckPressed(VK_DOWN);
-			else if (wParam == VK_LEFT) framework.InputCheckPressed(VK_LEFT);
-			else if (wParam == VK_RIGHT) framework.InputCheckPressed(VK_RIGHT);
-			else;
-			break;
-
 		// 마우스 왼쪽 누름
 		case WM_LBUTTONDOWN:
 		{

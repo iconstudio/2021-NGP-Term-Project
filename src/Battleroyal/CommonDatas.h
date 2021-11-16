@@ -44,7 +44,6 @@ enum RENDER_TYPES : int {
 
 struct RenderInstance {
 	const RENDER_TYPES instance_type;
-
 	int sprite_index;
 	double x, y, angle;
 };

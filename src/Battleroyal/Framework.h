@@ -7,13 +7,13 @@
 #define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
-	TITLE = 0 // 타이틀 화면
-	, LOBBY // 로비
-	, GAME // 게임
-	, SPECTATOR // 게임 관전
-	, GAME_OVER // 게임 완료
-	, GAME_RESTART // 게임 다시 참가
-	, EXIT // 클라이언트 종료
+	TITLE = 0		// 타이틀 화면
+	, LOBBY			// 로비
+	, GAME			// 게임
+	, SPECTATOR		// 게임 관전
+	, GAME_OVER		// 게임 완료
+	, GAME_RESTART	// 게임 다시 참가
+	, EXIT			// 클라이언트 종료
 
 };
 
@@ -44,7 +44,9 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
-	int SendGameMessage(SOCKET sk, PACKETS type, char data[]);
+	int RecvLobbyMessage(SOCKET sock);
+	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
+	int RecvGameMessage(SOCKET sock);
 
 	CLIENT_STATES status;
 
@@ -55,7 +57,8 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	int	player_index = 0;
-	bool buttonsets[6];
+	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
+	bool player_captain;
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;
