@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 
@@ -11,7 +11,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 
-	PLAYER_SPAWN_PLACES = new int*[PLAYERS_NUMBER_MAX];
+	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
 
 	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
 	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
@@ -26,7 +26,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
-	for (auto& player : players) {
+	for (auto player : players) {
 		CloseHandle(player->client_handle);
 	}
 	players.clear();
@@ -77,72 +77,77 @@ bool ServerFramework::Initialize() {
 }
 
 void ServerFramework::Startup() {
-	switch (status) {
-		case LISTEN:
-		{
-			cout << "Listening" << endl;
+	while (true) {
+		switch (status) {
+			case LISTEN:
+			{
+				cout << "Listening" << endl;
 
-			while (true) {
-				SOCKET new_client = PlayerConnect(0);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "accept 오류!";
-					return;
-				}
+				while (true) {
+					SOCKET new_client = PlayerConnect(0);
+					if (INVALID_SOCKET == new_client) {
+						cerr << "accept 오류!";
+						return;
+					}
 
-				// 첫번째 플레이어 접속
-				SetStatus(LOBBY);
-				break;
-			}
-		}
-		break;
-
-		case LOBBY:
-		{
-			cout << "대기실 입장" << endl;
-
-			while (true) {
-				if (status != LOBBY) {
+					// 첫번째 플레이어 접속
+					SetStatus(LOBBY);
 					break;
 				}
+			}
+			break;
 
-				SOCKET new_client = PlayerConnect(player_number_last);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "로비: accept 오류!";
-					return;
+			case LOBBY:
+			{
+				cout << "대기실 입장" << endl;
+
+				while (true) {
+					if (status != LOBBY) {
+						break;
+					}
+
+					SOCKET new_client = PlayerConnect(player_number_last);
+					if (INVALID_SOCKET == new_client) {
+						cerr << "로비: accept 오류!";
+						return;
+					}
 				}
 			}
-		}
-		break;
-
-		case GAME:
-		{
-			while (true) {
-				ForeachInstances([&](GameInstance*& inst) {
-					//inst->OnUpdate(FRAME_TIME);
-				});
-
-				Sleep(FRAME_TIME);
-			}
-		}
-		break;
-
-		case GAME_OVER:
-		{
-
-		}
-		break;
-
-		case GAME_RESTART:
-		{
-
-		}
-		break;
-
-		case EXIT: {}
-				 break;
-
-		default:
 			break;
+
+			case GAME:
+			{
+				while (true) {
+					ForeachInstances([&](GameInstance*& inst) {
+						//inst->OnUpdate(FRAME_TIME);
+					});
+
+					Sleep(FRAME_TIME);
+				}
+			}
+			break;
+
+			case GAME_OVER:
+			{
+
+			}
+			break;
+
+			case GAME_RESTART:
+			{
+
+			}
+			break;
+
+			case EXIT:
+			{
+				// 종료
+			}
+				return;
+
+			default:
+				break;
+		}
 	}
 }
 
@@ -150,10 +155,10 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
 
-	SOCKET new_client = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
-	if (INVALID_SOCKET == new_client) {
+	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
+	if (INVALID_SOCKET == new_socket) {
 		// 오류
-		return new_client;
+		return new_socket;
 	}
 
 	// 첫번째 플레이어
@@ -161,19 +166,20 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 		player_captain = player_number_last;
 	}
 
-	auto client_info = new PlayerInfo(new_client, 0, player_number_last++);
-	CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, (LPDWORD)(&client_info->client_handle));
+	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
+	client_info->client_handle = new_thread;
+	cout << "새 플레이어 접속: " << new_socket << endl;
+	cout << "현재 플레이어 수: " << ++client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
-	client_number++;
+	//client_number++;
 
-	return new_client;
+	return new_socket;
 }
 
-void ServerFramework::PlayerDisconnect(int player) {
-	auto dit = find_if(players.begin(), players.end(), [player](PlayerInfo* pi) {
-		return (pi->index == player);
-	});
+void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
+	auto dit = find(players.begin(), players.end(), player);
 
 	//TODO: 임계 영역 사용하기
 	if (dit != players.end()) {
@@ -181,11 +187,11 @@ void ServerFramework::PlayerDisconnect(int player) {
 
 		CloseHandle(player->client_handle);
 
+		auto id = player->index;
 		auto character = player->player_character;
 		if (character)
 			Kill((GameInstance*)(character));
 
-		auto id = player->index;
 		players.erase(dit);
 		client_number--;
 

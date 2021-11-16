@@ -3,7 +3,6 @@
 #include "CommonDatas.h"
 
 
-
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
@@ -69,7 +68,7 @@ public:
 	void Startup();
 
 	SOCKET PlayerConnect(int player);
-	void PlayerDisconnect(int player);
+	void PlayerDisconnect(PlayerInfo*& player);
  
 	void SetStatus(SERVER_STATES state);
 

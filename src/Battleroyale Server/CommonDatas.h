@@ -26,11 +26,6 @@ enum PACKETS : int {
 	, SERVER_REPLAY				// 클라이언트에게 게임을 다시 시작함을 알려주는 메시지
 };
 
-struct PacketMessage {
-	PACKETS type;
-	int size;
-};
-
 struct GameUpdateMessage {
 	int players_count;
 
