@@ -80,7 +80,7 @@ bool ServerFramework::Initialize() {
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-  my_address.sin_port = htons(COMMON_PORT);
+	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
 		ErrorQuit("bind()");
@@ -92,81 +92,82 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
-	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+	thread_list.push_back(CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL));
+
 	return true;
 }
 
 void ServerFramework::Startup() {
 	switch (status) {
-		case LISTEN:
-		{
-			cout << "첫번째 클라이언트 대기 중" << endl;
+	case LISTEN:
+	{
+		cout << "첫번째 클라이언트 대기 중" << endl;
 
-			while (true) {
-				SOCKET new_client = PlayerConnect(0);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "accept 오류!";
-					return;
-				}
+		while (true) {
+			SOCKET new_client = PlayerConnect(0);
+			if (INVALID_SOCKET == new_client) {
+				cerr << "accept 오류!";
+				return;
+			}
 
-				// 첫번째 플레이어 접속
-				SetStatus(LOBBY);
+			// 첫번째 플레이어 접속
+			SetStatus(LOBBY);
+			break;
+		}
+	}
+	break;
+
+	case LOBBY:
+	{
+		cout << "대기실 입장" << endl;
+
+		while (true) {
+			SOCKET new_client = PlayerConnect(0);
+			if (INVALID_SOCKET == new_client) {
+				cerr << "로비: accept 오류!";
+				return;
+			}
+
+			if (status != LOBBY) {
 				break;
 			}
 		}
-		break;
+	}
+	break;
 
-		case LOBBY:
-		{
-			cout << "대기실 입장" << endl;
+	case GAME:
+	{
+		while (true) {
 
-			while (true) {
-				SOCKET new_client = PlayerConnect(0);
-				if (INVALID_SOCKET == new_client) {
-					cerr << "로비: accept 오류!";
-					return;
-				}
+			//cout << "Sleep: " << FRAME_TIME << endl;
 
-				if (status != LOBBY) {
-					break;
-				}
-			}
+			Sleep(FRAME_TIME);
 		}
+	}
+	break;
+
+	case GAME_OVER:
+	{
+
+	}
+	break;
+
+	case GAME_RESTART:
+	{
+
+	}
+	break;
+
+	case EXIT: {}
+			 break;
+
+	default:
 		break;
-
-		case GAME:
-		{
-			while (true) {
-
-				//cout << "Sleep: " << FRAME_TIME << endl;
-
-				Sleep(FRAME_TIME);
-			}
-		}
-		break;
-
-		case GAME_OVER:
-		{
-
-		}
-		break;
-
-		case GAME_RESTART:
-		{
-
-		}
-		break;
-
-		case EXIT: {}
-			break;
-
-		default:
-			break;
 	}
 
 	ForeachInstances([&](GameInstance*& inst) {
 		inst->OnUpdate(FRAME_TIME);
-	});
+		});
 }
 
 SOCKET ServerFramework::PlayerConnect(int player) {
@@ -190,7 +191,7 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 void ServerFramework::PlayerDisconnect(int player) {
 	auto dit = find_if(players.begin(), players.end(), [player](PlayerInfo* pi) {
 		return (pi->index == player);
-	});
+		});
 
 	if (dit != players.end()) {
 		closesocket((*dit)->client_socket);
@@ -252,16 +253,16 @@ int GameInstance::GetBoundBT() const {
 
 bool GameInstance::IsCollideWith(RECT& other) {
 	return !(other.right <= GetBoundLT()
-			 || other.bottom <= GetBoundTP()
-			 || GetBoundRT() < other.left
-			 || GetBoundBT() < other.top);
+		|| other.bottom <= GetBoundTP()
+		|| GetBoundRT() < other.left
+		|| GetBoundBT() < other.top);
 }
 
 bool GameInstance::IsCollideWith(GameInstance*& other) {
 	return !(other->GetBoundRT() <= GetBoundLT()
-			 || other->GetBoundBT() <= GetBoundTP()
-			 || GetBoundRT() < other->GetBoundLT()
-			 || GetBoundBT() < other->GetBoundTP());
+		|| other->GetBoundBT() <= GetBoundTP()
+		|| GetBoundRT() < other->GetBoundLT()
+		|| GetBoundBT() < other->GetBoundTP());
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
