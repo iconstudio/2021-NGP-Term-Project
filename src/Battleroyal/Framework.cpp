@@ -64,10 +64,10 @@ void ClientFramework::Initialize() {
 	server_address.sin_port = htons(SERVER_PT);
 
 
-	InputRegister('w');
-	InputRegister('s');
-	InputRegister('a');
-	InputRegister('d');
+	InputRegister('W');
+	InputRegister('S');
+	InputRegister('A');
+	InputRegister('D');
 	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
 }
