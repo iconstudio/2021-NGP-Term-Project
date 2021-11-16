@@ -64,10 +64,10 @@ void ClientFramework::Initialize() {
 	server_address.sin_port = htons(SERVER_PT);
 
 
-	InputRegister('w');
-	InputRegister('s');
-	InputRegister('a');
-	InputRegister('d');
+	InputRegister('W');
+	InputRegister('S');
+	InputRegister('A');
+	InputRegister('D');
 	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
 }
@@ -101,7 +101,7 @@ void ClientFramework::Update() {
 			// 오류
 			return;
 		}
-		RecvLobbyMessage(my_socket);
+		RecvTitleMessage(my_socket);
 
 	}
 	break;
@@ -109,7 +109,6 @@ void ClientFramework::Update() {
 	case LOBBY:
 	{
 		background_color = COLOR_RED;
-		RecvLobbyMessage(my_socket);
 		if (player_captain == true)
 		{
 			PACKETS packet = { CLIENT_GAME_START };
@@ -253,13 +252,26 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+int ClientFramework::RecvTitleMessage(SOCKET sock) {
 	int temp;
+	int retval;
 
-	recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
+	retval = recv(sock, (char*)(temp), sizeof(int), MSG_WAITALL);		//�÷��̾� index�� �޾�
 
-	if (temp > 0) player_captain = false;					//0이면 방장 아니면 쩌리
-	else player_captain = true;
+	if (0 < temp)
+    player_captain = false;					//0이면 방장 아니면 쩌리
+	else
+    player_captain = true;
+
+	return retval;
+}
+
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int retval;
+
+	retval = recv(sock, (char*)player_num, sizeof(int), MSG_WAITALL);		//�÷��̾� index�� �޾�
+
+	return retval;
 }
 
 int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
@@ -279,7 +291,11 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 }
 
 int ClientFramework::RecvGameMessage(SOCKET sock) {
-	recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+	int retval;
+
+	retval = recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+
+	return retval;
 }
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)

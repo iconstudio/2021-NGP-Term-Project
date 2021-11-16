@@ -44,6 +44,7 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	int RecvTitleMessage(SOCKET sock);
 	int RecvLobbyMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
 	int RecvGameMessage(SOCKET sock);
@@ -57,6 +58,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	int	player_index = 0;
+	int player_num = 1;
 	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
 	bool player_captain;
 
