@@ -67,7 +67,7 @@ public:
 	bool Initialize();
 	void Startup();
 
-	SOCKET PlayerConnect(int player);
+	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo*& player);
  
 	void SetStatus(SERVER_STATES state);
