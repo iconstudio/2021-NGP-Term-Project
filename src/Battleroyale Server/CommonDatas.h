@@ -3,6 +3,10 @@
 #define COMMON_PORT 15000
 
 
+// 자기장 완료 시간
+const double EWALL_CLOSE_PERIOD = 300.0;
+const double EWALL_DAMAGE_PER_SECOND = 1.5;
+
 // 최대 플레이어 수
 const int PLAYERS_NUMBER_MAX = 10;
 
@@ -29,7 +33,7 @@ struct GameUpdateMessage {
 	int players_count;
 
 	int target_player;
-	int player_hp;
+	double player_hp;
 	double player_x, player_y, player_direction;
 };
 
