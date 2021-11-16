@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#define COMMON_PORT 15000
 
 
 // 최대 플레이어 수
@@ -18,15 +19,11 @@ enum PACKETS : int {
 
 	, SERVER_GAME_START			// 클라이언트에게 게임이 시작되었음을 알려주는 메시지
 	, SERVER_PLAYER_COUNT		// 클라이언트에게 플레이어가 몇 명인지 알려주는 메시지
-	, SERVER_GAME_STATUS		// 클라이언트에게 게임 상태를 알려주는 메시지
+	, SERVER_GAME_
+	// 클라이언트에게 게임 상태를 알려주는 메시지
 	, SERVER_RENDER_INFO		// 클라이언트에게 렌더링 정보를 보내주는 메시지
 	, SERVER_GAME_DONE			// 클라이언트에게 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 클라이언트에게 게임을 다시 시작함을 알려주는 메시지
-};
-
-struct PacketMessage {
-	const PACKETS type;
-	int size;
 };
 
 struct GameUpdateMessage {
@@ -43,10 +40,10 @@ enum RENDER_TYPES : int {
 };
 
 struct RenderInstance {
-	const RENDER_TYPES instance_type;
+	RENDER_TYPES instance_type;
 
 	int sprite_index;
 	double x, y, angle;
 };
 
-
+int SendMyMessage(SOCKET sk, PACKETS type, int size, void* data = nullptr);
