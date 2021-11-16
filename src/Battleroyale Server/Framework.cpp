@@ -84,7 +84,7 @@ void ServerFramework::Startup() {
 				cout << "Listening" << endl;
 
 				while (true) {
-					SOCKET new_client = PlayerConnect(0);
+					SOCKET new_client = PlayerConnect();
 					if (INVALID_SOCKET == new_client) {
 						cerr << "accept 오류!";
 						return;
@@ -106,7 +106,7 @@ void ServerFramework::Startup() {
 						break;
 					}
 
-					SOCKET new_client = PlayerConnect(player_number_last);
+					SOCKET new_client = PlayerConnect();
 					if (INVALID_SOCKET == new_client) {
 						cerr << "로비: accept 오류!";
 						return;
