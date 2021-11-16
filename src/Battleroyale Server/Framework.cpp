@@ -56,12 +56,12 @@ bool ServerFramework::Initialize() {
 	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		ErrorQuit("bind()");
+		ErrorAbort("bind()");
 		return false;
 	}
 
 	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
-		ErrorQuit("listen()");
+		ErrorAbort("listen()");
 		return false;
 	}
 
@@ -311,7 +311,21 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	index = id;
 }
 
-void ErrorQuit(std::string msg) {
+void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
+	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	if (SOCKET_ERROR == result) {
+		ErrorAbort("send 1");
+	}
+
+	if (buffer) {
+		result = send(socket, buffer, length, 0);
+		if (SOCKET_ERROR == result) {
+			ErrorAbort("send 2");
+		}
+	}
+}
+
+void ErrorAbort(std::string msg) {
 	LPVOID lpMsgBuf;
 
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),

@@ -8,8 +8,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
-void ErrorQuit(std::string msg);
-void ErrorDisplay(std::string msg);
+
+void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
+void ErrorAbort(std::string);
+void ErrorDisplay(std::string);
 
 struct PlayerInfo {
 	SOCKET client_socket;
