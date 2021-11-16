@@ -81,7 +81,7 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				cout << "Listening" << endl;
+				cout << "S: Listening" << endl;
 
 				while (true) {
 					SOCKET new_client = PlayerConnect();
@@ -99,7 +99,7 @@ void ServerFramework::Startup() {
 
 			case LOBBY:
 			{
-				cout << "대기실 입장" << endl;
+				cout << "S: Entering Lobby" << endl;
 
 				while (true) {
 					if (status != LOBBY) {
@@ -166,17 +166,18 @@ SOCKET ServerFramework::PlayerConnect() {
 		player_captain = player_number_last;
 	}
 
-	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , (char*)(client_number), sizeof(client_number));
-
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
+
 	cout << "새 플레이어 접속: " << new_socket << endl;
-	cout << "현재 플레이어 수: " << ++client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
-	//client_number++;
+
+	client_number++;
+	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
+			 , (char*)(client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -184,7 +185,6 @@ SOCKET ServerFramework::PlayerConnect() {
 void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
 	auto dit = find(players.begin(), players.end(), player);
 
-	//TODO: 임계 영역 사용하기
 	if (dit != players.end()) {
 		auto player = (*dit);
 
