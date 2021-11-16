@@ -48,5 +48,3 @@ struct RenderInstance {
 	int sprite_index;
 	double x, y, angle;
 };
-
-int SendMyMessage(SOCKET sk, PACKETS type, int size, void* data = nullptr);
