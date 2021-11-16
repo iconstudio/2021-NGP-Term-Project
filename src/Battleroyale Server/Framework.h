@@ -91,6 +91,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 
+	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
 
 	HANDLE thread_game_starter;

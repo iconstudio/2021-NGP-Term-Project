@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 
@@ -64,6 +64,9 @@ bool ServerFramework::Initialize() {
 		ErrorAbort("listen()");
 		return false;
 	}
+
+
+	//thread_list.push_back(CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL));
 
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -300,16 +303,16 @@ int GameInstance::GetBoundBT() const {
 
 bool GameInstance::IsCollideWith(RECT& other) {
 	return !(other.right <= GetBoundLT()
-			 || other.bottom <= GetBoundTP()
-			 || GetBoundRT() < other.left
-			 || GetBoundBT() < other.top);
+		|| other.bottom <= GetBoundTP()
+		|| GetBoundRT() < other.left
+		|| GetBoundBT() < other.top);
 }
 
 bool GameInstance::IsCollideWith(GameInstance*& other) {
 	return !(other->GetBoundRT() <= GetBoundLT()
-			 || other->GetBoundBT() <= GetBoundTP()
-			 || GetBoundRT() < other->GetBoundLT()
-			 || GetBoundBT() < other->GetBoundTP());
+		|| other->GetBoundBT() <= GetBoundTP()
+		|| GetBoundRT() < other->GetBoundLT()
+		|| GetBoundBT() < other->GetBoundTP());
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
