@@ -166,6 +166,9 @@ SOCKET ServerFramework::PlayerConnect(int player) {
 		player_captain = player_number_last;
 	}
 
+	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
+			 , (char*)(client_number), sizeof(client_number));
+
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
