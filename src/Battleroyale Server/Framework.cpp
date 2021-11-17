@@ -190,6 +190,9 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		if (character)
 			Kill((GameInstance*)(character));
 
+		cout << "플레이어 종료: " << player->client_socket << endl;
+		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+
 		players.erase(dit);
 		client_number--;
 
