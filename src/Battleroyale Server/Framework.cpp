@@ -68,7 +68,7 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
-	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
+	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -87,10 +87,13 @@ void ServerFramework::Startup() {
 			case LISTEN:
 			{
 				cout << "S: Listening" << endl;
+				SetEvent(event_player_accept);
+				while (true) {
+					if (status != LISTEN) {
+						break;
+					}
 
-				if (NULL == thread_player_accept) {
-				} else {
-
+					SetEvent(event_player_accept);
 				}
 			}
 			break;
@@ -98,12 +101,7 @@ void ServerFramework::Startup() {
 			case LOBBY:
 			{
 				cout << "S: Entering lobby" << endl;
-
-				while (true) {
-					if (status != LOBBY) {
-						break;
-					}
-				}
+				SetEvent(event_player_accept);
 			}
 			break;
 
@@ -111,11 +109,7 @@ void ServerFramework::Startup() {
 			{
 				cout << "S: Starting the game" << endl;
 				
-				if (NULL != thread_player_accept) {
-					TerminateThread(thread_player_accept, 0);
-					CloseHandle(thread_player_accept);
-					thread_player_accept = NULL;
-				}
+				ResetEvent(event_player_accept);
 
 				while (true) {
 					ForeachInstances([&](GameInstance*& inst) {
