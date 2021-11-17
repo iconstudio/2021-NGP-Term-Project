@@ -154,7 +154,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
-DWORD __stdcall GameInitializeProcess(LPVOID arg) {
+DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		WaitForSingleObject(framework.event_game_start, INFINITE);
 
@@ -182,7 +182,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		if (1 < framework.GetClientCount()) {
 			// 게임 처리
-
+			framework.GameUpdate();
 
 			framework.CastSendRenders();
 			break;
