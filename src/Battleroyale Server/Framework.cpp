@@ -88,6 +88,7 @@ void ServerFramework::Startup() {
 			case LISTEN:
 			{
 				cout << "S: Listening" << endl;
+
 				CastClientAccept(true);
 			}
 			break;
@@ -95,6 +96,7 @@ void ServerFramework::Startup() {
 			case LOBBY:
 			{
 				cout << "S: Entering lobby" << endl;
+
 				CastClientAccept(true);
 			}
 			break;
