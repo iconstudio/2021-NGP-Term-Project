@@ -90,10 +90,10 @@ private:
 	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
 
-	HANDLE thread_player_accept;
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
+	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
 	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체

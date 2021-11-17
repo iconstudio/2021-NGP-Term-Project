@@ -6,7 +6,7 @@
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
-	, my_socket(0), my_address(), client_number(0), thread_player_accept(NULL)
+	, my_socket(0), my_address(), client_number(0)
 	, player_number_last(0), player_captain(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
@@ -31,9 +31,10 @@ ServerFramework::~ServerFramework() {
 	}
 	players.clear();
 
-	CloseHandle(thread_player_accept);
 	CloseHandle(thread_game_starter);
 	CloseHandle(thread_game_process);
+
+	CloseHandle(event_player_accept);
 	CloseHandle(event_receives);
 	CloseHandle(event_game_process);
 	CloseHandle(event_send_renders);
@@ -67,11 +68,13 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
+	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
 
+	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 
@@ -86,7 +89,6 @@ void ServerFramework::Startup() {
 				cout << "S: Listening" << endl;
 
 				if (NULL == thread_player_accept) {
-					thread_player_accept = CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 				} else {
 
 				}
@@ -95,17 +97,11 @@ void ServerFramework::Startup() {
 
 			case LOBBY:
 			{
-				cout << "S: Entering Lobby" << endl;
+				cout << "S: Entering lobby" << endl;
 
 				while (true) {
 					if (status != LOBBY) {
 						break;
-					}
-
-					SOCKET new_client = PlayerConnect();
-					if (INVALID_SOCKET == new_client) {
-						cerr << "로비: accept 오류!";
-						return;
 					}
 				}
 			}
@@ -113,6 +109,14 @@ void ServerFramework::Startup() {
 
 			case GAME:
 			{
+				cout << "S: Starting the game" << endl;
+				
+				if (NULL != thread_player_accept) {
+					TerminateThread(thread_player_accept, 0);
+					CloseHandle(thread_player_accept);
+					thread_player_accept = NULL;
+				}
+
 				while (true) {
 					ForeachInstances([&](GameInstance*& inst) {
 						//inst->OnUpdate(FRAME_TIME);
