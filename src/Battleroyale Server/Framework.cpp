@@ -155,6 +155,18 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
+	auto status = GetStatus();
+	if (LISTEN == status) {
+		SetEvent(event_player_accept);
+
+		// 첫번째 플레이어 접속
+		SetStatus(LOBBY);
+	} else if (LOBBY == status) {
+		SetEvent(event_player_accept);
+	} else {
+		return 0;
+	}
+
 	// 첫번째 플레이어
 	if (client_number == 0) {
 		player_captain = player_number_last;

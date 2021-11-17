@@ -203,16 +203,6 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			cerr << "accept 오류!";
 			return 0;
 		}
-
-		auto status = framework.GetStatus();
-		if (LISTEN == status) {
-			SetEvent(framework.event_player_accept);
-
-			// 첫번째 플레이어 접속
-			framework.SetStatus(LOBBY);
-		} else if (LOBBY == status) {
-			SetEvent(framework.event_player_accept);
-		}
 	}
 
 	return 0;
