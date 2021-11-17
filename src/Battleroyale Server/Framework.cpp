@@ -268,6 +268,18 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 	return WaitForSingleObject(event_player_accept, INFINITE);
 }
 
+inline DWORD __stdcall ServerFramework::AwaitReceiveEvent() {
+	return WaitForSingleObject(event_receives, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
+	return WaitForSingleObject(event_game_process, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
+	return WaitForSingleObject(event_send_renders, FRAME_TIME);
+}
+
 void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
@@ -289,7 +301,7 @@ void ServerFramework::CastProcessingGame() {
 }
 
 void ServerFramework::CastSendRenders() {
-
+	SetEvent(event_send_renders);
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {

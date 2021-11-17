@@ -69,7 +69,7 @@ public:
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
 	void CastClientAccept(bool flag);
-	void CastStartReceive();
+	void CastStartReceive(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders();
 
@@ -77,6 +77,9 @@ public:
 	int GetClientCount() const;
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
+	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitProcessingGameEvent();
+	inline DWORD WINAPI AwaitSendRendersEvent();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);

@@ -69,7 +69,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 꾸준한 통신
 				while (true) {
-					WaitForSingleObject(framework.event_receives, INFINITE);
+					framework.AwaitReceiveEvent();
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (0 < data_size) {
@@ -119,7 +119,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					framework.CastProcessingGame();
 
-					WaitForSingleObject(framework.event_send_renders, FRAME_TIME);
+					framework.AwaitSendRendersEvent();
 
 
 				}
@@ -178,15 +178,14 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	CCharacter* player_character;
 
 	while (true) {
-		WaitForSingleObject(framework.event_game_process, INFINITE);
-
+		framework.AwaitProcessingGameEvent();
 		framework.CastStartReceive(false);
 
 		if (1 < framework.client_number) {
 			// 게임 처리
 
 
-			SetEvent(framework.event_send_renders);
+			framework.CastSendRenders();
 			break;
 		} else { // 게임 판정승 혹은 게임 강제 종료
 
