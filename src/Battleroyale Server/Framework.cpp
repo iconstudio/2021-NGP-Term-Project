@@ -161,15 +161,16 @@ SOCKET ServerFramework::PlayerConnect() {
 		return 0;
 	}
 
-	// 첫번째 플레이어
-	if (client_number == 0) {
-		player_captain = player_number_last;
-	}
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
 	//thread_list.push_back(new_thread);
+
+	// 첫번째 플레이어
+	if (client_number == 0) {
+		SetCaptain(client_info);
+	}
 
 	cout << "새 플레이어 접속: " << new_socket << endl;
 	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
@@ -234,14 +235,15 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 			switch (status) {
 				case LISTEN:
 				{
-					if (0 < client_number)
-						player_captain = players.at(0)->index;
+					if (0 < client_number) {
+						SetCaptain(players.at(0));
+					}
 				}
 				break;
 
 				case LOBBY:
 				{
-					player_captain = players.at(0)->index;
+					SetCaptain(players.at(0));
 				}
 				break;
 
