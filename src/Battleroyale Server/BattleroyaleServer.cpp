@@ -117,7 +117,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 					} // 다른 메시지는 버린다.
 
-					SetEvent(framework.event_game_process);
+					framework.CastProcessingGame();
 
 					WaitForSingleObject(framework.event_send_renders, FRAME_TIME);
 
@@ -167,7 +167,7 @@ DWORD __stdcall GameInitializeProcess(LPVOID arg) {
 			player->player_character = framework.Instantiate<CCharacter>(places[0], places[1]);
 		}
 
-		SetEvent(framework.event_receives);
+		framework.CastStartReceive(true);
 		framework.SetStatus(GAME);
 	}
 
@@ -180,9 +180,11 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		WaitForSingleObject(framework.event_game_process, INFINITE);
 
-		ResetEvent(framework.event_receives);
+		framework.CastStartReceive(false);
 
 		if (1 < framework.client_number) {
+			// 게임 처리
+
 
 			SetEvent(framework.event_send_renders);
 			break;

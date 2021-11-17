@@ -68,7 +68,10 @@ public:
 
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
-	void SetClientAccept(bool flag);
+	void CastClientAccept(bool flag);
+	void CastStartReceive();
+	void CastProcessingGame();
+	void CastSendRenders();
 
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;

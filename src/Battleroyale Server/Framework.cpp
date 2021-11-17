@@ -87,14 +87,14 @@ void ServerFramework::Startup() {
 			case LISTEN:
 			{
 				cout << "S: Listening" << endl;
-				SetClientAccept(true);
+				CastClientAccept(true);
 			}
 			break;
 
 			case LOBBY:
 			{
 				cout << "S: Entering lobby" << endl;
-				SetClientAccept(true);
+				CastClientAccept(true);
 			}
 			break;
 
@@ -102,7 +102,7 @@ void ServerFramework::Startup() {
 			{
 				cout << "S: Starting the game" << endl;
 
-				SetClientAccept(false);
+				CastClientAccept(false);
 
 				while (true) {
 					ForeachInstances([&](GameInstance*& inst) {
@@ -150,14 +150,14 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	auto status = GetStatus();
 	if (LISTEN == status) {
-		SetClientAccept(true);
+		CastClientAccept(true);
 
 		// 첫번째 플레이어 접속
 		SetStatus(LOBBY);
 	} else if (LOBBY == status) {
-		SetClientAccept(true);
+		CastClientAccept(true);
 	} else {
-		SetClientAccept(false);
+		CastClientAccept(false);
 		return 0;
 	}
 
@@ -232,26 +232,8 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 
 		// 방장이 나감
 		if (player_captain == id) {
-			switch (status) {
-				case LISTEN:
-				{
-					if (0 < client_number) {
-						SetCaptain(players.at(0));
-					}
-				}
-				break;
-
-				case LOBBY:
-				{
-					SetCaptain(players.at(0));
-				}
-				break;
-
-				case GAME: { /* 여기서 처리 안함 */ } break;
-				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
-				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
-				case EXIT: { /* 여기서 처리 안함 */ } break;
-				default: break;
+			if (0 < client_number) {
+				SetCaptain(players.at(0));
 			}
 		}
 
@@ -286,12 +268,28 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 	return WaitForSingleObject(event_player_accept, INFINITE);
 }
 
-void ServerFramework::SetClientAccept(bool flag) {
+void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);
 	}
+}
+
+void ServerFramework::CastStartReceive(bool flag) {
+	if (flag) {
+		SetEvent(event_receives);
+	} else {
+		ResetEvent(event_receives);
+	}
+}
+
+void ServerFramework::CastProcessingGame() {
+	SetEvent(event_game_process);
+}
+
+void ServerFramework::CastSendRenders() {
+
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
