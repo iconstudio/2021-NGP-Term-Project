@@ -73,6 +73,8 @@ public:
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;
 
+	inline DWORD WINAPI AwaitClientAcceptEvent();
+
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
 

@@ -196,7 +196,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		WaitForSingleObject(framework.event_player_accept, INFINITE);
+		framework.AwaitClientAcceptEvent();
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {

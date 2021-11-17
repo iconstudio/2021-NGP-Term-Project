@@ -287,6 +287,10 @@ int ServerFramework::GetClientCount() const {
 	return client_number;
 }
 
+inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
+	return WaitForSingleObject(event_player_accept, INFINITE);
+}
+
 void ServerFramework::SetClientAccept(bool flag) {
 	if (flag) {
 		SetEvent(event_player_accept);
