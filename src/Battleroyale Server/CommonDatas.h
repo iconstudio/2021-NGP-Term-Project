@@ -11,7 +11,7 @@ const double EWALL_DAMAGE_PER_SECOND = 1.5;
 const int PLAYERS_NUMBER_MAX = 10;
 
 // 프레임 수
-const int FRAMERATE = 60;
+const int FRAMERATE = 50;
 const double FRAME_TIME = (1.0 / FRAMERATE);
 
 enum PACKETS : int {
