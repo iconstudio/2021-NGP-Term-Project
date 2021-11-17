@@ -117,6 +117,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 					} // 다른 메시지는 버린다.
 
+					/*
+							TODO: I/O Overlapeed 모델로 바꾸기 위해서는 APC 함수들이 필수적이라고 한다.
+							운영체제의 메시지 큐를 사용하는 함수가 있다.
+					*/
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent();
@@ -174,11 +178,17 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	return 0;
 }
 
+/*
+		TODO: I/O Overlapped 모델로 변경하기
+
+		왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기 위해서는 동시 실행이 필수적이다.
+		IOCP 말고 이 부분에만 Overlapped 모델을 사용하면 좋을 것 같다.
+*/
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent();
+		framework.AwaitProcessingGameEvent(); // 이 함수를 WaitForSingleObjectEx로
 		framework.CastStartReceive(false);
-		Sleep(LERP_MIN);
+		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
 		if (1 < framework.GetClientCount()) {
 			// 게임 처리
