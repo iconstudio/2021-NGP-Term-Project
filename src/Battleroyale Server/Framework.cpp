@@ -183,7 +183,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	return new_socket;
 }
 
-void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
+void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 	auto dit = find(players.begin(), players.end(), player);
 
 	if (dit != players.end()) {
@@ -207,6 +207,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
 					if (0 == client_number) {
 						players.clear();
 						instances.clear();
+						SetCaptain(nullptr);
 					}
 				}
 				break;
@@ -249,6 +250,14 @@ void ServerFramework::PlayerDisconnect(PlayerInfo*& player) {
 			}
 		}
 
+	}
+}
+
+void ServerFramework::SetCaptain(PlayerInfo* player) {
+	if (player) {
+		player_captain = player->index;
+	} else {
+		player_captain = -1;
 	}
 }
 

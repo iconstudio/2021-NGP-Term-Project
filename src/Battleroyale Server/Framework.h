@@ -64,8 +64,8 @@ public:
 	void Startup();
 
 	SOCKET PlayerConnect();
-	void PlayerDisconnect(PlayerInfo*& player);
- 
+	void PlayerDisconnect(PlayerInfo* player);
+	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
 
 	template<class Predicate>
