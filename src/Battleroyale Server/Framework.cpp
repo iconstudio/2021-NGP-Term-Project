@@ -30,7 +30,7 @@ ServerFramework::~ServerFramework() {
 	for (auto player : players) {
 		CloseHandle(player->client_handle);
 	}
-	players.clear();
+	Clean();
 
 	CloseHandle(thread_game_starter);
 	CloseHandle(thread_game_process);
@@ -139,6 +139,19 @@ void ServerFramework::GameUpdate() {
 	});
 }
 
+void ServerFramework::Clean() {
+	players.clear();
+	instances.clear();
+	io_queue.clear();
+
+	players.shrink_to_fit();
+	instances.shrink_to_fit();
+	io_queue.shrink_to_fit();
+
+	players.reserve(PLAYERS_NUMBER_MAX);
+	SetCaptain(nullptr);
+}
+
 SOCKET ServerFramework::PlayerConnect() {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
@@ -210,9 +223,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				case LISTEN:
 				{
 					if (0 == client_number) {
-						players.clear();
-						instances.clear();
-						SetCaptain(nullptr);
+						Clean();
 					}
 				}
 				break;

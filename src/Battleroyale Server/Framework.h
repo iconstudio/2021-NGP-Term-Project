@@ -28,7 +28,8 @@ enum SERVER_STATES : int {
 };
 
 enum class MSG_TYPES : int {
-	SET_HSPEED = 0
+	NONE = 0
+	, SET_HSPEED
 	, SET_VSPEED
 	, SHOOT_LT // 좌측으로 사격
 	, SHOOT_RT // 우측으로 사격
@@ -75,6 +76,7 @@ public:
 	bool Initialize();
 	void Startup();
 	void GameUpdate();
+	void Clean();
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
@@ -137,7 +139,7 @@ private:
 
 	struct IO_MSG {
 		MSG_TYPES type;
-		int player_index;
+		int player_index = 0;
 		int* data = nullptr;
 	};
 
