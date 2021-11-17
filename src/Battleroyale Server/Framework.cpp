@@ -7,6 +7,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
 	, my_socket(0), my_address(), client_number(0)
+	, thread_game_starter(NULL), thread_game_process(NULL)
 	, player_number_last(0), player_captain(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
@@ -105,10 +106,6 @@ void ServerFramework::Startup() {
 				CastClientAccept(false);
 
 				while (true) {
-					ForeachInstances([&](GameInstance*& inst) {
-						//inst->OnUpdate(FRAME_TIME);
-					});
-
 					Sleep(FRAME_TIME);
 				}
 			}
@@ -136,6 +133,12 @@ void ServerFramework::Startup() {
 				break;
 		}
 	}
+}
+
+void ServerFramework::GameProcess() {
+	ForeachInstances([&](GameInstance*& inst) {
+		//inst->OnUpdate(FRAME_TIME);
+	});
 }
 
 SOCKET ServerFramework::PlayerConnect() {
@@ -277,7 +280,7 @@ inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
 }
 
 inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
-	return WaitForSingleObject(event_send_renders, FRAME_TIME);
+	return WaitForSingleObject(event_send_renders, INFINITE);
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
