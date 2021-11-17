@@ -3,10 +3,10 @@
 #include "CommonDatas.h"
 
 
+DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
-
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -67,9 +67,8 @@ public:
 	void PlayerDisconnect(PlayerInfo* player);
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
-
-	template<class Predicate>
-	void ForeachInstances(Predicate predicate);
+	SERVER_STATES GetStatus() const;
+	int GetClientCount() const;
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -79,6 +78,7 @@ public:
 
 	SERVER_STATES status;
 
+	friend DWORD WINAPI ConnectProcess(LPVOID arg);
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
@@ -90,6 +90,7 @@ private:
 	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
 
+	HANDLE thread_player_accept;
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
@@ -109,16 +110,11 @@ private:
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
 	vector<int> player_msg_queue;
+
+
+	template<class Predicate>
+	void ForeachInstances(Predicate predicate);
 };
-
-template<class Predicate>
-inline void ServerFramework::ForeachInstances(Predicate predicate) {
-	if (!instances.empty()) {
-		auto CopyList = vector<GameInstance*>(instances);
-
-		std::for_each(CopyList.begin(), CopyList.end(), predicate);
-	}
-}
 
 template<class _GameClass>
 inline _GameClass* ServerFramework::Instantiate(int x, int y) {
@@ -141,5 +137,14 @@ inline void ServerFramework::Kill(_GameClass* target) {
 	if (loc != instances.end()) {
 		target->OnDestroy();
 		instances.erase(loc);
+	}
+}
+
+template<class Predicate>
+inline void ServerFramework::ForeachInstances(Predicate predicate) {
+	if (!instances.empty()) {
+		auto CopyList = vector<GameInstance*>(instances);
+
+		std::for_each(CopyList.begin(), CopyList.end(), predicate);
 	}
 }

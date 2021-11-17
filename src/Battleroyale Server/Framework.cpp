@@ -6,7 +6,7 @@
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
-	, my_socket(0), my_address(), client_number(0)
+	, my_socket(0), my_address(), client_number(0), thread_player_accept(NULL)
 	, player_number_last(0), player_captain(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
@@ -31,6 +31,8 @@ ServerFramework::~ServerFramework() {
 	}
 	players.clear();
 
+	CloseHandle(thread_player_accept);
+	CloseHandle(thread_game_starter);
 	CloseHandle(thread_game_process);
 	CloseHandle(event_receives);
 	CloseHandle(event_game_process);
@@ -83,16 +85,10 @@ void ServerFramework::Startup() {
 			{
 				cout << "S: Listening" << endl;
 
-				while (true) {
-					SOCKET new_client = PlayerConnect();
-					if (INVALID_SOCKET == new_client) {
-						cerr << "accept 오류!";
-						return;
-					}
+				if (NULL == thread_player_accept) {
+					thread_player_accept = CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+				} else {
 
-					// 첫번째 플레이어 접속
-					SetStatus(LOBBY);
-					break;
 				}
 			}
 			break;
@@ -269,6 +265,58 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 	}
 }
 
+SERVER_STATES ServerFramework::GetStatus() const {
+	return status;
+}
+
+int ServerFramework::GetClientCount() const {
+	return client_number;
+}
+
+PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
+	client_socket = sk;
+	client_handle = hd;
+	index = id;
+}
+
+void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
+	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	if (SOCKET_ERROR == result) {
+		ErrorAbort("send 1");
+	}
+
+	if (buffer) {
+		result = send(socket, buffer, length, 0);
+		if (SOCKET_ERROR == result) {
+			ErrorAbort("send 2");
+		}
+	}
+}
+
+void ErrorAbort(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+void ErrorDisplay(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
+
 GameInstance::GameInstance()
 	: owner(-1), sprite_index(0), box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
@@ -320,48 +368,4 @@ bool GameInstance::IsCollideWith(GameInstance*& other) {
 		|| other->GetBoundBT() <= GetBoundTP()
 		|| GetBoundRT() < other->GetBoundLT()
 		|| GetBoundBT() < other->GetBoundTP());
-}
-
-PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
-	client_socket = sk;
-	client_handle = hd;
-	index = id;
-}
-
-void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
-	if (SOCKET_ERROR == result) {
-		ErrorAbort("send 1");
-	}
-
-	if (buffer) {
-		result = send(socket, buffer, length, 0);
-		if (SOCKET_ERROR == result) {
-			ErrorAbort("send 2");
-		}
-	}
-}
-
-void ErrorAbort(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
-
-	LocalFree(lpMsgBuf);
-	exit(true);
-}
-
-void ErrorDisplay(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
-
-	LocalFree(lpMsgBuf);
 }
