@@ -287,7 +287,7 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 }
 
 void ServerFramework::SetClientAccept(bool flag) {
-	if (flag) {
+	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);
