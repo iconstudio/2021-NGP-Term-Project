@@ -157,13 +157,14 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	auto status = GetStatus();
 	if (LISTEN == status) {
-		SetEvent(event_player_accept);
+		SetClientAccept(true);
 
 		// 첫번째 플레이어 접속
 		SetStatus(LOBBY);
 	} else if (LOBBY == status) {
-		SetEvent(event_player_accept);
+		SetClientAccept(true);
 	} else {
+		SetClientAccept(false);
 		return 0;
 	}
 
@@ -284,6 +285,14 @@ SERVER_STATES ServerFramework::GetStatus() const {
 
 int ServerFramework::GetClientCount() const {
 	return client_number;
+}
+
+void ServerFramework::SetClientAccept(bool flag) {
+	if (flag) {
+		SetEvent(event_player_accept);
+	} else {
+		ResetEvent(event_player_accept);
+	}
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {

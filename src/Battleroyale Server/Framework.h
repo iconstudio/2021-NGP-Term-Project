@@ -65,8 +65,11 @@ public:
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
+
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
+	void SetClientAccept(bool flag);
+
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;
 
