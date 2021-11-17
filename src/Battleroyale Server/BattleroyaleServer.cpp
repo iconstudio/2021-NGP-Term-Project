@@ -49,7 +49,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			break;
 		}
 
-		switch (framework.status) {
+		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
 				// 방장의 게임 시작 메시지
@@ -196,17 +196,23 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
+		WaitForSingleObject(framework.event_player_accept, INFINITE);
+
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
 			cerr << "accept 오류!";
-			return;
+			return 0;
 		}
 
-		// 첫번째 플레이어 접속
-		if (LOBBY != framework.status) {
+		auto status = framework.GetStatus();
+		if (LISTEN == status) {
+			SetEvent(framework.event_player_accept);
+
+			// 첫번째 플레이어 접속
 			framework.SetStatus(LOBBY);
+		} else if (LOBBY == status) {
+			SetEvent(framework.event_player_accept);
 		}
-		break;
 	}
 
 	return 0;
