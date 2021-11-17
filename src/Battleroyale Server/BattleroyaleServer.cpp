@@ -175,13 +175,12 @@ DWORD __stdcall GameInitializeProcess(LPVOID arg) {
 }
 
 DWORD WINAPI GameProcess(LPVOID arg) {
-	CCharacter* player_character;
-
 	while (true) {
 		framework.AwaitProcessingGameEvent();
 		framework.CastStartReceive(false);
+		Sleep(LERP_MIN);
 
-		if (1 < framework.client_number) {
+		if (1 < framework.GetClientCount()) {
 			// 게임 처리
 
 

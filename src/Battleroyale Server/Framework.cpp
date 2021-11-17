@@ -104,10 +104,6 @@ void ServerFramework::Startup() {
 				cout << "S: Starting the game" << endl;
 
 				CastClientAccept(false);
-
-				while (true) {
-					Sleep(FRAME_TIME);
-				}
 			}
 			break;
 

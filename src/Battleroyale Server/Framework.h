@@ -27,6 +27,9 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
+const int LERP_MIN = 50;
+const int LERP_MAX = 200;
+
 class GameInstance {
 public:
 	GameInstance();
@@ -122,8 +125,9 @@ private:
 
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-	vector<int> player_msg_queue;
 
+	vector<int> player_msg_queue;
+	map<WPARAM, bool> key_checkers;
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
