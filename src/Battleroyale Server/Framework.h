@@ -27,6 +27,15 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
+enum class MSG_TYPES : int {
+	SET_HSPEED = 0
+	, SET_VSPEED
+	, SHOOT_LT // 좌측으로 사격
+	, SHOOT_RT // 우측으로 사격
+	, SHOOT_UP // 상단으로 사격
+	, SHOOT_DW // 하단으로 사격
+};
+
 const int LERP_MIN = 50;
 const int LERP_MAX = 200;
 
@@ -65,7 +74,7 @@ public:
 
 	bool Initialize();
 	void Startup();
-	void GameProcess();
+	void GameUpdate();
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
@@ -126,7 +135,13 @@ private:
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
 
-	vector<int> player_msg_queue;
+	struct IO_MSG {
+		MSG_TYPES type;
+		int player_index;
+		int* data = nullptr;
+	};
+
+	vector<IO_MSG*> io_queue;
 	map<WPARAM, bool> key_checkers;
 
 	template<class Predicate>
