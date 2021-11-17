@@ -62,19 +62,21 @@ public:
 
 	bool Initialize();
 	void Startup();
+	void GameProcess();
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
 
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
+
+	SERVER_STATES GetStatus() const;
+	int GetClientCount() const;
+
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders();
-
-	SERVER_STATES GetStatus() const;
-	int GetClientCount() const;
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
