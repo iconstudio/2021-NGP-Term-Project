@@ -87,29 +87,22 @@ void ServerFramework::Startup() {
 			case LISTEN:
 			{
 				cout << "S: Listening" << endl;
-				SetEvent(event_player_accept);
-				while (true) {
-					if (status != LISTEN) {
-						break;
-					}
-
-					SetEvent(event_player_accept);
-				}
+				SetClientAccept(true);
 			}
 			break;
 
 			case LOBBY:
 			{
 				cout << "S: Entering lobby" << endl;
-				SetEvent(event_player_accept);
+				SetClientAccept(true);
 			}
 			break;
 
 			case GAME:
 			{
 				cout << "S: Starting the game" << endl;
-				
-				ResetEvent(event_player_accept);
+
+				SetClientAccept(false);
 
 				while (true) {
 					ForeachInstances([&](GameInstance*& inst) {
