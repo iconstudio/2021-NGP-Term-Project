@@ -2,23 +2,19 @@
 #include "Framework.h"
 #include "resource.h"
 
-void ErrorQuit(std::string msg)
-{
+void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
 
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
 	exit(true);
 }
 
-// 소켓 함수 오류 출력
-void DisplayError(std::string msg)
-{
+void ErrorDisplay(const char* msg) {
 	LPVOID lpMsgBuf;
 
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
@@ -61,7 +57,7 @@ void ClientFramework::Initialize() {
 	ZeroMemory(&server_address, address_size);
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
-	server_address.sin_port = htons(SERVER_PT);
+	server_address.sin_port = htons(COMMON_PORT);
 
 
 	InputRegister('W');
@@ -96,7 +92,7 @@ void ClientFramework::Update() {
 		status = LOBBY;
 
 		auto address_size = sizeof(server_address);
-		int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
+		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 		if (SOCKET_ERROR == result) {
 			// 오류
 			return;
@@ -112,10 +108,10 @@ void ClientFramework::Update() {
 		if (player_captain == true)
 		{
 			PACKETS packet = CLIENT_GAME_START;
-			int result = send(my_socket, (char*)(&packet), sizeof(packet), 0);;
+			int result = send(my_socket, reinterpret_cast<char*>(&packet), sizeof(packet), 0);;
 			if (result == SOCKET_ERROR)
 			{
-				DisplayError("send()");
+				ErrorDisplay("send()");
 			}
 			status = GAME;
 		}
@@ -132,7 +128,7 @@ void ClientFramework::Update() {
 			itercount++;
 		}
 
-		SendGameMessage(my_socket, CLIENT_KEY_INPUT, (char*)buttonsets);
+		SendGameMessage(my_socket, CLIENT_KEY_INPUT, reinterpret_cast<char*>(buttonsets));
 		RecvGameMessage(my_socket);
 
 		if (view_track_enabled) {
@@ -164,14 +160,14 @@ void ClientFramework::Render(HWND window) {
 
 	HDC surface_double = CreateCompatibleDC(surface_app);
 	HBITMAP m_hBit = CreateCompatibleBitmap(surface_app, WORLD_W, WORLD_H);
-	HBITMAP m_oldhBit = (HBITMAP)SelectObject(surface_double, m_hBit);
+	HBITMAP m_oldhBit = static_cast<HBITMAP>(SelectObject(surface_double, m_hBit));
 
 	// 초기화
 	Render::draw_clear(surface_double, WORLD_W, WORLD_H, background_color);
 
 	HDC surface_back = CreateCompatibleDC(surface_app);
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
-	HBITMAP m_newoldBit = (HBITMAP)SelectObject(surface_back, m_newBit);
+	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
 	// 파이프라인
 
@@ -253,10 +249,10 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 }
 
 int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp;
+	int temp = 0;
 	int retval;
 
-	retval = recv(sock, (char*)(temp), sizeof(int), MSG_WAITALL);		//�÷��̾� index�� �޾�
+	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
 
 	if (0 < temp)
     player_captain = false;					//0이면 방장 아니면 쩌리
@@ -269,16 +265,16 @@ int ClientFramework::RecvTitleMessage(SOCKET sock) {
 int ClientFramework::RecvLobbyMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, (char*)player_num, sizeof(int), MSG_WAITALL);		//�÷��̾� index�� �޾�
+	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
 
 	return retval;
 }
 
 int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
-	int result = send(sock, (char*)(&type), sizeof(PACKETS), 0);
+	int result = send(sock, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
 	if (result == SOCKET_ERROR)
 	{
-		DisplayError("send()");
+		ErrorDisplay("send()");
 		return result;
 	}
 	send(sock, data, sizeof(data), 0);
@@ -290,7 +286,7 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, (char*)last_render_info, sizeof(RenderInstance), MSG_WAITALL);
+	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance), MSG_WAITALL);
 
 	return retval;
 }
@@ -313,12 +309,12 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	properties.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	properties.hbrBackground = CreateSolidBrush(0);
 	properties.lpszMenuName = NULL;
-	properties.lpszClassName = (LPCSTR)id;
+	properties.lpszClassName = reinterpret_cast<LPCSTR>(id);
 	properties.hIconSm = LoadIcon(properties.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&properties);
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-	HWND hWnd = CreateWindow((LPCSTR)id, (LPCSTR)title, window_attributes
+	HWND hWnd = CreateWindow(reinterpret_cast<LPCSTR>(id), reinterpret_cast<LPCSTR>(title), window_attributes
 		, CW_USEDEFAULT, 0, width, height
 		, nullptr, nullptr, instance, nullptr);
 	instance = handle;
