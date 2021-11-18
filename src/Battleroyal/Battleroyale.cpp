@@ -2,7 +2,6 @@
 #include "Framework.h"
 #include "Battleroyale.h"
 
-
 #define MAX_LOADSTRING 100
 #define RENDER_TIMER_ID 1
 
