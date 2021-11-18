@@ -297,6 +297,14 @@ void ServerFramework::CastClientAccept(bool flag) {
 	}
 }
 
+void ServerFramework::CastStartGame(bool flag) {
+	if (flag) {
+		SetEvent(event_game_start);
+	} else {
+		ResetEvent(event_game_start);
+	}
+}
+
 void ServerFramework::CastStartReceive(bool flag) {
 	if (flag) {
 		SetEvent(event_receives);

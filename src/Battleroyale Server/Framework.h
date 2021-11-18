@@ -73,7 +73,7 @@ private:
 	struct IO_MSG {
 		ACTION_TYPES type;
 		int player_index = 0;
-		int* data = nullptr;
+		int data = 0;
 	};
 
 public:
@@ -95,14 +95,16 @@ public:
 	int GetClientCount() const;
 
 	void CastClientAccept(bool flag);
+	void CastStartGame(bool flag);
 	void CastStartReceive(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
 
-	inline DWORD AwaitClientAcceptEvent();
-	inline DWORD AwaitReceiveEvent();
-	inline DWORD AwaitProcessingGameEvent();
-	inline DWORD AwaitSendRendersEvent();
+	inline DWORD WINAPI AwaitClientAcceptEvent();
+	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitStartGameEvent();
+	inline DWORD WINAPI AwaitProcessingGameEvent();
+	inline DWORD WINAPI AwaitSendRendersEvent();
 
 	IO_MSG*& MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 	void QueingPlayerAction(IO_MSG*&& action);
@@ -197,6 +199,10 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
 	return WaitForSingleObject(event_receives, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
+	return WaitForSingleObject(event_game_start, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
