@@ -111,7 +111,7 @@ void ClientFramework::Update() {
 		background_color = COLOR_RED;
 		if (player_captain == true)
 		{
-			PACKETS packet = { CLIENT_GAME_START };
+			PACKETS packet = CLIENT_GAME_START;
 			int result = send(my_socket, (char*)(&packet), sizeof(packet), 0);;
 			if (result == SOCKET_ERROR)
 			{
@@ -125,7 +125,7 @@ void ClientFramework::Update() {
 	case GAME:
 	{
 		int itercount = 0;
-		PacketMessage gamemessage = { CLIENT_KEY_INPUT };
+		PACKETS gamemessage = CLIENT_KEY_INPUT;
 
 		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkers에서 값을 읽어 배열 제작
 			buttonsets[itercount] = (it->second.time == -1);
@@ -275,10 +275,7 @@ int ClientFramework::RecvLobbyMessage(SOCKET sock) {
 }
 
 int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
-
-	PacketMessage packet = { type };
-
-	int result = send(sock, (char*)(&packet), sizeof(packet), 0);
+	int result = send(sock, (char*)(&type), sizeof(PACKETS), 0);
 	if (result == SOCKET_ERROR)
 	{
 		DisplayError("send()");
