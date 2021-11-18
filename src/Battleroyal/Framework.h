@@ -86,8 +86,7 @@ private:
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
 
-	template<class Predicate>
-	void for_each_instances(Predicate predicate);
+	void DrawRenderInstances();
 };
 
 class WindowsClient {

@@ -91,7 +91,7 @@ void ClientFramework::Update() {
 	{
 		background_color = COLOR_YELLOW;
 		
-		if (title_duration < 20)
+		if (title_duration < 200)	//로비까지 시간 100 = 1초 
 		{
 			title_duration++;
 			break;
@@ -178,16 +178,8 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
 	// 파이프라인
-
-	//for_each_instances([&](GameSprite*& inst) {
-	//	if (inst->sprite_index) {
-	//		if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
-	//			|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
-	//			inst->on_render(surface_double);
-	//	} else {
-	//		inst->on_render(surface_double);
-	//	}
-	//});
+	DrawRenderInstances();
+	
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
@@ -203,6 +195,19 @@ void ClientFramework::Render(HWND window) {
 	ReleaseDC(window, surface_app);
 	EndPaint(window, &painter);
 }
+
+void ClientFramework::DrawRenderInstances()
+{
+	for (auto inst = last_render_info; inst != NULL; inst++)
+	{
+		if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
+			|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
+			inst->draw(surface_double);
+		else {
+			inst->draw(surface_double);
+		}
+	}
+});
 
 void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
@@ -294,7 +299,8 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance), MSG_WAITALL);
+	retval = recv(sock, reinterpret_cast<char*>(last_
+		_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
 
 	return retval;
 }
