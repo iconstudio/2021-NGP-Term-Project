@@ -69,6 +69,13 @@ private:
 };
 
 class ServerFramework {
+private:
+	struct IO_MSG {
+		MSG_TYPES type;
+		int player_index = 0;
+		int* data = nullptr;
+	};
+
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
@@ -90,12 +97,15 @@ public:
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastProcessingGame();
-	void CastSendRenders();
+	void CastSendRenders(bool flag);
 
 	inline DWORD AwaitClientAcceptEvent();
 	inline DWORD AwaitReceiveEvent();
 	inline DWORD AwaitProcessingGameEvent();
 	inline DWORD AwaitSendRendersEvent();
+
+	void QueingMyMessage(IO_MSG*&& action);
+	void InterpretsMyMessages();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -139,12 +149,6 @@ private:
 
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-
-	struct IO_MSG {
-		MSG_TYPES type;
-		int player_index = 0;
-		int* data = nullptr;
-	};
 
 	vector<IO_MSG*> io_queue;
 	map<WPARAM, bool> key_checkers;

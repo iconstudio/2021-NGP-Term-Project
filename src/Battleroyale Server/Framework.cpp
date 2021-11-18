@@ -73,7 +73,7 @@ bool ServerFramework::Initialize() {
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
@@ -304,8 +304,22 @@ void ServerFramework::CastProcessingGame() {
 	SetEvent(event_game_process);
 }
 
-void ServerFramework::CastSendRenders() {
-	SetEvent(event_send_renders);
+void ServerFramework::CastSendRenders(bool flag) {
+	if (flag) {
+		SetEvent(event_send_renders);
+	} else {
+		ResetEvent(event_send_renders);
+	}
+}
+
+void ServerFramework::QueingMyMessage(IO_MSG*&& action) {
+	io_queue.push_back(std::move(action));
+}
+
+void ServerFramework::InterpretsMyMessages() {
+	if (0 < io_queue.size()) {
+
+	}
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
