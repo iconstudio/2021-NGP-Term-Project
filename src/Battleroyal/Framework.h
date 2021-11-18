@@ -3,7 +3,8 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-#define SERVER_IP "192.168.122.191"
+//#define SERVER_IP "192.168.122.191"
+#define SERVER_IP "127.0.0.1"
 #define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
@@ -83,6 +84,9 @@ private:
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+
+	template<class Predicate>
+	void for_each_instances(Predicate predicate);
 };
 
 class WindowsClient {
@@ -99,3 +103,10 @@ public:
 	LPCWSTR title_caption, class_id;		// 창 식별자
 	LONG width, height;						// 창 크기
 };
+
+//template<class Predicate>
+//inline void ClientFramework::for_each_instances(Predicate predicate) {
+//	if (!instances.empty()) {
+//		std::for_each(instances.begin(), instances.end(), predicate);
+//	}
+//}

@@ -92,7 +92,7 @@ void ClientFramework::Update() {
 	case TITLE:
 	{
 		background_color = COLOR_YELLOW;
-		Sleep(1000);
+		Sleep(10000);
 		status = LOBBY;
 
 		auto address_size = sizeof(server_address);
@@ -175,7 +175,7 @@ void ClientFramework::Render(HWND window) {
 
 	// 파이프라인
 
-	//for_each_instances([&](GameInstance*& inst) {
+	//for_each_instances([&](GameSprite*& inst) {
 	//	if (inst->sprite_index) {
 	//		if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
 	//			|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
