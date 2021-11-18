@@ -2,11 +2,11 @@
 #include "pch.h"
 #include "CommonDatas.h"
 
-
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
+
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -92,10 +92,10 @@ public:
 	void CastProcessingGame();
 	void CastSendRenders();
 
-	inline DWORD WINAPI AwaitClientAcceptEvent();
-	inline DWORD WINAPI AwaitReceiveEvent();
-	inline DWORD WINAPI AwaitProcessingGameEvent();
-	inline DWORD WINAPI AwaitSendRendersEvent();
+	inline DWORD AwaitClientAcceptEvent();
+	inline DWORD AwaitReceiveEvent();
+	inline DWORD AwaitProcessingGameEvent();
+	inline DWORD AwaitSendRendersEvent();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -183,6 +183,22 @@ inline void ServerFramework::ForeachInstances(Predicate predicate) {
 
 		std::for_each(CopyList.begin(), CopyList.end(), predicate);
 	}
+}
+
+inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
+	return WaitForSingleObject(event_player_accept, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitReceiveEvent() {
+	return WaitForSingleObject(event_receives, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
+	return WaitForSingleObject(event_game_process, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
+	return WaitForSingleObject(event_send_renders, INFINITE);
 }
 
 
