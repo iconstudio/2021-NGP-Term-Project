@@ -27,7 +27,7 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
-enum class MSG_TYPES : int {
+enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
@@ -69,6 +69,13 @@ private:
 };
 
 class ServerFramework {
+private:
+	struct IO_MSG {
+		ACTION_TYPES type;
+		int player_index = 0;
+		int* data = nullptr;
+	};
+
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
@@ -90,12 +97,16 @@ public:
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastProcessingGame();
-	void CastSendRenders();
+	void CastSendRenders(bool flag);
 
-	inline DWORD WINAPI AwaitClientAcceptEvent();
-	inline DWORD WINAPI AwaitReceiveEvent();
-	inline DWORD WINAPI AwaitProcessingGameEvent();
-	inline DWORD WINAPI AwaitSendRendersEvent();
+	inline DWORD AwaitClientAcceptEvent();
+	inline DWORD AwaitReceiveEvent();
+	inline DWORD AwaitProcessingGameEvent();
+	inline DWORD AwaitSendRendersEvent();
+
+	IO_MSG*& MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
+	void QueingPlayerAction(IO_MSG*&& action);
+	void InterpretPlayerAction();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -111,6 +122,7 @@ public:
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	bool status_begin = true;
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 
@@ -138,12 +150,6 @@ private:
 
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-
-	struct IO_MSG {
-		MSG_TYPES type;
-		int player_index = 0;
-		int* data = nullptr;
-	};
 
 	vector<IO_MSG*> io_queue;
 	map<WPARAM, bool> key_checkers;
@@ -200,3 +206,4 @@ inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
 inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
 	return WaitForSingleObject(event_send_renders, INFINITE);
 }
+
