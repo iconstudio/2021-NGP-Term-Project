@@ -285,7 +285,7 @@ int ServerFramework::GetClientCount() const {
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
-	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
+	if (flag && client_number < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);
