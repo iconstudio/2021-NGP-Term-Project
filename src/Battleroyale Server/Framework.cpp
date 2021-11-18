@@ -73,7 +73,7 @@ bool ServerFramework::Initialize() {
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
@@ -87,17 +87,22 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				cout << "S: Listening" << endl;
+				if (status_begin) {
+					cout << "S: Listening" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case LOBBY:
 			{
-				cout << "S: Entering lobby" << endl;
+				if (status_begin) {
+					cout << "S: Entering lobby" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+				}
 			}
 			break;
 
@@ -184,6 +189,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	// 첫번째 플레이어
 	if (client_number == 0) {
 		SetCaptain(client_info);
+
+		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
 	}
 
 	cout << "새 플레이어 접속: " << new_socket << endl;
@@ -192,8 +199,9 @@ SOCKET ServerFramework::PlayerConnect() {
 	players.emplace_back(client_info);
 
 	client_number++;
+
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , (char*)(client_number), sizeof(client_number));
+			 , reinterpret_cast<char*>(client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -296,8 +304,74 @@ void ServerFramework::CastProcessingGame() {
 	SetEvent(event_game_process);
 }
 
-void ServerFramework::CastSendRenders() {
-	SetEvent(event_send_renders);
+void ServerFramework::CastSendRenders(bool flag) {
+	if (flag) {
+		SetEvent(event_send_renders);
+	} else {
+		ResetEvent(event_send_renders);
+	}
+}
+
+ServerFramework::IO_MSG*& ServerFramework::MakePlayerAction(
+	PlayerInfo* player
+	, ACTION_TYPES type
+	, int data = 0
+) {
+	auto result = new IO_MSG{ type, player->index, data };
+}
+
+void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
+	io_queue.push_back(std::move(action));
+}
+
+void ServerFramework::InterpretPlayerAction() {
+	if (0 < io_queue.size()) {
+		for (auto& output : io_queue) {
+			switch (output->type) {
+				case ACTION_TYPES::SET_HSPEED:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SET_VSPEED:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_LT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_RT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_UP:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_DW:
+				{
+
+				}
+				break;
+
+				default:
+				{
+
+				}
+				break;
+			}
+		}
+	}
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
