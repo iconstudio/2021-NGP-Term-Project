@@ -27,6 +27,19 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
+enum class MSG_TYPES : int {
+	NONE = 0
+	, SET_HSPEED
+	, SET_VSPEED
+	, SHOOT_LT // 좌측으로 사격
+	, SHOOT_RT // 우측으로 사격
+	, SHOOT_UP // 상단으로 사격
+	, SHOOT_DW // 하단으로 사격
+};
+
+const int LERP_MIN = 50;
+const int LERP_MAX = 200;
+
 class GameInstance {
 public:
 	GameInstance();
@@ -62,13 +75,27 @@ public:
 
 	bool Initialize();
 	void Startup();
+	void GameUpdate();
+	void Clean();
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
+
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
+
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;
+
+	void CastClientAccept(bool flag);
+	void CastStartReceive(bool flag);
+	void CastProcessingGame();
+	void CastSendRenders();
+
+	inline DWORD WINAPI AwaitClientAcceptEvent();
+	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitProcessingGameEvent();
+	inline DWORD WINAPI AwaitSendRendersEvent();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -99,6 +126,8 @@ private:
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
 
+	WSAOVERLAPPED io_behavior;
+
 	int **PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
@@ -109,8 +138,15 @@ private:
 
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-	vector<int> player_msg_queue;
 
+	struct IO_MSG {
+		MSG_TYPES type;
+		int player_index = 0;
+		int* data = nullptr;
+	};
+
+	vector<IO_MSG*> io_queue;
+	map<WPARAM, bool> key_checkers;
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
