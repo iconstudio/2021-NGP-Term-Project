@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #pragma comment(lib, "msimg32.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma warning(disable: 4244)
