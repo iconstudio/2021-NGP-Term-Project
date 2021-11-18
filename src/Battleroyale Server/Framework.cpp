@@ -312,13 +312,65 @@ void ServerFramework::CastSendRenders(bool flag) {
 	}
 }
 
-void ServerFramework::QueingMyMessage(IO_MSG*&& action) {
+ServerFramework::IO_MSG*& ServerFramework::MakePlayerAction(
+	PlayerInfo* player
+	, ACTION_TYPES type
+	, int data = 0
+) {
+	auto result = new IO_MSG{ type, player->index, data };
+}
+
+void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
 	io_queue.push_back(std::move(action));
 }
 
-void ServerFramework::InterpretsMyMessages() {
+void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
+		for (auto& output : io_queue) {
+			switch (output->type) {
+				case ACTION_TYPES::SET_HSPEED:
+				{
 
+				}
+				break;
+
+				case ACTION_TYPES::SET_VSPEED:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_LT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_RT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_UP:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_DW:
+				{
+
+				}
+				break;
+
+				default:
+				{
+
+				}
+				break;
+			}
+		}
 	}
 }
 

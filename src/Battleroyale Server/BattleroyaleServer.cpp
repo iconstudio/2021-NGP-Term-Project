@@ -78,32 +78,33 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					}
 
 					// 게임 초기화
-					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						auto character = reinterpret_cast<CCharacter*>(client_info->player_character);
+					if (data && packet == PACKETS::CLIENT_KEY_INPUT) {
+						char button = (*data);
 
 						if (data) {
 							switch (*data) {
 								case 'W':
 								{
-									character->x -= PLAYER_MOVE_SPEED * FRAME_TIME;
+									auto action = framework.MakePlayerAction(client_info, ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
+									framework.QueingPlayerAction(action);
 								}
 								break;
 
 								case 'A':
 								{
-									character->y -= PLAYER_MOVE_SPEED * FRAME_TIME;
+									
 								}
 								break;
 
 								case 'S':
 								{
-									character->x += PLAYER_MOVE_SPEED * FRAME_TIME;
+									
 								}
 								break;
 
 								case 'D':
 								{
-									character->y += PLAYER_MOVE_SPEED * FRAME_TIME;
+									
 								}
 								break;
 
@@ -124,7 +125,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent();
-					
+					framework.CastSendRenders(false);
+
 
 				}
 			}

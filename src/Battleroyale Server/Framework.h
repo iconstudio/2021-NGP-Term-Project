@@ -27,7 +27,7 @@ enum SERVER_STATES : int {
 	, EXIT				// 서버 종료
 };
 
-enum class MSG_TYPES : int {
+enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
@@ -71,7 +71,7 @@ private:
 class ServerFramework {
 private:
 	struct IO_MSG {
-		MSG_TYPES type;
+		ACTION_TYPES type;
 		int player_index = 0;
 		int* data = nullptr;
 	};
@@ -104,8 +104,9 @@ public:
 	inline DWORD AwaitProcessingGameEvent();
 	inline DWORD AwaitSendRendersEvent();
 
-	void QueingMyMessage(IO_MSG*&& action);
-	void InterpretsMyMessages();
+	IO_MSG*& MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
+	void QueingPlayerAction(IO_MSG*&& action);
+	void InterpretPlayerAction();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
