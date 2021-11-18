@@ -3,14 +3,10 @@
 #include "CommonDatas.h"
 
 
+DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
-
-
-void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
-void ErrorAbort(std::string);
-void ErrorDisplay(std::string);
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -68,12 +64,11 @@ public:
 	void Startup();
 
 	SOCKET PlayerConnect();
-	void PlayerDisconnect(PlayerInfo*& player);
- 
+	void PlayerDisconnect(PlayerInfo* player);
+	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
-
-	template<class Predicate>
-	void ForeachInstances(Predicate predicate);
+	SERVER_STATES GetStatus() const;
+	int GetClientCount() const;
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -83,6 +78,7 @@ public:
 
 	SERVER_STATES status;
 
+	friend DWORD WINAPI ConnectProcess(LPVOID arg);
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
@@ -97,6 +93,7 @@ private:
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
+	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
 	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
@@ -113,16 +110,11 @@ private:
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
 	vector<int> player_msg_queue;
+
+
+	template<class Predicate>
+	void ForeachInstances(Predicate predicate);
 };
-
-template<class Predicate>
-inline void ServerFramework::ForeachInstances(Predicate predicate) {
-	if (!instances.empty()) {
-		auto CopyList = vector<GameInstance*>(instances);
-
-		std::for_each(CopyList.begin(), CopyList.end(), predicate);
-	}
-}
 
 template<class _GameClass>
 inline _GameClass* ServerFramework::Instantiate(int x, int y) {
@@ -145,5 +137,14 @@ inline void ServerFramework::Kill(_GameClass* target) {
 	if (loc != instances.end()) {
 		target->OnDestroy();
 		instances.erase(loc);
+	}
+}
+
+template<class Predicate>
+inline void ServerFramework::ForeachInstances(Predicate predicate) {
+	if (!instances.empty()) {
+		auto CopyList = vector<GameInstance*>(instances);
+
+		std::for_each(CopyList.begin(), CopyList.end(), predicate);
 	}
 }

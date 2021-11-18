@@ -139,7 +139,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BattleroyaleServer.cpp" />
-    <ClCompile Include="CommonDatas.cpp" />
     <ClCompile Include="Framework.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>

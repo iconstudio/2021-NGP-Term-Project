@@ -194,6 +194,24 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	return 0;
 }
 
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+	while (true) {
+		SOCKET new_client = framework.PlayerConnect();
+		if (INVALID_SOCKET == new_client) {
+			cerr << "accept 오류!";
+			return;
+		}
+
+		// 첫번째 플레이어 접속
+		if (LOBBY != framework.status) {
+			framework.SetStatus(LOBBY);
+		}
+		break;
+	}
+
+	return 0;
+}
+
 CCharacter::CCharacter()
 	: attack_cooltime(0.0), health(PLAYER_HEALTH) {
 	SetSprite(0);
