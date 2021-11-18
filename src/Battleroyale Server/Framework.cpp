@@ -276,22 +276,6 @@ int ServerFramework::GetClientCount() const {
 	return client_number;
 }
 
-inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
-	return WaitForSingleObject(event_player_accept, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitReceiveEvent() {
-	return WaitForSingleObject(event_receives, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
-	return WaitForSingleObject(event_game_process, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
-	return WaitForSingleObject(event_send_renders, INFINITE);
-}
-
 void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
@@ -342,7 +326,6 @@ void ErrorAbort(const char* msg) {
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	// 프로젝트 설정의 문자 집합 멀티바이트로 변경하여 사용
 	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);

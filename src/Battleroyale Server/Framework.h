@@ -184,3 +184,19 @@ inline void ServerFramework::ForeachInstances(Predicate predicate) {
 		std::for_each(CopyList.begin(), CopyList.end(), predicate);
 	}
 }
+
+inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
+	return WaitForSingleObject(event_player_accept, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
+	return WaitForSingleObject(event_receives, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
+	return WaitForSingleObject(event_game_process, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
+	return WaitForSingleObject(event_send_renders, INFINITE);
+}
