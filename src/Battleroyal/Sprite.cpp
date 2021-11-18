@@ -9,7 +9,7 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 	if (raw.IsNull()) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, TEXT(L"자원 스프라이트 %u을(를) 불러오는 중에 오류가 발생했습니다."), resource);
+		swprintf_s(temp, L"자원 스프라이트 %u을(를) 불러오는 중에 오류가 발생했습니다.", resource);
 
 		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 
@@ -26,7 +26,7 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 	if (!result) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, TEXT(L"자원 스프라이트 %u이(가) 올바른 크기를 갖고 있지 않습니다."), resource);
+		swprintf_s(temp, L"자원 스프라이트 %u이(가) 올바른 크기를 갖고 있지 않습니다.", resource);
 
 		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 		if (error) {
@@ -41,7 +41,7 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 	if (raw.IsNull()) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, TEXT(L"경로 %s에서 스프라이트를 불러올 수 없습니다."), path);
+		swprintf_s(temp, L"경로 %s에서 스프라이트를 불러올 수 없습니다.", path);
 
 		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 
@@ -58,7 +58,7 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 	if (!result) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, TEXT(L"%s에 위치한 그림 파일이 올바른 크기를 갖고 있지 않습니다."), path);
+		swprintf_s(temp, L"%s에 위치한 그림 파일이 올바른 크기를 갖고 있지 않습니다.", path);
 
 		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 		if (error) {
