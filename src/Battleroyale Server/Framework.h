@@ -3,13 +3,14 @@
 #include "CommonDatas.h"
 
 
-
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
-void ErrorQuit(std::string msg);
-void ErrorDisplay(std::string msg);
+
+void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
+void ErrorAbort(std::string);
+void ErrorDisplay(std::string);
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -66,8 +67,8 @@ public:
 	bool Initialize();
 	void Startup();
 
-	SOCKET PlayerConnect(int player);
-	void PlayerDisconnect(int player);
+	SOCKET PlayerConnect();
+	void PlayerDisconnect(PlayerInfo*& player);
  
 	void SetStatus(SERVER_STATES state);
 
@@ -90,6 +91,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 
+	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
 
 	HANDLE thread_game_starter;

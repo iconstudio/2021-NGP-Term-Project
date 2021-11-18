@@ -1,6 +1,6 @@
 #pragma once
 #include "pch.h"
-#define COMMON_PORT 9000
+#define COMMON_PORT 15000
 
 
 // 최대 플레이어 수
@@ -24,11 +24,6 @@ enum PACKETS : int {
 	, SERVER_RENDER_INFO		// 클라이언트에게 렌더링 정보를 보내주는 메시지
 	, SERVER_GAME_DONE			// 클라이언트에게 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 클라이언트에게 게임을 다시 시작함을 알려주는 메시지
-};
-
-struct PacketMessage {
-	PACKETS type;
-	int size;
 };
 
 struct GameUpdateMessage {

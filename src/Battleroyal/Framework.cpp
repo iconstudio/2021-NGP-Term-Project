@@ -9,14 +9,14 @@ void ErrorQuit(std::string msg)
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	// ÇÁ·ÎÁ§Æ® ¼³Á¤ÀÇ ¹®ÀÚ ÁıÇÕ ¸ÖÆ¼¹ÙÀÌÆ®·Î º¯°æÇÏ¿© »ç¿ë
+	// í”„ë¡œì íŠ¸ ì„¤ì •ì˜ ë¬¸ì ì§‘í•© ë©€í‹°ë°”ì´íŠ¸ë¡œ ë³€ê²½í•˜ì—¬ ì‚¬ìš©
 	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg.c_str(), MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
 	exit(true);
 }
 
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥
 void DisplayError(std::string msg)
 {
 	LPVOID lpMsgBuf;
@@ -47,13 +47,13 @@ void ClientFramework::Initialize() {
 	WSADATA wsadata;
 
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return;
 	}
 
@@ -98,7 +98,7 @@ void ClientFramework::Update() {
 		auto address_size = sizeof(server_address);
 		int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
 		if (SOCKET_ERROR == result) {
-			// ¿À·ù
+			// ì˜¤ë¥˜
 			return;
 		}
 		RecvTitleMessage(my_socket);
@@ -127,7 +127,7 @@ void ClientFramework::Update() {
 		int itercount = 0;
 		PacketMessage gamemessage = { CLIENT_KEY_INPUT };
 
-		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkers¿¡¼­ °ªÀ» ÀĞ¾î ¹è¿­ Á¦ÀÛ
+		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {		// key_checkersì—ì„œ ê°’ì„ ì½ì–´ ë°°ì—´ ì œì‘
 			buttonsets[itercount] = (it->second.time == -1);
 			itercount++;
 		}
@@ -166,14 +166,14 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_hBit = CreateCompatibleBitmap(surface_app, WORLD_W, WORLD_H);
 	HBITMAP m_oldhBit = (HBITMAP)SelectObject(surface_double, m_hBit);
 
-	// ÃÊ±âÈ­
+	// ì´ˆê¸°í™”
 	Render::draw_clear(surface_double, WORLD_W, WORLD_H, background_color);
 
 	HDC surface_back = CreateCompatibleDC(surface_app);
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = (HBITMAP)SelectObject(surface_back, m_newBit);
 
-	// ÆÄÀÌÇÁ¶óÀÎ
+	// íŒŒì´í”„ë¼ì¸
 
 	//for_each_instances([&](GameInstance*& inst) {
 	//	if (inst->sprite_index) {
@@ -185,11 +185,11 @@ void ClientFramework::Render(HWND window) {
 	//	}
 	//});
 
-	// ÀÌÁß ¹öÆÛ -> ¹é ¹öÆÛ
+	// ì´ì¤‘ ë²„í¼ -> ë°± ë²„í¼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
-	// ¹é ¹öÆÛ -> È­¸é ¹öÆÛ
+	// ë°± ë²„í¼ -> í™”ë©´ ë²„í¼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
 		, surface_back, 0, 0, view.w, view.h, SRCCOPY);
 	Render::draw_end(surface_back, m_newoldBit, m_newBit);
@@ -256,10 +256,12 @@ int ClientFramework::RecvTitleMessage(SOCKET sock) {
 	int temp = 0;
 	int retval;
 
-	retval = recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//ÇÃ·¹ÀÌ¾î index¸¦ ¹Ş¾Æ
+	retval = recv(sock, (char*)(temp), sizeof(int), MSG_WAITALL);		//ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ indexï¿½ï¿½ ï¿½Ş¾ï¿½
 
-	if (temp > 0) player_captain = false;					//0ÀÌ¸é ¹æÀå ¾Æ´Ï¸é Â¼¸®
-	else player_captain = true;
+	if (0 < temp)
+    player_captain = false;					//0ì´ë©´ ë°©ì¥ ì•„ë‹ˆë©´ ì©Œë¦¬
+	else
+    player_captain = true;
 
 	return retval;
 }
@@ -267,7 +269,7 @@ int ClientFramework::RecvTitleMessage(SOCKET sock) {
 int ClientFramework::RecvLobbyMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, (char*)player_num, sizeof(int), MSG_WAITALL);		//ÇÃ·¹ÀÌ¾î index¸¦ ¹Ş¾Æ
+	retval = recv(sock, (char*)player_num, sizeof(int), MSG_WAITALL);		//ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ indexï¿½ï¿½ ï¿½Ş¾ï¿½
 
 	return retval;
 }
