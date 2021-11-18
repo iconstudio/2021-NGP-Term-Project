@@ -162,7 +162,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		WaitForSingleObject(framework.event_game_start, INFINITE);
 
-		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
+		//shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 
 		auto sz = framework.players.size();
 		for (int i = 0; i < sz; ++i) {
