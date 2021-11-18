@@ -62,6 +62,7 @@ private:
 	int player_num = 1;
 	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
 	bool player_captain;
+	int title_duration = 0;
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;

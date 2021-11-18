@@ -200,20 +200,3 @@ inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
 inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
 	return WaitForSingleObject(event_send_renders, INFINITE);
 }
-
-
-inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
-	return WaitForSingleObject(event_player_accept, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitReceiveEvent() {
-	return WaitForSingleObject(event_receives, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitProcessingGameEvent() {
-	return WaitForSingleObject(event_game_process, INFINITE);
-}
-
-inline DWORD __stdcall ServerFramework::AwaitSendRendersEvent() {
-	return WaitForSingleObject(event_send_renders, INFINITE);
-}

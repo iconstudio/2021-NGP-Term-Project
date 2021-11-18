@@ -88,12 +88,18 @@ void ClientFramework::Update() {
 		}
 	}
 
+
+
 	switch (status) {
 	case TITLE:
 	{
 		background_color = COLOR_YELLOW;
-		Sleep(10000);
-		status = LOBBY;
+		
+		if (title_duration < 20)
+		{
+			title_duration++;
+			break;
+		}
 
 		auto address_size = sizeof(server_address);
 		int result = connect(my_socket, (SOCKADDR*)(&server_address), address_size);
@@ -101,6 +107,7 @@ void ClientFramework::Update() {
 			// 오류
 			return;
 		}
+		status = LOBBY;
 		RecvTitleMessage(my_socket);
 
 	}
@@ -109,6 +116,7 @@ void ClientFramework::Update() {
 	case LOBBY:
 	{
 		background_color = COLOR_RED;
+
 		if (player_captain == true)
 		{
 			PACKETS packet = CLIENT_GAME_START;
