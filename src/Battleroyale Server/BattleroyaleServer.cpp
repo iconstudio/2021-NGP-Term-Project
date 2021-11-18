@@ -124,7 +124,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent();
-
+					
 
 				}
 			}

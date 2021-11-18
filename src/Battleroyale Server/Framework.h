@@ -2,11 +2,11 @@
 #include "pch.h"
 #include "CommonDatas.h"
 
+
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
-
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -111,6 +111,7 @@ public:
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	bool status_begin = true;
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 

@@ -87,17 +87,22 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				cout << "S: Listening" << endl;
+				if (status_begin) {
+					cout << "S: Listening" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case LOBBY:
 			{
-				cout << "S: Entering lobby" << endl;
+				if (status_begin) {
+					cout << "S: Entering lobby" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+				}
 			}
 			break;
 
@@ -184,6 +189,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	// 첫번째 플레이어
 	if (client_number == 0) {
 		SetCaptain(client_info);
+
+		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
 	}
 
 	cout << "새 플레이어 접속: " << new_socket << endl;
@@ -192,6 +199,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	players.emplace_back(client_info);
 
 	client_number++;
+
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(client_number), sizeof(client_number));
 
