@@ -61,7 +61,7 @@ void ClientFramework::Initialize() {
 	ZeroMemory(&server_address, address_size);
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
-	server_address.sin_port = htons(SERVER_PT);
+	server_address.sin_port = htons(COMMON_PORT);
 
 
 	InputRegister('W');
@@ -253,7 +253,7 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 }
 
 int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp;
+	int temp = 0;
 	int retval;
 
 	retval = recv(sock, (char*)temp, sizeof(int), MSG_WAITALL);		//플레이어 index를 받아
