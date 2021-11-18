@@ -11,7 +11,7 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 
 		swprintf_s(temp, TEXT(L"자원 스프라이트 %u을(를) 불러오는 중에 오류가 발생했습니다."), resource);
 
-		int error = MessageBox(NULL, (LPCSTR)temp, TEXT("오류"), MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
@@ -28,7 +28,7 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 
 		swprintf_s(temp, TEXT(L"자원 스프라이트 %u이(가) 올바른 크기를 갖고 있지 않습니다."), resource);
 
-		int error = MessageBox(NULL, (LPCSTR)temp, "오류", MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
 		}
@@ -43,7 +43,7 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 
 		swprintf_s(temp, TEXT(L"경로 %s에서 스프라이트를 불러올 수 없습니다."), path);
 
-		int error = MessageBox(NULL, (LPCSTR)temp, TEXT("오류"), MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
@@ -60,7 +60,7 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 
 		swprintf_s(temp, TEXT(L"%s에 위치한 그림 파일이 올바른 크기를 갖고 있지 않습니다."), path);
 
-		int error = MessageBox(NULL, (LPCSTR)temp, TEXT("오류"), MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "오류", MB_OK);
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
 		}
@@ -80,7 +80,7 @@ GameSprite::~GameSprite() {
 
 void GameSprite::draw(HDC surface, double x, double y, double index, double angle, double xscale, double yscale, double alpha) {
 	if (1 < number) {
-		auto frame = frames.at((u_int)index).get();
+		auto frame = frames.at(static_cast<u_int>(index)).get();
 		__draw_single(surface, *frame, x, y, angle, xscale, yscale, alpha);
 	} else {
 		__draw_single(surface, raw, x, y, angle, xscale, yscale, alpha);
@@ -157,8 +157,8 @@ bool GameSprite::__process_image(CImage& image, size_t width, size_t height) {
 
 void GameSprite::__draw_single(HDC surface, CImage& image, double dx, double dy, double angle, const double xscale, double yscale, double alpha) {
 	int nGraphicsMode = SetGraphicsMode(surface, GM_ADVANCED);
-	float cosine = (float)lengthdir_x(1, angle);
-	float sine = (float)lengthdir_y(1, angle);
+	float cosine = static_cast<float>(lengthdir_x(1, angle));
+	float sine = static_cast<float>(lengthdir_y(1, angle));
 
 	// 실제와는 달리 y 좌표가 뒤집힘
 	XFORM xform;
@@ -179,7 +179,7 @@ void GameSprite::__draw_single(HDC surface, CImage& image, double dx, double dy,
 	Render::transform_set(surface, xform);
 
 	if (alpha != 1.0)
-		image.AlphaBlend(surface, 0, 0, width * abs(xscale), height * abs(yscale), 0, 0, width, height, (BYTE)(255 * alpha));
+		image.AlphaBlend(surface, 0, 0, width * abs(xscale), height * abs(yscale), 0, 0, width, height, static_cast<BYTE>(255 * alpha));
 	else
 		image.Draw(surface, 0, 0, width * abs(xscale), height * abs(yscale), 0, 0, width, height);
 
