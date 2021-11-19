@@ -87,7 +87,7 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				if (status_begin) {
+				if (!status_begin) {
 					cout << "S: Listening" << endl;
 
 					CastClientAccept(true);
@@ -98,31 +98,43 @@ void ServerFramework::Startup() {
 
 			case LOBBY:
 			{
-				if (status_begin) {
+				if (!status_begin) {
 					cout << "S: Entering lobby" << endl;
 
 					CastClientAccept(true);
+					status_begin = true;
 				}
 			}
 			break;
 
 			case GAME:
 			{
-				cout << "S: Starting the game" << endl;
+				if (!status_begin) {
+					cout << "S: Starting the game" << endl;
 
-				CastClientAccept(false);
+					CastClientAccept(false);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME_OVER:
 			{
+				if (!status_begin) {
+					cout << "S: The game is over." << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME_RESTART:
 			{
+				if (!status_begin) {
+					cout << "S: Restarting the game" << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
@@ -273,6 +285,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 		cout << "서버 상태 변경: " << status << " -> " << state << endl;
 
 		status = state;
+		status_begin = false;
 	}
 }
 
@@ -289,6 +302,14 @@ void ServerFramework::CastClientAccept(bool flag) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);
+	}
+}
+
+void ServerFramework::CastStartGame(bool flag) {
+	if (flag) {
+		SetEvent(event_game_start);
+	} else {
+		ResetEvent(event_game_start);
 	}
 }
 
