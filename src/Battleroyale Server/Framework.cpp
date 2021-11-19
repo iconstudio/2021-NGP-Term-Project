@@ -120,13 +120,21 @@ void ServerFramework::Startup() {
 
 			case GAME_OVER:
 			{
+				if (!status_begin) {
+					cout << "S: The game is over." << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME_RESTART:
 			{
+				if (!status_begin) {
+					cout << "S: Restarting the game" << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
