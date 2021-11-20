@@ -54,6 +54,13 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
+	BOOL option = TRUE;
+	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
+		, reinterpret_cast<char*>(&option), sizeof(option))) {
+		// 오류
+		return false;
+	}
+
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
