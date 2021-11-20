@@ -245,7 +245,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		auto id = player->index;
 		auto character = player->player_character;
 		if (character)
-			Kill((GameInstance*)(character));
+			Kill(static_cast<GameInstance*>(character));
 
 		cout << "플레이어 종료: " << player->client_socket << endl;
 		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
@@ -367,7 +367,7 @@ void ServerFramework::InterpretPlayerAction() {
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
 				{
-
+					
 				}
 				break;
 
@@ -418,7 +418,7 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
 	if (SOCKET_ERROR == result) {
 		ErrorAbort("send 1");
 	}
