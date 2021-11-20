@@ -82,9 +82,9 @@ bool ServerFramework::Initialize() {
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
-	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
-	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);								// event_player_accept
+	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);	// event_game_start
+	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);				// event_game_process
 
 	return true;
 }
