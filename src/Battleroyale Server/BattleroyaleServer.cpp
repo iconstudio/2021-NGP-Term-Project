@@ -9,12 +9,6 @@ ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 normal_distribution<> server_distrubution;
 default_random_engine server_randomizer{0};
 
-const int PLAYER_HEALTH = 10;
-const double PLAYER_MOVE_SPEED = km_per_hr(20);
-const double PLAYER_ATTACK_COOLDOWN = 0.2;
-const double SNOWBALL_DURATION = 0.6;
-const double SNOWBALL_VELOCITY = km_per_hr(50);
-
 int main() {
 	cout << "Hello World!\n";
 
