@@ -2,7 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
@@ -364,16 +363,18 @@ void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
 void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
 		for (auto& output : io_queue) {
+			auto player = instances[output->player_index];
+
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
 				{
-					
+					player->hspeed = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SET_VSPEED:
 				{
-
+					player->vspeed = output->data;
 				}
 				break;
 
