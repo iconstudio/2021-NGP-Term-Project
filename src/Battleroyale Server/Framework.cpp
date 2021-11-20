@@ -186,19 +186,28 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
-	auto status = GetStatus();
-	if (LISTEN == status) {
-		CastClientAccept(true);
+	switch (GetStatus()) {
+		case LISTEN:
+		{
+			CastClientAccept(true);
 
-		// 첫번째 플레이어 접속
-		SetStatus(LOBBY);
-	} else if (LOBBY == status) {
-		CastClientAccept(true);
-	} else {
-		CastClientAccept(false);
-		return 0;
+			// 첫번째 플레이어 접속
+			SetStatus(LOBBY);
+		}
+		break;
+
+		case LOBBY:
+		{
+			CastClientAccept(true);
+		}
+		break;
+
+		default:
+		{
+			CastClientAccept(false);
+			return 0;
+		}
 	}
-
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
