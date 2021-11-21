@@ -2,7 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
@@ -82,9 +81,9 @@ bool ServerFramework::Initialize() {
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
-	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
-	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);								// event_player_accept
+	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);	// event_game_start
+	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);				// event_game_process
 
 	return true;
 }
@@ -186,19 +185,28 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
-	auto status = GetStatus();
-	if (LISTEN == status) {
-		CastClientAccept(true);
+	switch (GetStatus()) {
+		case LISTEN:
+		{
+			CastClientAccept(true);
 
-		// 첫번째 플레이어 접속
-		SetStatus(LOBBY);
-	} else if (LOBBY == status) {
-		CastClientAccept(true);
-	} else {
-		CastClientAccept(false);
-		return 0;
+			// 첫번째 플레이어 접속
+			SetStatus(LOBBY);
+		}
+		break;
+
+		case LOBBY:
+		{
+			CastClientAccept(true);
+		}
+		break;
+
+		default:
+		{
+			CastClientAccept(false);
+			return 0;
+		}
 	}
-
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
@@ -236,7 +244,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		auto id = player->index;
 		auto character = player->player_character;
 		if (character)
-			Kill((GameInstance*)(character));
+			Kill(static_cast<GameInstance*>(character));
 
 		cout << "플레이어 종료: " << player->client_socket << endl;
 		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
@@ -355,16 +363,18 @@ void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
 void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
 		for (auto& output : io_queue) {
+			auto player = instances[output->player_index];
+
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
 				{
-
+					player->hspeed = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SET_VSPEED:
 				{
-
+					player->vspeed = output->data;
 				}
 				break;
 
@@ -420,7 +430,7 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
 	if (SOCKET_ERROR == result) {
 		ErrorAbort("send 1");
 	}
