@@ -2,7 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN)
@@ -54,6 +53,13 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
+	BOOL option = TRUE;
+	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
+		, reinterpret_cast<char*>(&option), sizeof(option))) {
+		// 오류
+		return false;
+	}
+
 	ZeroMemory(&my_address, sizeof(my_address));
 	my_address.sin_family = AF_INET;
 	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -73,10 +79,13 @@ bool ServerFramework::Initialize() {
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
 
+	// event_player_accept
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+	// event_game_start
 	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
+	// event_game_process
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 
 	return true;
@@ -87,37 +96,54 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				cout << "S: Listening" << endl;
+				if (!status_begin) {
+					cout << "S: Listening" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case LOBBY:
 			{
-				cout << "S: Entering lobby" << endl;
+				if (!status_begin) {
+					cout << "S: Entering lobby" << endl;
 
-				CastClientAccept(true);
+					CastClientAccept(true);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME:
 			{
-				cout << "S: Starting the game" << endl;
+				if (!status_begin) {
+					cout << "S: Starting the game" << endl;
 
-				CastClientAccept(false);
+					CastClientAccept(false);
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME_OVER:
 			{
+				if (!status_begin) {
+					cout << "S: The game is over." << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
 			case GAME_RESTART:
 			{
+				if (!status_begin) {
+					cout << "S: Restarting the game" << endl;
 
+					status_begin = true;
+				}
 			}
 			break;
 
@@ -162,19 +188,28 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
-	auto status = GetStatus();
-	if (LISTEN == status) {
-		CastClientAccept(true);
+	switch (GetStatus()) {
+		case LISTEN:
+		{
+			CastClientAccept(true);
 
-		// 첫번째 플레이어 접속
-		SetStatus(LOBBY);
-	} else if (LOBBY == status) {
-		CastClientAccept(true);
-	} else {
-		CastClientAccept(false);
-		return 0;
+			// 첫번째 플레이어 접속
+			SetStatus(LOBBY);
+		}
+		break;
+
+		case LOBBY:
+		{
+			CastClientAccept(true);
+		}
+		break;
+
+		default:
+		{
+			CastClientAccept(false);
+			return 0;
+		}
 	}
-
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
@@ -184,6 +219,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	// 첫번째 플레이어
 	if (client_number == 0) {
 		SetCaptain(client_info);
+
+		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
 	}
 
 	cout << "새 플레이어 접속: " << new_socket << endl;
@@ -192,8 +229,9 @@ SOCKET ServerFramework::PlayerConnect() {
 	players.emplace_back(client_info);
 
 	client_number++;
+
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , reinterpret_cast<char*>(client_number), sizeof(client_number));
+			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -209,7 +247,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		auto id = player->index;
 		auto character = player->player_character;
 		if (character)
-			Kill((GameInstance*)(character));
+			Kill(static_cast<GameInstance*>(character));
 
 		cout << "플레이어 종료: " << player->client_socket << endl;
 		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
@@ -265,6 +303,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 		cout << "서버 상태 변경: " << status << " -> " << state << endl;
 
 		status = state;
+		status_begin = false;
 	}
 }
 
@@ -277,10 +316,18 @@ int ServerFramework::GetClientCount() const {
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
-	if (flag && GetClientCount() < PLAYERS_NUMBER_MAX) {
+	if (flag && client_number < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);
+	}
+}
+
+void ServerFramework::CastStartGame(bool flag) {
+	if (flag) {
+		SetEvent(event_game_start);
+	} else {
+		ResetEvent(event_game_start);
 	}
 }
 
@@ -296,8 +343,85 @@ void ServerFramework::CastProcessingGame() {
 	SetEvent(event_game_process);
 }
 
-void ServerFramework::CastSendRenders() {
-	SetEvent(event_send_renders);
+void ServerFramework::CastSendRenders(bool flag) {
+	if (flag) {
+		SetEvent(event_send_renders);
+	} else {
+		ResetEvent(event_send_renders);
+	}
+}
+
+ServerFramework::IO_MSG* ServerFramework::MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data) {
+	auto *result = new IO_MSG{ type, player->index, data };
+	return result;
+}
+
+void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
+	io_queue.push_back(std::move(action));
+}
+
+void ServerFramework::InterpretPlayerAction() {
+	if (0 < io_queue.size()) {
+		for (auto& output : io_queue) {
+			auto player = GetPlayer(output->player_index);
+			auto player_character = static_cast<GameInstance*>(player->player_character);
+
+			switch (output->type) {
+				case ACTION_TYPES::SET_HSPEED:
+				{
+					player_character->hspeed = output->data;
+				}
+				break;
+
+				case ACTION_TYPES::SET_VSPEED:
+				{
+					player_character->vspeed = output->data;
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_LT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_RT:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_UP:
+				{
+
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_DW:
+				{
+
+				}
+				break;
+
+				default:
+				{
+
+				}
+				break;
+			}
+		}
+	}
+}
+
+PlayerInfo* ServerFramework::GetPlayer(int player_index) {
+	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
+		return (lhs->index == player_index);
+	});
+
+	if (loc != players.end()) {
+		return *loc;
+	}
+	return nullptr;
 }
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
@@ -307,7 +431,7 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, (char*)(&type), sizeof(PACKETS), 0);
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
 	if (SOCKET_ERROR == result) {
 		ErrorAbort("send 1");
 	}
@@ -344,8 +468,8 @@ void ErrorDisplay(const char* msg) {
 }
 
 GameInstance::GameInstance()
-	: owner(-1), image_index(0), box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
+	: owner(-1), sprite_index(0), box{}, dead(false)
+	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {}
 
@@ -354,8 +478,11 @@ void GameInstance::OnCreate() {}
 void GameInstance::OnDestroy() {}
 
 void GameInstance::OnUpdate(double frame_advance) {
-	x += hspeed * frame_advance;
-	y += vspeed * frame_advance;
+	if (hspeed != 0.0 || vspeed != 0.0) {
+		x += hspeed * frame_advance;
+		y += vspeed * frame_advance;
+		direction = point_direction(0, 0, hspeed, vspeed);
+	}
 }
 
 void GameInstance::SetSprite(int sprite) {
