@@ -156,6 +156,8 @@ private:
 	vector<IO_MSG*> io_queue;
 	map<WPARAM, bool> key_checkers;
 
+	PlayerInfo* GetPlayer(int player_index);
+
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };

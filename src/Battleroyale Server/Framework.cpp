@@ -402,6 +402,17 @@ void ServerFramework::InterpretPlayerAction() {
 	}
 }
 
+PlayerInfo* ServerFramework::GetPlayer(int player_index) {
+	auto loc = find_if(players.begin(), players.end(), [player_index](const PlayerInfo*& lhs) {
+		return (lhs->index == player_index);
+	});
+
+	if (loc != players.end()) {
+		return *loc;
+	}
+	return nullptr;
+}
+
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
 	client_handle = hd;
