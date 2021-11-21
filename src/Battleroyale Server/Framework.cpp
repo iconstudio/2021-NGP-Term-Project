@@ -363,8 +363,7 @@ void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
 void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
 		for (auto& output : io_queue) {
-			auto player = GetPlayer(output->player_index);
-			auto player_character = static_cast<GameInstance*>(player->player_character);
+			auto player_character = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
 
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
