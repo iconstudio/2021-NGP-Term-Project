@@ -215,13 +215,24 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 CCharacter::CCharacter()
-	: attack_cooltime(0.0), health(PLAYER_HEALTH) {
+	: attack_cooltime(0.0), health(PLAYER_HEALTH), update_info{} {
 	SetSprite(0);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
 	GameInstance::OnUpdate(frame_advance);
+	UpdateMessage(index, framework.GetPlayerCount(), x, y, health, direction);
+}
+
+void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp, double direction)
+{
+	update_info.player_x = x;
+	update_info.player_y = y;
+	update_info.player_direction = direction;
+	update_info.player_hp = hp;
+	update_info.target_player = index;
+	update_info.players_count = count;
 }
 
 CBullet::CBullet()
