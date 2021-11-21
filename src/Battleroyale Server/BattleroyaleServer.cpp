@@ -52,7 +52,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				if (player_index == framework.player_captain
 					&& packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
-						SetEvent(framework.event_game_start);
+						framework.CastStartGame(true);
 						break;
 					}
 				} // 다른 메시지는 버린다.
@@ -79,8 +79,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							switch (*data) {
 								case 'W':
 								{
-									auto action = framework.MakePlayerAction(client_info, ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
-									framework.QueingPlayerAction(action);
+									//auto action = framework.MakePlayerAction(client_info, ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
+									//framework.QueingPlayerAction(std::move(action));
 								}
 								break;
 
@@ -190,7 +190,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			// 게임 처리
 			framework.GameUpdate();
 
-			framework.CastSendRenders();
+			framework.CastSendRenders(true);
 			break;
 		} else { // 게임 판정승 혹은 게임 강제 종료
 

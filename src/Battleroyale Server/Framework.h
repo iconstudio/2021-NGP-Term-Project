@@ -61,6 +61,7 @@ public:
 
 	int owner;
 	double x, y, hspeed, vspeed;
+	double direction;
 
 private:
 	int sprite_index;
@@ -106,7 +107,7 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	IO_MSG*& MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
+	IO_MSG* MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 	void QueingPlayerAction(IO_MSG*&& action);
 	void InterpretPlayerAction();
 
@@ -155,6 +156,8 @@ private:
 
 	vector<IO_MSG*> io_queue;
 	map<WPARAM, bool> key_checkers;
+
+	PlayerInfo* GetPlayer(int player_index);
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
