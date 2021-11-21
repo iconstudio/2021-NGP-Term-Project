@@ -58,7 +58,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				if (player_index == framework.player_captain
 					&& packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
-						SetEvent(framework.event_game_start);
+						framework.CastStartGame(true);
 						break;
 					}
 				} // 다른 메시지는 버린다.
@@ -86,7 +86,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								case 'W':
 								{
 									auto action = framework.MakePlayerAction(client_info, ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
-									framework.QueingPlayerAction(action);
+									framework.QueingPlayerAction(std::move(action));
 								}
 								break;
 
