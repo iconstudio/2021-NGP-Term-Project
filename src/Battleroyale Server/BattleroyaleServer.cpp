@@ -156,7 +156,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
-		WaitForSingleObject(framework.event_game_start, INFINITE);		// event_game_start
+		framework.AwaitStartGameEvent();
 
 		//shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 

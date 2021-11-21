@@ -125,12 +125,18 @@ public:
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
-	bool status_begin = true;
+	bool status_begin;
+
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+	WSAOVERLAPPED io_behavior;
 
 	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
+
+	int	client_number; // 지금 접속한 플레이어의 수
+	int player_number_last; // 마지막에 추가된 플레이어의 번호
+	int	player_captain; // 방장 플레이어
 
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
@@ -141,15 +147,9 @@ private:
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
 
-	WSAOVERLAPPED io_behavior;
-
 	int **PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
-
-	int	client_number; // 지금 접속한 플레이어의 수
-	int player_number_last; // 마지막에 추가된 플레이어의 번호
-	int	player_captain; // 방장 플레이어
 
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;

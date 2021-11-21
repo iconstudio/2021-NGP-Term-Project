@@ -4,7 +4,7 @@
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
-	, status(SERVER_STATES::LISTEN)
+	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0)
 	, thread_game_starter(NULL), thread_game_process(NULL)
 	, player_number_last(0), player_captain(-1) {
@@ -35,6 +35,7 @@ ServerFramework::~ServerFramework() {
 	CloseHandle(thread_game_process);
 
 	CloseHandle(event_player_accept);
+	CloseHandle(event_game_start);
 	CloseHandle(event_receives);
 	CloseHandle(event_game_process);
 	CloseHandle(event_send_renders);
@@ -75,7 +76,7 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 
-	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -191,8 +192,6 @@ SOCKET ServerFramework::PlayerConnect() {
 	switch (GetStatus()) {
 		case LISTEN:
 		{
-			CastClientAccept(true);
-
 			// 첫번째 플레이어 접속
 			SetStatus(LOBBY);
 		}
@@ -200,13 +199,11 @@ SOCKET ServerFramework::PlayerConnect() {
 
 		case LOBBY:
 		{
-			CastClientAccept(true);
 		}
 		break;
 
 		default:
 		{
-			CastClientAccept(false);
 			return 0;
 		}
 	}
