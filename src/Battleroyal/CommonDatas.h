@@ -3,31 +3,31 @@
 #define COMMON_PORT 15000
 
 
-// ÀÚ±âÀå ¿Ï·á ½Ã°£
+// ìžê¸°ìž¥ ì™„ë£Œ ì‹œê°„
 const double EWALL_CLOSE_PERIOD = 300.0;
 const double EWALL_DAMAGE_PER_SECOND = 1.5;
 
-// ÃÖ´ë ÇÃ·¹ÀÌ¾î ¼ö
+// ìµœëŒ€ í”Œë ˆì´ì–´ ìˆ˜
 const int PLAYERS_NUMBER_MAX = 10;
 
-// ÇÁ·¹ÀÓ ¼ö
+// í”„ë ˆìž„ ìˆ˜
 const int FRAMERATE = 100;
 const double FRAME_TIME = (1.0 / FRAMERATE);
 
 enum PACKETS : int {
-	CLIENT_PING = 0				// ºó ÆÐÅ¶À» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_KEY_INPUT			// ÀÔ·ÂÀ» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_GAME_START			// ¼­¹ö¿¡°Ô °ÔÀÓ ½ÃÀÛÀ» ¿äÃ»ÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_PLAY_CONTINUE		// °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÏ±â À§ÇØ ÀçÁ¢¼ÓÀ» ¿äÃ»ÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_PLAY_DENY			// °ÔÀÓÀ» ´Ù½ÃÇÏÁö ¾Ê´Â´Ù°í ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
+	CLIENT_PING = 0				// ë¹ˆ íŒ¨í‚·ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_KEY_INPUT			// ìž…ë ¥ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_GAME_START			// ì„œë²„ì—ê²Œ ê²Œìž„ ì‹œìž‘ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_PLAY_CONTINUE		// ê²Œìž„ì„ ë‹¤ì‹œ ì‹œìž‘í•˜ê¸° ìœ„í•´ ìž¬ì ‘ì†ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_PLAY_DENY			// ê²Œìž„ì„ ë‹¤ì‹œí•˜ì§€ ì•ŠëŠ”ë‹¤ê³  ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
 
-	, SERVER_SET_CAPATIN		// Å¬¶óÀÌ¾ðÆ®¿¡°Ô ³Ê°¡ ¹æÀåÀÌ¶ó°í ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_START			// Å¬¶óÀÌ¾ðÆ®¿¡°Ô °ÔÀÓÀÌ ½ÃÀÛµÇ¾úÀ½À» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_PLAYER_COUNT		// Å¬¶óÀÌ¾ðÆ®¿¡°Ô ÇÃ·¹ÀÌ¾î°¡ ¸î ¸íÀÎÁö ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_STATUS		// Å¬¶óÀÌ¾ðÆ®¿¡°Ô °ÔÀÓ »óÅÂ¸¦ ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_RENDER_INFO		// Å¬¶óÀÌ¾ðÆ®¿¡°Ô ·»´õ¸µ Á¤º¸¸¦ º¸³»ÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_DONE			// Å¬¶óÀÌ¾ðÆ®¿¡°Ô °ÔÀÓÀÌ ³¡³µÀ½À» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_REPLAY				// Å¬¶óÀÌ¾ðÆ®¿¡°Ô °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÔÀ» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
+	, SERVER_SET_CAPATIN		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë„ˆê°€ ë°©ìž¥ì´ë¼ê³  ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_START			// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œìž„ì´ ì‹œìž‘ë˜ì—ˆìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_PLAYER_COUNT		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ í”Œë ˆì´ì–´ê°€ ëª‡ ëª…ì¸ì§€ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_STATUS		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œìž„ ìƒíƒœë¥¼ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_RENDER_INFO		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_DONE			// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œìž„ì´ ëë‚¬ìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_REPLAY				// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œìž„ì„ ë‹¤ì‹œ ì‹œìž‘í•¨ì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
 };
 
 struct GameUpdateMessage {
