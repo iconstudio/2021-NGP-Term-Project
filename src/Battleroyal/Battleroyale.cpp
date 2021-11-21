@@ -1,12 +1,12 @@
+#include "pch.h"
 #include "Battleroyale.h"
 #include "Framework.h"
-#include "Framework.h"
-#include "pch.h"
-=========
->>>>>>>>> Temporary merge branch 2
 
 #define MAX_LOADSTRING 100
 #define RENDER_TIMER_ID 1
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
 WCHAR szTitle[MAX_LOADSTRING];       // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING]; // 기본 창 클래스 이름입니다.
 
@@ -14,13 +14,10 @@ WindowsClient game_client{CLIENT_W, CLIENT_H};
 ClientFramework framework{GAME_SCENE_W, GAME_SCENE_H, VIEW_W,
                           VIEW_H,       PORT_W,       PORT_H};
 
-WindowsClient game_client{ CLIENT_W, CLIENT_H };
-					 _In_opt_ HINSTANCE hPrevInstance,
-					 _In_ LPWSTR    lpCmdLine,
-					 _In_ int       nCmdShow) {
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
-					 _In_ int       nCmdShow) {
+int APIENTRY wWinMain(	_In_ HINSTANCE hInstance, 
+						_In_opt_ HINSTANCE hPrevInstance,
+						_In_ LPWSTR    lpCmdLine,
+						_In_ int       nCmdShow) {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 

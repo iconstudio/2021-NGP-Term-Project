@@ -63,7 +63,7 @@ private:
 	int	player_index = 0;
 	int player_num = 1;
 	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
-	bool player_captain;
+	bool player_captain = false;
 	int title_duration = 0;
 
 	// 마지막에 수신한 렌더링 정보

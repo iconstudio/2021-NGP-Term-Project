@@ -69,6 +69,7 @@ void ClientFramework::Initialize() {
 
 	GameSprite playersprite("testimage.png", 0, 0, 0);
 	SetSprite(&playersprite);
+
 }
 
 void ClientFramework::Update() {
@@ -181,7 +182,7 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
 	if (status == LOBBY)
-		sprites.at(CHARACTER)->draw(surface_double, 0, 0, 0, 0, 1.0, 1.0, 1.0);
+		sprites[CHARACTER]->draw(surface_double, 100, 100, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	// 파이프라인
 	if (status == GAME) {
@@ -195,7 +196,7 @@ void ClientFramework::Render(HWND window) {
 			//}
 			if (inst != NULL)
 			{
-				sprites.at(inst->instance_type)->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+				sprites[inst->instance_type]->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
 			}
 		}
 	}
@@ -268,15 +269,15 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 }
 
 int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 0;
+	int temp = 1;
 	int retval;
 
 	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
 
-	if (0 < temp)
-    player_captain = false;					//0이면 방장 아니면 쩌리
+	if (0 == temp)
+		player_captain = true;					//0이면 방장 아니면 쩌리
 	else
-    player_captain = true;
+		player_captain = false;
 
 	return retval;
 }
@@ -353,4 +354,5 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.emplace_back(sprite);
+	
 }
