@@ -61,6 +61,7 @@ public:
 
 	int owner;
 	double x, y, hspeed, vspeed;
+	double direction;
 
 private:
 	int sprite_index;

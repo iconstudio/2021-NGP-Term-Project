@@ -458,7 +458,7 @@ void ErrorDisplay(const char* msg) {
 
 GameInstance::GameInstance()
 	: owner(-1), sprite_index(0), box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
+	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {}
 
@@ -467,8 +467,11 @@ void GameInstance::OnCreate() {}
 void GameInstance::OnDestroy() {}
 
 void GameInstance::OnUpdate(double frame_advance) {
-	x += hspeed * frame_advance;
-	y += vspeed * frame_advance;
+	if (hspeed != 0.0 || vspeed != 0.0) {
+		x += hspeed * frame_advance;
+		y += vspeed * frame_advance;
+		direction = point_direction(0, 0, hspeed, vspeed);
+	}
 }
 
 void GameInstance::SetSprite(int sprite) {
