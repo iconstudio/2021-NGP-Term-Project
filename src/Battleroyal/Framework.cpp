@@ -66,6 +66,9 @@ void ClientFramework::Initialize() {
 	InputRegister('D');
 	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
+
+	GameSprite playersprite("testimage.png", 0, 0, 0);
+	SetSprite(&playersprite);
 }
 
 void ClientFramework::Update() {
@@ -177,20 +180,25 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
+	if (status == LOBBY)
+		sprites.at(CHARACTER)->draw(surface_double, 0, 0, 0, 0, 1.0, 1.0, 1.0);
+
 	// 파이프라인
-	for (auto inst = last_render_info; inst != NULL; inst++)
-	{
-		//if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
-		//	|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
-		//	inst->draw(surface_double);
-		//else {
-		if (inst->instance_type == CHARACTER)
+	if (status == GAME) {
+		for (auto inst = last_render_info; inst != NULL; inst++)
 		{
-			sprites.at(CHARACTER)->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+
+			//if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
+			//	|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
+			//	inst->draw(surface_double);
+			//else {
+			//}
+			if (inst != NULL)
+			{
+				sprites.at(inst->instance_type)->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+			}
 		}
-		//}
 	}
-	
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
@@ -343,6 +351,6 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	return TRUE;
 }
 
-void ClientFramework::set_sprite(GameSprite* sprite) {
-	sprites.push_back(sprite);
+void ClientFramework::SetSprite(GameSprite* sprite) {
+	sprites.emplace_back(sprite);
 }
