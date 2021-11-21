@@ -45,6 +45,8 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	void set_sprite(GameSprite* sprite);
+
 	int RecvTitleMessage(SOCKET sock);
 	int RecvLobbyMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);

@@ -178,7 +178,18 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
 	// 파이프라인
-	DrawRenderInstances();
+	for (auto inst = last_render_info; inst != NULL; inst++)
+	{
+		//if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
+		//	|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
+		//	inst->draw(surface_double);
+		//else {
+		if (inst->instance_type == CHARACTER)
+		{
+			sprites.at(CHARACTER)->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+		}
+		//}
+	}
 	
 
 	// 이중 버퍼 -> 백 버퍼
@@ -195,19 +206,6 @@ void ClientFramework::Render(HWND window) {
 	ReleaseDC(window, surface_app);
 	EndPaint(window, &painter);
 }
-
-void ClientFramework::DrawRenderInstances()
-{
-	for (auto inst = last_render_info; inst != NULL; inst++)
-	{
-		if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
-			|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
-			inst->draw(surface_double);
-		else {
-			inst->draw(surface_double);
-		}
-	}
-});
 
 void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
@@ -299,8 +297,7 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, reinterpret_cast<char*>(last_
-		_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
 
 	return retval;
 }
@@ -344,4 +341,8 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	UpdateWindow(hWnd);
 
 	return TRUE;
+}
+
+void ClientFramework::set_sprite(GameSprite* sprite) {
+	sprites.push_back(sprite);
 }
