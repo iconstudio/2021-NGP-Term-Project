@@ -228,7 +228,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	client_number++;
 
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , reinterpret_cast<char*>(client_number), sizeof(client_number));
+			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -348,12 +348,9 @@ void ServerFramework::CastSendRenders(bool flag) {
 	}
 }
 
-ServerFramework::IO_MSG*& ServerFramework::MakePlayerAction(
-	PlayerInfo* player
-	, ACTION_TYPES type
-	, int data = 0
-) {
-	auto result = new IO_MSG{ type, player->index, data };
+ServerFramework::IO_MSG* ServerFramework::MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data) {
+	auto *result = new IO_MSG{ type, player->index, data };
+	return result;
 }
 
 void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
@@ -363,18 +360,19 @@ void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
 void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
 		for (auto& output : io_queue) {
-			auto player = instances[output->player_index];
+			auto player = GetPlayer(output->player_index);
+			auto player_character = static_cast<GameInstance*>(player->player_character);
 
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
 				{
-					player->hspeed = output->data;
+					player_character->hspeed = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SET_VSPEED:
 				{
-					player->vspeed = output->data;
+					player_character->vspeed = output->data;
 				}
 				break;
 
@@ -413,7 +411,7 @@ void ServerFramework::InterpretPlayerAction() {
 }
 
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {
-	auto loc = find_if(players.begin(), players.end(), [player_index](const PlayerInfo*& lhs) {
+	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
 		return (lhs->index == player_index);
 	});
 
