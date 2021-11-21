@@ -165,6 +165,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 			auto player = framework.players.at(i);
 			auto places = framework.PLAYER_SPAWN_PLACES[i];
 			player->player_character = framework.Instantiate<CCharacter>(places[0], places[1]);
+			static_cast<CCharacter*>(player->player_character)->index = player->index;		// 캐릭터 클래스에 캐릭터의 번호 부여
 		}
 
 		framework.CastStartReceive(true);
