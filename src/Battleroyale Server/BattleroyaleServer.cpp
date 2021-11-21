@@ -9,12 +9,6 @@ ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 normal_distribution<> server_distrubution;
 default_random_engine server_randomizer{0};
 
-const int PLAYER_HEALTH = 10;
-const double PLAYER_MOVE_SPEED = km_per_hr(20);
-const double PLAYER_ATTACK_COOLDOWN = 0.2;
-const double SNOWBALL_DURATION = 0.6;
-const double SNOWBALL_VELOCITY = km_per_hr(50);
-
 int main() {
 	cout << "Hello World!\n";
 
@@ -69,7 +63,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 꾸준한 통신
 				while (true) {
-					framework.AwaitReceiveEvent();
+					framework.AwaitReceiveEvent();		// event_recieves
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (0 < data_size) {
@@ -124,7 +118,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					*/
 					framework.CastProcessingGame();
 
-					framework.AwaitSendRendersEvent();
+					framework.AwaitSendRendersEvent();		// event_send_renders
 					framework.CastSendRenders(false);
 
 
@@ -162,7 +156,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
-		WaitForSingleObject(framework.event_game_start, INFINITE);
+		WaitForSingleObject(framework.event_game_start, INFINITE);		// event_game_start
 
 		//shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 
@@ -188,7 +182,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent(); // 이 함수를 WaitForSingleObjectEx로
+		framework.AwaitProcessingGameEvent(); // 이 함수를 WaitForSingleObjectEx로, evemt_game_process
 		framework.CastStartReceive(false);
 		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
@@ -208,7 +202,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitClientAcceptEvent();
+		framework.AwaitClientAcceptEvent();		// event_game_process
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
