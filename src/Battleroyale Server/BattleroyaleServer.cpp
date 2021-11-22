@@ -71,7 +71,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						//result = recv(client_socket, data, data_size, MSG_WAITALL);
 					}
 
-					// 게임 초기화
 					if (data && packet == PACKETS::CLIENT_KEY_INPUT) {
 						char button = (*data);
 

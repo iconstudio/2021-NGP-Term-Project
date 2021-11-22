@@ -162,7 +162,7 @@ void ServerFramework::Startup() {
 
 void ServerFramework::GameUpdate() {
 	ForeachInstances([&](GameInstance*& inst) {
-		//inst->OnUpdate(FRAME_TIME);
+		inst->OnUpdate(FRAME_TIME);
 	});
 }
 
