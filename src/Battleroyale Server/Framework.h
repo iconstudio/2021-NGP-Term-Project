@@ -94,6 +94,7 @@ public:
 
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;
+	int GetPlayerCount() const;
 
 	void CastClientAccept(bool flag);
 	void CastStartGame(bool flag);

@@ -312,6 +312,10 @@ int ServerFramework::GetClientCount() const {
 	return client_number;
 }
 
+int ServerFramework::GetPlayerCount() const {
+	return players.size();
+}
+
 void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && client_number < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
@@ -359,43 +363,42 @@ ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
 void ServerFramework::InterpretPlayerAction() {
 	if (0 < io_queue.size()) {
 		for (auto& output : io_queue) {
-			auto player = GetPlayer(output->player_index);
-			auto player_character = static_cast<GameInstance*>(player->player_character);
+			auto player = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
 
 			switch (output->type) {
 				case ACTION_TYPES::SET_HSPEED:
 				{
-					player_character->hspeed = output->data;
+					player->hspeed = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SET_VSPEED:
 				{
-					player_character->vspeed = output->data;
+					player->vspeed = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SHOOT_LT:
 				{
-
+					player->direction = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SHOOT_RT:
 				{
-
+					player->direction = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SHOOT_UP:
 				{
-
+					player->direction = output->data;
 				}
 				break;
 
 				case ACTION_TYPES::SHOOT_DW:
 				{
-
+					player->direction = output->data;
 				}
 				break;
 
