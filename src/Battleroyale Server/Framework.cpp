@@ -312,10 +312,6 @@ int ServerFramework::GetClientCount() const {
 	return client_number;
 }
 
-int ServerFramework::GetPlayerCount() const {
-	return players.size();
-}
-
 void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && client_number < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
