@@ -348,13 +348,12 @@ void ServerFramework::CastSendRenders(bool flag) {
 	}
 }
 
-ServerFramework::IO_MSG* ServerFramework::MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data) {
-	auto *result = new IO_MSG{ type, player->index, data };
+ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
+															 , ACTION_TYPES type
+															 , int data) {
+	auto* result = new IO_MSG{ type, player->index, data };
+	io_queue.push_back(std::move(result));
 	return result;
-}
-
-void ServerFramework::QueingPlayerAction(IO_MSG*&& action) {
-	io_queue.push_back(std::move(action));
 }
 
 void ServerFramework::InterpretPlayerAction() {

@@ -107,8 +107,7 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	IO_MSG* MakePlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-	void QueingPlayerAction(IO_MSG*&& action);
+	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 	void InterpretPlayerAction();
 
 	template<class _GameClass = GameInstance>
