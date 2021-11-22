@@ -374,25 +374,7 @@ void ServerFramework::InterpretPlayerAction() {
 				}
 				break;
 
-				case ACTION_TYPES::SHOOT_LT:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_RT:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_UP:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_DW:
+				case ACTION_TYPES::SHOOT:
 				{
 					player->direction = output->data;
 				}

@@ -31,10 +31,7 @@ enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
-	, SHOOT_LT // 좌측으로 사격
-	, SHOOT_RT // 우측으로 사격
-	, SHOOT_UP // 상단으로 사격
-	, SHOOT_DW // 하단으로 사격
+	, SHOOT // 투사체 발사
 };
 
 const int LERP_MIN = 50;
