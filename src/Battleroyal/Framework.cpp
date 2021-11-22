@@ -2,6 +2,8 @@
 #include "Framework.h"
 #include "resource.h"
 
+GameSprite playersprite("testimage.png", 0, 0, 0);
+
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
 
@@ -67,7 +69,7 @@ void ClientFramework::Initialize() {
 	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
 
-	GameSprite playersprite("testimage.png", 0, 0, 0);
+
 	SetSprite(&playersprite);
 
 }
@@ -353,6 +355,7 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 }
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
-	sprites.emplace_back(sprite);
+	sprites.push_back(sprite);
 	
+	sprites[0]->get_height();
 }
