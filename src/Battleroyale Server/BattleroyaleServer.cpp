@@ -119,6 +119,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent();		// event_send_renders
+					
+					// 렌더링 정보 보내기
 					framework.CastSendRenders(false);
 
 
@@ -189,6 +191,9 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		if (1 < framework.GetClientCount()) {
 			// 게임 처리
 			framework.GameUpdate();
+			// 플레이어 동작 처리하기
+			// 렌더링 정보 만들기
+
 
 			framework.CastSendRenders(true);
 			break;
