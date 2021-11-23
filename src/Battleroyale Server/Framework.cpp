@@ -220,12 +220,12 @@ SOCKET ServerFramework::PlayerConnect() {
 		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
 	}
 
+	client_number++;
 	cout << "새 플레이어 접속: " << new_socket << endl;
 	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
 
-	client_number++;
 
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
