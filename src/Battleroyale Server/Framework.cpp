@@ -95,67 +95,67 @@ bool ServerFramework::Initialize() {
 void ServerFramework::Startup() {
 	while (true) {
 		switch (status) {
-		case LISTEN:
-		{
-			if (!status_begin) {
-				cout << "S: Listening" << endl;
+			case LISTEN:
+			{
+				if (!status_begin) {
+					cout << "S: Listening" << endl;
 
-				CastClientAccept(true);
-				status_begin = true;
+					CastClientAccept(true);
+					status_begin = true;
+				}
 			}
-		}
-		break;
-
-		case LOBBY:
-		{
-			if (!status_begin) {
-				cout << "S: Entering lobby" << endl;
-
-				CastClientAccept(true);
-				status_begin = true;
-			}
-		}
-		break;
-
-		case GAME:
-		{
-			if (!status_begin) {
-				cout << "S: Starting the game" << endl;
-
-				CastClientAccept(false);
-				status_begin = true;
-			}
-		}
-		break;
-
-		case GAME_OVER:
-		{
-			if (!status_begin) {
-				cout << "S: The game is over." << endl;
-
-				status_begin = true;
-			}
-		}
-		break;
-
-		case GAME_RESTART:
-		{
-			if (!status_begin) {
-				cout << "S: Restarting the game" << endl;
-
-				status_begin = true;
-			}
-		}
-		break;
-
-		case EXIT:
-		{
-			// 종료
-		}
-		return;
-
-		default:
 			break;
+
+			case LOBBY:
+			{
+				if (!status_begin) {
+					cout << "S: Entering lobby" << endl;
+
+					CastClientAccept(true);
+					status_begin = true;
+				}
+			}
+			break;
+
+			case GAME:
+			{
+				if (!status_begin) {
+					cout << "S: Starting the game" << endl;
+
+					CastClientAccept(false);
+					status_begin = true;
+				}
+			}
+			break;
+
+			case GAME_OVER:
+			{
+				if (!status_begin) {
+					cout << "S: The game is over." << endl;
+
+					status_begin = true;
+				}
+			}
+			break;
+
+			case GAME_RESTART:
+			{
+				if (!status_begin) {
+					cout << "S: Restarting the game" << endl;
+
+					status_begin = true;
+				}
+			}
+			break;
+
+			case EXIT:
+			{
+				// 종료
+			}
+				return;
+
+			default:
+				break;
 		}
 	}
 }
@@ -163,7 +163,7 @@ void ServerFramework::Startup() {
 void ServerFramework::GameUpdate() {
 	ForeachInstances([&](GameInstance*& inst) {
 		inst->OnUpdate(FRAME_TIME);
-		});
+	});
 }
 
 void ServerFramework::Clean() {
@@ -190,22 +190,22 @@ SOCKET ServerFramework::PlayerConnect() {
 	}
 
 	switch (GetStatus()) {
-	case LISTEN:
-	{
-		// 첫번째 플레이어 접속
-		SetStatus(LOBBY);
-	}
-	break;
+		case LISTEN:
+		{
+			// 첫번째 플레이어 접속
+			SetStatus(LOBBY);
+		}
+		break;
 
-	case LOBBY:
-	{
-	}
-	break;
+		case LOBBY:
+		{
+		}
+		break;
 
-	default:
-	{
-		return 0;
-	}
+		default:
+		{
+			return 0;
+		}
 	}
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
@@ -228,7 +228,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-		, reinterpret_cast<char*>(&client_number), sizeof(client_number));
+			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
 	return new_socket;
 }
@@ -255,25 +255,25 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		// 플레이어 0명 혹은 1명
 		if (client_number < 2) {
 			switch (status) {
-			case LISTEN:
-			{
-				if (0 == client_number) {
-					Clean();
+				case LISTEN:
+				{
+					if (0 == client_number) {
+						Clean();
+					}
 				}
-			}
-			break;
+				break;
 
-			case LOBBY:
-			{
-				SetStatus(LISTEN);
-			}
-			break;
+				case LOBBY:
+				{
+					SetStatus(LISTEN);
+				}
+				break;
 
-			case GAME: { /* 여기서 처리 안함 */ } break;
-			case GAME_OVER: { /* 여기서 처리 안함 */ } break;
-			case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
-			case EXIT: { /* 여기서 처리 안함 */ } break;
-			default: break;
+				case GAME: { /* 여기서 처리 안함 */ } break;
+				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
+				case EXIT: { /* 여기서 처리 안함 */ } break;
+				default: break;
 			}
 		}
 
@@ -290,8 +290,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 void ServerFramework::SetCaptain(PlayerInfo* player) {
 	if (player) {
 		player_captain = player->index;
-	}
-	else {
+	} else {
 		player_captain = -1;
 	}
 }
@@ -316,8 +315,7 @@ int ServerFramework::GetClientCount() const {
 void ServerFramework::CastClientAccept(bool flag) {
 	if (flag && client_number < PLAYERS_NUMBER_MAX) {
 		SetEvent(event_player_accept);
-	}
-	else {
+	} else {
 		ResetEvent(event_player_accept);
 	}
 }
@@ -325,8 +323,7 @@ void ServerFramework::CastClientAccept(bool flag) {
 void ServerFramework::CastStartGame(bool flag) {
 	if (flag) {
 		SetEvent(event_game_start);
-	}
-	else {
+	} else {
 		ResetEvent(event_game_start);
 	}
 }
@@ -334,8 +331,7 @@ void ServerFramework::CastStartGame(bool flag) {
 void ServerFramework::CastStartReceive(bool flag) {
 	if (flag) {
 		SetEvent(event_receives);
-	}
-	else {
+	} else {
 		ResetEvent(event_receives);
 	}
 }
@@ -347,15 +343,14 @@ void ServerFramework::CastProcessingGame() {
 void ServerFramework::CastSendRenders(bool flag) {
 	if (flag) {
 		SetEvent(event_send_renders);
-	}
-	else {
+	} else {
 		ResetEvent(event_send_renders);
 	}
 }
 
 ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
-	, ACTION_TYPES type
-	, int data) {
+															 , ACTION_TYPES type
+															 , int data) {
 	auto* result = new IO_MSG{ type, player->index, data };
 	io_queue.push_back(std::move(result));
 	return result;
@@ -367,29 +362,47 @@ void ServerFramework::InterpretPlayerAction() {
 			auto player = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
 
 			switch (output->type) {
-			case ACTION_TYPES::SET_HSPEED:
-			{
-				player->hspeed = output->data;
-			}
-			break;
+				case ACTION_TYPES::SET_HSPEED:
+				{
+					player->hspeed = output->data;
+				}
+				break;
 
-			case ACTION_TYPES::SET_VSPEED:
-			{
-				player->vspeed = output->data;
-			}
-			break;
+				case ACTION_TYPES::SET_VSPEED:
+				{
+					player->vspeed = output->data;
+				}
+				break;
 
-			case ACTION_TYPES::SHOOT:
-			{
-				player->direction = output->data;
-			}
-			break;
+				case ACTION_TYPES::SHOOT_LT:
+				{
+					player->direction = output->data;
+				}
+				break;
 
-			default:
-			{
+				case ACTION_TYPES::SHOOT_RT:
+				{
+					player->direction = output->data;
+				}
+				break;
 
-			}
-			break;
+				case ACTION_TYPES::SHOOT_UP:
+				{
+					player->direction = output->data;
+				}
+				break;
+
+				case ACTION_TYPES::SHOOT_DW:
+				{
+					player->direction = output->data;
+				}
+				break;
+
+				default:
+				{
+
+				}
+				break;
 			}
 		}
 	}
@@ -398,7 +411,7 @@ void ServerFramework::InterpretPlayerAction() {
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {
 	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
 		return (lhs->index == player_index);
-		});
+	});
 
 	if (loc != players.end()) {
 		return *loc;
@@ -490,10 +503,6 @@ int GameInstance::GetBoundRT() const {
 
 int GameInstance::GetBoundBT() const {
 	return y + box.bottom;
-}
-
-const char* GameInstance::GetIdentifier() const {
-	return "Instance";
 }
 
 bool GameInstance::IsCollideWith(GameInstance* other) {
