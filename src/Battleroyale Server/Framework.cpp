@@ -462,8 +462,14 @@ void ErrorDisplay(const char* msg) {
 	LocalFree(lpMsgBuf);
 }
 
-GameInstance::GameInstance()
-	: owner(-1), image_index(0), box{}, dead(false)
+GameInstance::GameInstance(GameInstance& other)
+	: owner(other.owner), identifier(other.identifier)
+	, image_index(other.image_index), box(other.box), dead(other.dead)
+	, x(other.x), y(other.y), hspeed(other.hspeed), vspeed(other.vspeed), direction(other.direction) {}
+
+GameInstance::GameInstance(const char* id)
+	: owner(-1), identifier(id)
+	, image_index(0), box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {}

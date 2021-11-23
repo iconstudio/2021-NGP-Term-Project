@@ -159,14 +159,15 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitStartGameEvent();
 
-		//shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
+		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 
 		auto sz = framework.players.size();
 		for (int i = 0; i < sz; ++i) {
 			auto player = framework.players.at(i);
 			auto places = framework.PLAYER_SPAWN_PLACES[i];
 			player->player_character = framework.Instantiate<CCharacter>(places[0], places[1]);
-			static_cast<CCharacter*>(player->player_character)->index = player->index;		// 캐릭터 클래스에 캐릭터의 번호 부여
+			static_cast<CCharacter*>(player->player_character)->index = player->index;
+			// 캐릭터 클래스에 캐릭터의 번호 부여
 		}
 
 		framework.CastStartReceive(true);
@@ -220,14 +221,18 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 CCharacter::CCharacter()
-	: attack_cooltime(0.0), health(PLAYER_HEALTH), update_info{} {
+	: GameInstance("Player")
+	, attack_cooltime(0.0), health(PLAYER_HEALTH), update_info{} {
 	SetSprite(0);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
-	GameInstance::OnUpdate(frame_advance);
+	 
+
 	UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
+
+	GameInstance::OnUpdate(frame_advance);
 }
 
 void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp, double direction)
@@ -241,7 +246,8 @@ void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
 }
 
 CBullet::CBullet()
-	: lifetime(SNOWBALL_DURATION) {
+	: GameInstance("Bullet")
+	, lifetime(SNOWBALL_DURATION) {
 	SetSprite(1);
 	SetBoundBox(RECT{ -2, -2, 2, 2 });
 }

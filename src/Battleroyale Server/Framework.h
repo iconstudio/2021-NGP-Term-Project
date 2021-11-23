@@ -42,7 +42,8 @@ const int LERP_MAX = 200;
 
 class GameInstance {
 public:
-	GameInstance();
+	GameInstance(GameInstance& other);
+	GameInstance(const char *id);
 	virtual ~GameInstance();
 
 	virtual void OnCreate();
@@ -58,6 +59,8 @@ public:
 
 	bool IsCollideWith(RECT& other);
 	bool IsCollideWith(GameInstance*& other);
+
+	const char* identifier;
 
 	int owner;
 	double x, y, hspeed, vspeed;
@@ -100,6 +103,12 @@ public:
 	void CastStartReceive(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
+
+	template<class _GameClass1 = GameInstance, class _GameClass2 = GameInstance >
+	_GameClass2* SeekCollision(_GameClass1* self, _GameClass2* other);
+
+	template<class _GameClass1 = GameInstance, class _GameClass2 = GameInstance >
+	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
@@ -161,6 +170,24 @@ private:
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };
+
+template<class _GameClass1, class _GameClass2>
+inline _GameClass2* ServerFramework::SeekCollision(_GameClass1* self, _GameClass2* other) {
+	if (self && other) {
+
+	}
+	return nullptr;
+}
+
+template<class _GameClass1, class _GameClass2>
+inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClass2* other) {
+	if (self && other) {
+		if (self->IsCollideWith(other)) {
+			return other;
+		}
+	}
+	return nullptr;
+}
 
 template<class _GameClass>
 inline _GameClass* ServerFramework::Instantiate(int x, int y) {
