@@ -3,31 +3,37 @@
 #define COMMON_PORT 15000
 
 
-// ìê¸°ì¥ ì™„ë£Œ ì‹œê°„
+// ÀÚ±âÀå ¿Ï·á ½Ã°£
 const double EWALL_CLOSE_PERIOD = 300.0;
 const double EWALL_DAMAGE_PER_SECOND = 1.5;
 
-// ìµœëŒ€ í”Œë ˆì´ì–´ ìˆ˜
-const int PLAYERS_NUMBER_MAX = 10;
+const int PLAYERS_NUMBER_MAX = 10;					// ÃÖ´ë ÇÃ·¹ÀÌ¾î ¼ö
+const int PLAYER_HEALTH = 10;						// ÇÃ·¹ÀÌ¾î ÃÖ´ë Ã¼·Â
+const double PLAYER_MOVE_SPEED = km_per_hr(20);		// ÇÃ·¹ÀÌ¾î ÀÌµ¿ ¼Óµµ
+const double PLAYER_ATTACK_COOLDOWN = 0.2;			// °ø°İ Äğ Å¸ÀÓ
+const double SNOWBALL_DURATION = 0.6;				// Åõ»çÃ¼ Áö¼Ó ½Ã°£
+const double SNOWBALL_VELOCITY = km_per_hr(50);		// Åõ»çÃ¼ ÀÌµ¿ ¼Óµµ
 
-// í”„ë ˆì„ ìˆ˜
-const int FRAMERATE = 100;
+// ÇÁ·¹ÀÓ ¼ö
+const int FRAMERATE = 50;
 const double FRAME_TIME = (1.0 / FRAMERATE);
 
 enum PACKETS : int {
-	CLIENT_PING = 0				// ë¹ˆ íŒ¨í‚·ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
-	, CLIENT_KEY_INPUT			// ì…ë ¥ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
-	, CLIENT_GAME_START			// ì„œë²„ì—ê²Œ ê²Œì„ ì‹œì‘ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
-	, CLIENT_PLAY_CONTINUE		// ê²Œì„ì„ ë‹¤ì‹œ ì‹œì‘í•˜ê¸° ìœ„í•´ ì¬ì ‘ì†ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
-	, CLIENT_PLAY_DENY			// ê²Œì„ì„ ë‹¤ì‹œí•˜ì§€ ì•ŠëŠ”ë‹¤ê³  ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	// Å¬¶óÀÌ¾ğÆ® -> ¼­¹ö
+	CLIENT_PING = 0				// ºó ÆĞÅ¶À» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Ş½ÃÁö
+	, CLIENT_KEY_INPUT			// ÀÔ·ÂÀ» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Ş½ÃÁö
+	, CLIENT_GAME_START			// ¼­¹ö¿¡°Ô °ÔÀÓ ½ÃÀÛÀ» ¿äÃ»ÇÏ´Â ¸Ş½ÃÁö
+	, CLIENT_PLAY_CONTINUE		// °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÏ±â À§ÇØ ÀçÁ¢¼ÓÀ» ¿äÃ»ÇÏ´Â ¸Ş½ÃÁö
+	, CLIENT_PLAY_DENY			// °ÔÀÓÀ» ´Ù½ÃÇÏÁö ¾Ê´Â´Ù°í ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
 
-	, SERVER_SET_CAPATIN		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë„ˆê°€ ë°©ì¥ì´ë¼ê³  ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_GAME_START			// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œì„ì´ ì‹œì‘ë˜ì—ˆìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_PLAYER_COUNT		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ í”Œë ˆì´ì–´ê°€ ëª‡ ëª…ì¸ì§€ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_GAME_STATUS		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œì„ ìƒíƒœë¥¼ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_RENDER_INFO		// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_GAME_DONE			// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œì„ì´ ëë‚¬ìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
-	, SERVER_REPLAY				// í´ë¼ì´ì–¸íŠ¸ì—ê²Œ ê²Œì„ì„ ë‹¤ì‹œ ì‹œì‘í•¨ì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	// ¼­¹ö -> Å¬¶óÀÌ¾ğÆ®
+	, SERVER_SET_CAPATIN		// ¹æÀåÀÓÀ» ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_GAME_START			// °ÔÀÓÀÌ ½ÃÀÛµÇ¾úÀ½À» ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_PLAYER_COUNT		// ÇÃ·¹ÀÌ¾î°¡ ¸î ¸íÀÎÁö ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_GAME_STATUS		// °ÔÀÓ »óÅÂ¸¦ ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_RENDER_INFO		// ·»´õ¸µ Á¤º¸¸¦ º¸³»ÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_GAME_DONE			// °ÔÀÓÀÌ ³¡³µÀ½À» ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
+	, SERVER_REPLAY				// °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÔÀ» ¾Ë·ÁÁÖ´Â ¸Ş½ÃÁö
 };
 
 struct GameUpdateMessage {
@@ -44,10 +50,10 @@ enum RENDER_TYPES : int {
 };
 
 struct RenderInstance {
-	RENDER_TYPES instance_type;		//¹«½¼ ÀÌ¹ÌÁöÀÎÁö
+	RENDER_TYPES instance_type;
 
-	int image_index;				//¾Ö´Ï¸ŞÀÌ¼Ç ÇÁ·¹ÀÓ
-	double x, y, angle;				//ÁÂÇ¥, °¢µµ
+	int image_index;
+	double x, y, angle;
 };
 
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
