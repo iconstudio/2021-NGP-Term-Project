@@ -16,7 +16,7 @@ public:
 
 	GameUpdateMessage update_info;		// 클라이언트에 전달할 플레이어 정보
 
-	const char* identifier = "Player";
+	static constexpr const char* identifier = "Player";
 };
 
 class CBullet : public GameInstance {
@@ -27,5 +27,5 @@ public:
 
 	double lifetime;
 
-	const char* identifier = "Bullet";
+	static constexpr const char* identifier = "Bullet";
 };

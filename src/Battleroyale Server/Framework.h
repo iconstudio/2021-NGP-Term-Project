@@ -62,7 +62,7 @@ public:
 	double x, y, hspeed, vspeed;
 	double direction;
 
-	const char* identifier = "Instance";
+	static constexpr const char* identifier = "Instance";
 
 private:
 	int image_index;
@@ -175,7 +175,8 @@ inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self) {
 		auto CopyList = vector<GameInstance*>(instances);
 
 		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](const GameInstance* inst) {
-			if (inst->identifier == _GameClassTarget::identifier && CheckCollision(self, inst)) {
+			if (inst->identifier == _GameClassTarget::identifier) {
+				&& CheckCollision(self, inst)
 				return true;
 			}
 		});
