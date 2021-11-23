@@ -232,6 +232,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 	if (collide_bullet) {
 		this->health--;
 		framework.Kill(collide_bullet);
+		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
 
 	UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
