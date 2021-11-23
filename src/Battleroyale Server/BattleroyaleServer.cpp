@@ -92,19 +92,19 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 								case 'S': case 's':
 								{
-									std::cout << 's' << std::endl;
+									std::cout << "s" << std::endl;
 								}
 								break;
 
 								case 'D': case 'd':
 								{
-									std::cout << 'd' << std::endl;
+									std::cout << "d" << std::endl;
 								}
 								break;
 
 								case VK_SPACE:
 								{
-
+									std::cout << "space" << std::endl;
 								}
 								break;
 
