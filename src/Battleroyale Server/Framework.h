@@ -31,7 +31,10 @@ enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
-	, SHOOT // 투사체 발사
+	, SHOOT_LT // 좌측으로 사격
+	, SHOOT_RT // 우측으로 사격
+	, SHOOT_UP // 상단으로 사격
+	, SHOOT_DW // 하단으로 사격
 };
 
 const int LERP_MIN = 50;
@@ -53,13 +56,13 @@ public:
 	int GetBoundRT() const;
 	int GetBoundBT() const;
 
-	virtual const char* GetIdentifier() const;
-
 	bool IsCollideWith(GameInstance* other);
 
 	int owner;
 	double x, y, hspeed, vspeed;
 	double direction;
+
+	static constexpr const char* identifier = "Instance";
 
 private:
 	int image_index;
@@ -99,10 +102,10 @@ public:
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
 
-	template<class _GameClassTarget, class _GameClassSelf>
-	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
+	template<class _GameClassTarget = GameInstance, class _GameClassSelf = GameInstance >
+	_GameClassTarget* SeekCollision(_GameClassSelf* self);
 
-	template<class _GameClass1, class _GameClass2>
+	template<class _GameClass1 = GameInstance, class _GameClass2 = GameInstance >
 	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
@@ -150,7 +153,7 @@ private:
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
 
-	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
+	int **PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
@@ -167,19 +170,19 @@ private:
 };
 
 template<class _GameClassTarget, class _GameClassSelf>
-inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
+inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self) {
 	if (self && !instances.empty()) {
 		auto CopyList = vector<GameInstance*>(instances);
 
-		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
-			auto iid = inst->GetIdentifier();
-			auto id_check = strcmp(iid, fid);
-
-			return (0 == id_check);
+		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](const GameInstance* inst) {
+			if (inst->identifier == _GameClassTarget::identifier) {
+				&& CheckCollision(self, inst)
+				return true;
+			}
 		});
 
 		if (it != CopyList.end()) {
-			return dynamic_cast<_GameClassTarget*>(*it);
+			return static_cast<_GameClassTarget*>(*it);
 		}
 	}
 	return nullptr;
@@ -187,9 +190,8 @@ inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, co
 
 template<class _GameClass1, class _GameClass2>
 inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClass2* other) {
-	if (self && other && self != other) {
-		if (self->IsCollideWith(other))
-			return other;
+	if (self && other) {
+
 	}
 	return nullptr;
 }
@@ -210,7 +212,7 @@ template<class _GameClass>
 inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
-		});
+	});
 
 	if (loc != instances.end()) {
 		target->OnDestroy();
@@ -246,3 +248,4 @@ inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
 inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
 	return WaitForSingleObject(event_send_renders, INFINITE);
 }
+
