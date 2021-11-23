@@ -150,7 +150,7 @@ private:
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
 
-	int **PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
+	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
@@ -167,7 +167,7 @@ private:
 };
 
 template<class _GameClassTarget, class _GameClassSelf>
-inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char *fid) {
+inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
 	if (self && !instances.empty()) {
 		auto CopyList = vector<GameInstance*>(instances);
 
@@ -210,7 +210,7 @@ template<class _GameClass>
 inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
-	});
+		});
 
 	if (loc != instances.end()) {
 		target->OnDestroy();

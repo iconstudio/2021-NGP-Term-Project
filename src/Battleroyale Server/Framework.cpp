@@ -1,513 +1,264 @@
-#include "pch.h"
+#include "BattleroyaleServer.h"
 #include "CommonDatas.h"
 #include "Framework.h"
+#include "pch.h"
 
-ServerFramework::ServerFramework(int rw, int rh)
-	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
-	, status(SERVER_STATES::LISTEN), status_begin(false)
-	, my_socket(0), my_address(), client_number(0)
-	, thread_game_starter(NULL), thread_game_process(NULL)
-	, player_number_last(0), player_captain(-1) {
+ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
-	players.reserve(PLAYERS_NUMBER_MAX);
+normal_distribution<> server_distrubution;
+default_random_engine server_randomizer{ 0 };
 
-	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
+int main() {
+    cout << "Hello World!\n";
 
-	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
-	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
-		double dir = dir_increment * i;
-		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
-		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
+    if (!framework.Initialize()) {
+        WSACleanup();
+        return 0;
+    }
 
-		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
-	}
+    framework.Instantiate<CCharacter>(40, 40);
+    auto a = framework.Instantiate<CBullet>(40, 40);
+    auto b = framework.Instantiate<CBullet>(40, 40);
+    auto c = framework.Instantiate<CBullet>(140, 40);
+    framework.GameUpdate();
+    framework.Startup();
+
+    WSACleanup();
 }
 
-ServerFramework::~ServerFramework() {
-	closesocket(my_socket);
+DWORD WINAPI CommunicateProcess(LPVOID arg) {
+    PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
+    SOCKET client_socket = client_info->client_socket;
+    int player_index = client_info->index;
 
-	for (auto player : players) {
-		CloseHandle(player->client_handle);
-	}
-	Clean();
+    while (true) {
+        PACKETS packet;
+        int data_size = 0;
+        char* data = nullptr;
 
-	CloseHandle(thread_game_starter);
-	CloseHandle(thread_game_process);
+        int result = recv(client_socket, reinterpret_cast<char*>(&packet),
+            sizeof(PACKETS), MSG_WAITALL);
 
-	CloseHandle(event_player_accept);
-	CloseHandle(event_game_start);
-	CloseHandle(event_receives);
-	CloseHandle(event_game_process);
-	CloseHandle(event_send_renders);
+        if (SOCKET_ERROR == result) {
+            framework.PlayerDisconnect(client_info);
+            break;
+        }
+        else if (0 == result) {
+            framework.PlayerDisconnect(client_info);
+            break;
+        }
+
+        switch (framework.GetStatus()) {
+        case LOBBY: {
+            // 방장의 게임 시작 메시지
+
+            // 게임 초기화
+            if (player_index == framework.player_captain &&
+                packet == PACKETS::CLIENT_GAME_START) {
+                if (1 < framework.client_number) {
+                    framework.CastStartGame(true);
+                    break;
+                }
+            } // 다른 메시지는 버린다.
+        } break;
+
+        case GAME: {
+            // 꾸준한 통신
+            while (true) {
+                framework.AwaitReceiveEvent(); // event_recieves
+
+                // 만약 핑 메시지가 오면 데이터를 받지 않는다.
+                if (0 < data_size) {
+                    result = recv(client_socket, data, 1, MSG_WAITALL);
+                    // result = recv(client_socket, data, data_size, MSG_WAITALL);
+                }
+
+                if (data && packet == PACKETS::CLIENT_KEY_INPUT) {
+                    char button = (*data);
+
+                    if (data) {
+                        switch (*data) {
+                        case 'W':
+                        case 'w': {
+                            // auto action = framework.MakePlayerAction(client_info,
+                            // ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
+                            // framework.QueingPlayerAction(std::move(action));
+                            std::cout << player_index << " - w" << std::endl;
+                        } break;
+
+                        case 'A':
+                        case 'a': {
+                            std::cout << player_index << " - a" << std::endl;
+                        } break;
+
+                        case 'S':
+                        case 's': {
+                            std::cout << player_index << " - s" << std::endl;
+                        } break;
+
+                        case 'D':
+                        case 'd': {
+                            std::cout << player_index << " - d" << std::endl;
+                        } break;
+
+                        case VK_SPACE: {
+                            std::cout << player_index << " - space" << std::endl;
+                        } break;
+                        }
+                    }
+                } // 다른 메시지는 버린다.
+
+                /*
+                                TODO: I/O Overlapeed 모델로 바꾸기 위해서는 APC 함수들이
+                   필수적이라고 한다. 운영체제의 메시지 큐를 사용하는 함수가 있다.
+                */
+                framework.CastProcessingGame();
+
+                framework.AwaitSendRendersEvent(); // event_send_renders
+
+                // 렌더링 정보 보내기
+                framework.CastSendRenders(false);
+            }
+        } break;
+
+        case GAME_OVER: {
+            if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
+
+            }
+            else if (packet == PACKETS::CLIENT_PLAY_DENY) {
+            }
+        } break;
+
+        case GAME_RESTART: {
+
+        } break;
+
+        case EXIT: {
+        } break;
+
+        default:
+            break;
+        }
+    }
+
+    closesocket(client_socket);
+    return 0;
 }
 
-bool ServerFramework::Initialize() {
-	WSADATA wsadata;
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// 오류
-		return false;
-	}
+DWORD WINAPI GameInitializeProcess(LPVOID arg) {
+    while (true) {
+        framework.AwaitStartGameEvent();
 
-	my_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (INVALID_SOCKET == my_socket) {
-		// 오류
-		return false;
-	}
+        shuffle(framework.players.begin(), framework.players.end(),
+            server_randomizer);
 
-	BOOL option = TRUE;
-	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
-		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		// 오류
-		return false;
-	}
+        auto sz = framework.players.size();
+        for (int i = 0; i < sz; ++i) {
+            auto player = framework.players.at(i);
+            auto places = framework.PLAYER_SPAWN_PLACES[i];
+            player->player_character =
+                framework.Instantiate<CCharacter>(places[0], places[1]);
+            static_cast<CCharacter*>(player->player_character)->index =
+                player->index;
+            // 캐릭터 클래스에 캐릭터의 번호 부여
+        }
 
-	ZeroMemory(&my_address, sizeof(my_address));
-	my_address.sin_family = AF_INET;
-	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	my_address.sin_port = htons(COMMON_PORT);
+        framework.CastStartReceive(true);
+        framework.SetStatus(GAME);
+    }
 
-	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		ErrorAbort("bind()");
-		return false;
-	}
-
-	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
-		ErrorAbort("listen()");
-		return false;
-	}
-
-	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
-	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_receives = CreateEvent(NULL, TRUE, FALSE, NULL);
-	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-	// event_player_accept
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
-	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
-	// event_game_process
-	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
-
-	return true;
+    return 0;
 }
 
-void ServerFramework::Startup() {
-	while (true) {
-		switch (status) {
-			case LISTEN:
-			{
-				if (!status_begin) {
-					cout << "S: Listening" << endl;
+/*
+                TODO: I/O Overlapped 모델로 변경하기
 
-					CastClientAccept(true);
-					status_begin = true;
-				}
-			}
-			break;
+                왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기
+   위해서는 동시 실행이 필수적이다. IOCP 말고 이 부분에만 Overlapped 모델을
+   사용하면 좋을 것 같다.
+*/
+DWORD WINAPI GameProcess(LPVOID arg) {
+    while (true) {
+        framework.AwaitProcessingGameEvent(); // 이 함수를 WaitForSingleObjectEx로,
+                                              // evemt_game_process
+        framework.CastStartReceive(false);
+        Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
-			case LOBBY:
-			{
-				if (!status_begin) {
-					cout << "S: Entering lobby" << endl;
+        if (1 < framework.GetClientCount()) {
+            // 게임 처리
+            framework.GameUpdate();
+            // 플레이어 동작 처리하기
+            // 렌더링 정보 만들기
 
-					CastClientAccept(true);
-					status_begin = true;
-				}
-			}
-			break;
+            framework.CastSendRenders(true);
+            break;
+        }
+        else { // 게임 판정승 혹은 게임 강제 종료
+        }
+    }
 
-			case GAME:
-			{
-				if (!status_begin) {
-					cout << "S: Starting the game" << endl;
-
-					CastClientAccept(false);
-					status_begin = true;
-				}
-			}
-			break;
-
-			case GAME_OVER:
-			{
-				if (!status_begin) {
-					cout << "S: The game is over." << endl;
-
-					status_begin = true;
-				}
-			}
-			break;
-
-			case GAME_RESTART:
-			{
-				if (!status_begin) {
-					cout << "S: Restarting the game" << endl;
-
-					status_begin = true;
-				}
-			}
-			break;
-
-			case EXIT:
-			{
-				// 종료
-			}
-				return;
-
-			default:
-				break;
-		}
-	}
+    return 0;
 }
 
-void ServerFramework::GameUpdate() {
-	ForeachInstances([&](GameInstance*& inst) {
-		inst->OnUpdate(FRAME_TIME);
-	});
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+    while (true) {
+        framework.AwaitClientAcceptEvent(); // event_game_process
+
+        SOCKET new_client = framework.PlayerConnect();
+        if (INVALID_SOCKET == new_client) {
+            cerr << "accept 오류!";
+            return 0;
+        }
+    }
+
+    return 0;
 }
 
-void ServerFramework::Clean() {
-	players.clear();
-	instances.clear();
-	io_queue.clear();
-
-	players.shrink_to_fit();
-	instances.shrink_to_fit();
-	io_queue.shrink_to_fit();
-
-	players.reserve(PLAYERS_NUMBER_MAX);
-	SetCaptain(nullptr);
+CCharacter::CCharacter()
+    : GameInstance(), attack_cooltime(0.0),
+    health(PLAYER_HEALTH), update_info{} {
+    SetSprite(0);
+    SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
-SOCKET ServerFramework::PlayerConnect() {
-	SOCKADDR_IN address;
-	int address_length = sizeof(address);
+void CCharacter::OnUpdate(double frame_advance) {
+    CBullet* collide_bullet =
+        framework.SeekCollision<CBullet, CCharacter>(this, "Bullet");
+    if (collide_bullet) {
+        health--;
+        framework.Kill(collide_bullet);
+        cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+    }
 
-	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
-	if (INVALID_SOCKET == new_socket) {
-		// 오류
-		return new_socket;
-	}
+    UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
 
-	switch (GetStatus()) {
-		case LISTEN:
-		{
-			// 첫번째 플레이어 접속
-			SetStatus(LOBBY);
-		}
-		break;
-
-		case LOBBY:
-		{
-		}
-		break;
-
-		default:
-		{
-			return 0;
-		}
-	}
-
-	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
-	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
-	client_info->client_handle = new_thread;
-	//thread_list.push_back(new_thread);
-
-	// 첫번째 플레이어
-	if (client_number == 0) {
-		SetCaptain(client_info);
-
-		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
-	}
-
-	client_number++;
-	cout << "새 플레이어 접속: " << new_socket << endl;
-	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
-
-	players.emplace_back(client_info);
-
-
-	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
-
-	return new_socket;
+    GameInstance::OnUpdate(frame_advance);
 }
 
-void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
-	auto dit = find(players.begin(), players.end(), player);
+const char* CCharacter::GetIdentifier() const { return "Player"; }
 
-	if (dit != players.end()) {
-		auto player = (*dit);
-
-		CloseHandle(player->client_handle);
-
-		auto id = player->index;
-		auto character = player->player_character;
-		if (character)
-			Kill(static_cast<GameInstance*>(character));
-
-		cout << "플레이어 종료: " << player->client_socket << endl;
-		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
-
-		players.erase(dit);
-		client_number--;
-
-		// 플레이어 0명 혹은 1명
-		if (client_number < 2) {
-			switch (status) {
-				case LISTEN:
-				{
-					if (0 == client_number) {
-						Clean();
-					}
-				}
-				break;
-
-				case LOBBY:
-				{
-					SetStatus(LISTEN);
-				}
-				break;
-
-				case GAME: { /* 여기서 처리 안함 */ } break;
-				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
-				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
-				case EXIT: { /* 여기서 처리 안함 */ } break;
-				default: break;
-			}
-		}
-
-		// 방장이 나감
-		if (player_captain == id) {
-			if (0 < client_number) {
-				SetCaptain(players.at(0));
-			}
-		}
-
-	}
+void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
+    double direction) {
+    update_info.player_x = x;
+    update_info.player_y = y;
+    update_info.player_direction = direction;
+    update_info.player_hp = hp;
+    update_info.target_player = index;
+    update_info.players_count = count;
 }
 
-void ServerFramework::SetCaptain(PlayerInfo* player) {
-	if (player) {
-		player_captain = player->index;
-	} else {
-		player_captain = -1;
-	}
+CBullet::CBullet() : GameInstance(), lifetime(SNOWBALL_DURATION) {
+    SetSprite(1);
+    SetBoundBox(RECT{ -2, -2, 2, 2 });
 }
 
-void ServerFramework::SetStatus(SERVER_STATES state) {
-	if (status != state) {
-		cout << "서버 상태 변경: " << status << " -> " << state << endl;
+void CBullet::OnUpdate(double frame_advance) {
+    lifetime -= frame_advance;
+    if (lifetime <= 0) {
+        framework.Kill(this);
+    }
 
-		status = state;
-		status_begin = false;
-	}
+    GameInstance::OnUpdate(frame_advance);
 }
 
-SERVER_STATES ServerFramework::GetStatus() const {
-	return status;
-}
-
-int ServerFramework::GetClientCount() const {
-	return client_number;
-}
-
-void ServerFramework::CastClientAccept(bool flag) {
-	if (flag && client_number < PLAYERS_NUMBER_MAX) {
-		SetEvent(event_player_accept);
-	} else {
-		ResetEvent(event_player_accept);
-	}
-}
-
-void ServerFramework::CastStartGame(bool flag) {
-	if (flag) {
-		SetEvent(event_game_start);
-	} else {
-		ResetEvent(event_game_start);
-	}
-}
-
-void ServerFramework::CastStartReceive(bool flag) {
-	if (flag) {
-		SetEvent(event_receives);
-	} else {
-		ResetEvent(event_receives);
-	}
-}
-
-void ServerFramework::CastProcessingGame() {
-	SetEvent(event_game_process);
-}
-
-void ServerFramework::CastSendRenders(bool flag) {
-	if (flag) {
-		SetEvent(event_send_renders);
-	} else {
-		ResetEvent(event_send_renders);
-	}
-}
-
-ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
-															 , ACTION_TYPES type
-															 , int data) {
-	auto* result = new IO_MSG{ type, player->index, data };
-	io_queue.push_back(std::move(result));
-	return result;
-}
-
-void ServerFramework::InterpretPlayerAction() {
-	if (0 < io_queue.size()) {
-		for (auto& output : io_queue) {
-			auto player = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
-
-			switch (output->type) {
-				case ACTION_TYPES::SET_HSPEED:
-				{
-					player->hspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SET_VSPEED:
-				{
-					player->vspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_LT:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_RT:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_UP:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT_DW:
-				{
-					player->direction = output->data;
-				}
-				break;
-
-				default:
-				{
-
-				}
-				break;
-			}
-		}
-	}
-}
-
-PlayerInfo* ServerFramework::GetPlayer(int player_index) {
-	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
-		return (lhs->index == player_index);
-	});
-
-	if (loc != players.end()) {
-		return *loc;
-	}
-	return nullptr;
-}
-
-PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
-	client_socket = sk;
-	client_handle = hd;
-	index = id;
-}
-
-void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
-	if (SOCKET_ERROR == result) {
-		ErrorAbort("send 1");
-	}
-
-	if (buffer) {
-		result = send(socket, buffer, length, 0);
-		if (SOCKET_ERROR == result) {
-			ErrorAbort("send 2");
-		}
-	}
-}
-
-void ErrorAbort(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
-
-	LocalFree(lpMsgBuf);
-	exit(true);
-}
-
-void ErrorDisplay(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
-
-	LocalFree(lpMsgBuf);
-}
-
-GameInstance::GameInstance()
-	: owner(-1)
-	, image_index(0), box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
-
-GameInstance::~GameInstance() {}
-
-void GameInstance::OnCreate() {}
-
-void GameInstance::OnDestroy() {}
-
-void GameInstance::OnUpdate(double frame_advance) {
-	if (hspeed != 0.0 || vspeed != 0.0) {
-		x += hspeed * frame_advance;
-		y += vspeed * frame_advance;
-		direction = point_direction(0, 0, hspeed, vspeed);
-	}
-}
-
-void GameInstance::SetSprite(int sprite) {
-	image_index = sprite;
-}
-
-void GameInstance::SetBoundBox(const RECT& mask) {
-	CopyRect(&box, &mask);
-}
-
-int GameInstance::GetBoundLT() const {
-	return x + box.left;
-}
-
-int GameInstance::GetBoundTP() const {
-	return y + box.top;
-}
-
-int GameInstance::GetBoundRT() const {
-	return x + box.right;
-}
-
-int GameInstance::GetBoundBT() const {
-	return y + box.bottom;
-}
-
-bool GameInstance::IsCollideWith(GameInstance* other) {
-	return !(other->GetBoundRT() <= GetBoundLT()
-		|| other->GetBoundBT() <= GetBoundTP()
-		|| GetBoundRT() < other->GetBoundLT()
-		|| GetBoundBT() < other->GetBoundTP());
-}
+const char* CBullet::GetIdentifier() const { return "Bullet"; }
