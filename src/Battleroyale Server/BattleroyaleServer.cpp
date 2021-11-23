@@ -24,6 +24,7 @@ int main() {
 	framework.Startup();
 
 	WSACleanup();
+	return 0;
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
@@ -35,6 +36,17 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		PACKETS packet;
 		int data_size = 0;
 		char* data = nullptr;
+
+		/*
+		LPDWORD my_size = nullptr;
+		WSABUF my_data;
+		ZeroMemory(&my_data, sizeof(my_data));
+		my_data.len = sizeof(PACKETS);
+		my_data.buf = new CHAR[sizeof(PACKETS)];
+		DWORD my_flags = MSG_WAITALL;
+
+		int rr = WSARecv(client_socket, &my_data, 1, my_size, &my_flags, NULL, NULL);
+		*/
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet),
 						  sizeof(PACKETS), MSG_WAITALL);
