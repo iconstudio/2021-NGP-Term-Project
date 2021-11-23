@@ -76,28 +76,29 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						if (data) {
 							switch (*data) {
-								case 'W':
+								case 'W': case 'w':
 								{
 									//auto action = framework.MakePlayerAction(client_info, ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
 									//framework.QueingPlayerAction(std::move(action));
+									std::cout << "w" << std::endl;
 								}
 								break;
 
-								case 'A':
+								case 'A': case 'a':
 								{
-									
+									std::cout << "a" << std::endl;
 								}
 								break;
 
-								case 'S':
+								case 'S': case 's':
 								{
-									
+									std::cout << 's' << std::endl;
 								}
 								break;
 
-								case 'D':
+								case 'D': case 'd':
 								{
-									
+									std::cout << 'd' << std::endl;
 								}
 								break;
 
