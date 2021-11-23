@@ -227,7 +227,7 @@ CCharacter::CCharacter()
 
 void CCharacter::OnUpdate(double frame_advance) {
 	GameInstance::OnUpdate(frame_advance);
-	UpdateMessage(index, framework.GetPlayerCount(), x, y, health, direction);
+	UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
 }
 
 void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp, double direction)
