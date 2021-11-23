@@ -52,7 +52,7 @@ enum RENDER_TYPES : int {
 struct RenderInstance {
 	RENDER_TYPES instance_type;
 
-	int sprite_index;
+	int image_index;
 	double x, y, angle;
 };
 
