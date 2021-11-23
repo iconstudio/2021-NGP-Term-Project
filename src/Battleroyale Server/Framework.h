@@ -42,8 +42,7 @@ const int LERP_MAX = 200;
 
 class GameInstance {
 public:
-	GameInstance(GameInstance& other);
-	GameInstance(const char *id);
+	GameInstance();
 	virtual ~GameInstance();
 
 	virtual void OnCreate();
@@ -57,14 +56,13 @@ public:
 	int GetBoundRT() const;
 	int GetBoundBT() const;
 
-	bool IsCollideWith(RECT& other);
-	bool IsCollideWith(GameInstance*& other);
-
-	const char* identifier;
+	bool IsCollideWith(GameInstance* other);
 
 	int owner;
 	double x, y, hspeed, vspeed;
 	double direction;
+
+	const char* identifier = "Instance";
 
 private:
 	int image_index;
@@ -104,8 +102,8 @@ public:
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
 
-	template<class _GameClass1 = GameInstance, class _GameClass2 = GameInstance >
-	_GameClass2* SeekCollision(_GameClass1* self, _GameClass2* other);
+	template<class _GameClassTarget = GameInstance, class _GameClassSelf = GameInstance >
+	_GameClassTarget* SeekCollision(_GameClassSelf* self);
 
 	template<class _GameClass1 = GameInstance, class _GameClass2 = GameInstance >
 	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
@@ -171,10 +169,20 @@ private:
 	void ForeachInstances(Predicate predicate);
 };
 
-template<class _GameClass1, class _GameClass2>
-inline _GameClass2* ServerFramework::SeekCollision(_GameClass1* self, _GameClass2* other) {
-	if (self && other) {
+template<class _GameClassTarget, class _GameClassSelf>
+inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self) {
+	if (self && !instances.empty()) {
+		auto CopyList = vector<GameInstance*>(instances);
 
+		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](const GameInstance* inst) {
+			if (inst->identifier == _GameClassTarget::identifier && CheckCollision(self, inst)) {
+				return true;
+			}
+		});
+
+		if (it != CopyList.end()) {
+			return static_cast<_GameClassTarget*>(*it);
+		}
 	}
 	return nullptr;
 }
@@ -182,9 +190,7 @@ inline _GameClass2* ServerFramework::SeekCollision(_GameClass1* self, _GameClass
 template<class _GameClass1, class _GameClass2>
 inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClass2* other) {
 	if (self && other) {
-		if (self->IsCollideWith(other)) {
-			return other;
-		}
+
 	}
 	return nullptr;
 }

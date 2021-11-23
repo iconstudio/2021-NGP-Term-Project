@@ -221,14 +221,18 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 CCharacter::CCharacter()
-	: GameInstance("Player")
+	: GameInstance()
 	, attack_cooltime(0.0), health(PLAYER_HEALTH), update_info{} {
 	SetSprite(0);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
-	 
+	CBullet* collide_bullet = framework.SeekCollision<CBullet>(this);
+	if (collide_bullet) {
+		this->health--;
+		framework.Kill(collide_bullet);
+	}
 
 	UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
 
@@ -246,7 +250,7 @@ void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
 }
 
 CBullet::CBullet()
-	: GameInstance("Bullet")
+	: GameInstance()
 	, lifetime(SNOWBALL_DURATION) {
 	SetSprite(1);
 	SetBoundBox(RECT{ -2, -2, 2, 2 });

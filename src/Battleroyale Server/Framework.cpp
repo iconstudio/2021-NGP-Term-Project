@@ -462,13 +462,8 @@ void ErrorDisplay(const char* msg) {
 	LocalFree(lpMsgBuf);
 }
 
-GameInstance::GameInstance(GameInstance& other)
-	: owner(other.owner), identifier(other.identifier)
-	, image_index(other.image_index), box(other.box), dead(other.dead)
-	, x(other.x), y(other.y), hspeed(other.hspeed), vspeed(other.vspeed), direction(other.direction) {}
-
-GameInstance::GameInstance(const char* id)
-	: owner(-1), identifier(id)
+GameInstance::GameInstance()
+	: owner(-1)
 	, image_index(0), box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
@@ -510,14 +505,7 @@ int GameInstance::GetBoundBT() const {
 	return y + box.bottom;
 }
 
-bool GameInstance::IsCollideWith(RECT& other) {
-	return !(other.right <= GetBoundLT()
-		|| other.bottom <= GetBoundTP()
-		|| GetBoundRT() < other.left
-		|| GetBoundBT() < other.top);
-}
-
-bool GameInstance::IsCollideWith(GameInstance*& other) {
+bool GameInstance::IsCollideWith(GameInstance* other) {
 	return !(other->GetBoundRT() <= GetBoundLT()
 		|| other->GetBoundBT() <= GetBoundTP()
 		|| GetBoundRT() < other->GetBoundLT()
