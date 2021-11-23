@@ -2,6 +2,8 @@
 #include "Framework.h"
 #include "resource.h"
 
+GameSprite playersprite("testimage.png", 0, 0, 0);
+
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
 
@@ -66,6 +68,10 @@ void ClientFramework::Initialize() {
 	InputRegister('D');
 	InputRegister(VK_SPACE);
 	InputRegister(VK_ESCAPE);
+
+
+	SetSprite(&playersprite);
+
 }
 
 void ClientFramework::Update() {
@@ -84,12 +90,18 @@ void ClientFramework::Update() {
 		}
 	}
 
+
+
 	switch (status) {
 	case TITLE:
 	{
 		background_color = COLOR_YELLOW;
-		Sleep(1000);
-		status = LOBBY;
+		
+		if (title_duration < 200)	//로비까지 시간 100 = 1초 
+		{
+			title_duration++;
+			break;
+		}
 
 		auto address_size = sizeof(server_address);
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
@@ -97,6 +109,7 @@ void ClientFramework::Update() {
 			// 오류
 			return;
 		}
+		status = LOBBY;
 		RecvTitleMessage(my_socket);
 
 	}
@@ -105,6 +118,7 @@ void ClientFramework::Update() {
 	case LOBBY:
 	{
 		background_color = COLOR_RED;
+
 		if (player_captain == true)
 		{
 			PACKETS packet = CLIENT_GAME_START;
@@ -169,17 +183,25 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
-	// 파이프라인
+	if (status == LOBBY)
+		sprites[CHARACTER]->draw(surface_double, 100, 100, 0.0, 0.0, 1.0, 1.0, 1.0);
 
-	//for_each_instances([&](GameInstance*& inst) {
-	//	if (inst->sprite_index) {
-	//		if (!(view.x + view.w <= inst->bbox_left() || inst->bbox_right() < view.x
-	//			|| view.y + view.h <= inst->bbox_top() || inst->bbox_bottom() < view.y))
-	//			inst->on_render(surface_double);
-	//	} else {
-	//		inst->on_render(surface_double);
-	//	}
-	//});
+	// 파이프라인
+	if (status == GAME) {
+		for (auto inst = last_render_info; inst != NULL; inst++)
+		{
+
+			//if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
+			//	|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
+			//	inst->draw(surface_double);
+			//else {
+			//}
+			if (inst != NULL)
+			{
+				sprites[inst->instance_type]->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+			}
+		}
+	}
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
@@ -249,15 +271,15 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 }
 
 int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 0;
+	int temp = 1;
 	int retval;
 
 	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
 
-	if (0 < temp)
-    player_captain = false;					//0이면 방장 아니면 쩌리
+	if (0 == temp)
+		player_captain = true;					//0이면 방장 아니면 쩌리
 	else
-    player_captain = true;
+		player_captain = false;
 
 	return retval;
 }
@@ -286,7 +308,7 @@ int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;
 
-	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance), MSG_WAITALL);
+	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
 
 	return retval;
 }
@@ -330,4 +352,10 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	UpdateWindow(hWnd);
 
 	return TRUE;
+}
+
+void ClientFramework::SetSprite(GameSprite* sprite) {
+	sprites.push_back(sprite);
+	
+	sprites[0]->get_height();
 }

@@ -64,7 +64,7 @@ public:
 	double direction;
 
 private:
-	int sprite_index;
+	int image_index;
 	RECT box; // 충돌체
 	bool dead;
 };
