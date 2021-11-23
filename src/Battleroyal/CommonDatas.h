@@ -44,10 +44,10 @@ enum RENDER_TYPES : int {
 };
 
 struct RenderInstance {
-	RENDER_TYPES instance_type;
+	RENDER_TYPES instance_type;		//무슨 이미지인지
 
-	int sprite_index;
-	double x, y, angle;
+	int image_index;				//애니메이션 프레임
+	double x, y, angle;				//좌표, 각도
 };
 
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);

@@ -3,7 +3,8 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-#define SERVER_IP "192.168.122.191"
+//#define SERVER_IP "192.168.122.191"
+#define SERVER_IP "127.0.0.1"
 #define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
@@ -44,6 +45,8 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	void SetSprite(GameSprite* sprite);
+
 	int RecvTitleMessage(SOCKET sock);
 	int RecvLobbyMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
@@ -60,7 +63,8 @@ private:
 	int	player_index = 0;
 	int player_num = 1;
 	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
-	bool player_captain;
+	bool player_captain = false;
+	int title_duration = 0;
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;
@@ -83,6 +87,8 @@ private:
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+
+	void DrawRenderInstances();
 };
 
 class WindowsClient {
@@ -99,3 +105,10 @@ public:
 	LPCWSTR title_caption, class_id;		// 창 식별자
 	LONG width, height;						// 창 크기
 };
+
+//template<class Predicate>
+//inline void ClientFramework::for_each_instances(Predicate predicate) {
+//	if (!instances.empty()) {
+//		std::for_each(instances.begin(), instances.end(), predicate);
+//	}
+//}

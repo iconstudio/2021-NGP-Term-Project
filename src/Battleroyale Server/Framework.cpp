@@ -445,7 +445,7 @@ void ErrorDisplay(const char* msg) {
 }
 
 GameInstance::GameInstance()
-	: owner(-1), sprite_index(0), box{}, dead(false)
+	: owner(-1), image_index(0), box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {}
@@ -463,7 +463,7 @@ void GameInstance::OnUpdate(double frame_advance) {
 }
 
 void GameInstance::SetSprite(int sprite) {
-	sprite_index = sprite;
+	image_index = sprite;
 }
 
 void GameInstance::SetBoundBox(const RECT& mask) {
