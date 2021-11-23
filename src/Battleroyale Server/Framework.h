@@ -173,10 +173,9 @@ inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, co
 
 		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
 			auto iid = inst->GetIdentifier();
+			auto id_check = strcmp(iid, fid);
 
-			if (0 == strcmp(iid, fid)) {
-				return true;
-			}
+			return (0 == id_check);
 		});
 
 		if (it != CopyList.end()) {
