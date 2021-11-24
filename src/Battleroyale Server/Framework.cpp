@@ -313,16 +313,20 @@ int ServerFramework::GetClientCount() const {
 }
 
 void ServerFramework::ProceedReceiveIndex() {
+	InterpretPlayerAction();
+
 	if (my_process_index < client_number) {
 		my_process_index++;
 	} else {
 		my_process_index = 0;
 
-		ClearPlayerActions();
+		GameUpdate();
 		BuildRenderings();
 
 		CastSendRenders(true);
 	}
+
+	ClearPlayerActions();
 }
 
 void ServerFramework::BuildRenderings() {

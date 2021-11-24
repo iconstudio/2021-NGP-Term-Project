@@ -116,10 +116,10 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	void ProceedReceiveIndex();
 	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-	void InterpretPlayerAction();
-	void ClearPlayerActions();
+
+	void ProceedContinuation();
+
 	void BuildRenderings();
 	void SendRenderings();
 
@@ -172,6 +172,8 @@ private:
 
 	PlayerInfo* GetPlayer(int player_index);
 
+	void InterpretPlayerAction();
+	void ClearPlayerActions();
 	void ContinueToReceive();
 	void ContinueToGameProcess();
 	void ContinueToSendingRenders();

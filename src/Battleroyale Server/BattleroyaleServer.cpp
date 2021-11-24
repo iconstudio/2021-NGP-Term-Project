@@ -221,9 +221,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		if (1 < framework.GetClientCount()) {
 		  // 게임 처리
-			framework.InterpretPlayerAction();
-
-			framework.ProceedReceiveIndex();
+			framework.ProceedContinuation();
 		} else {
 			// 게임 판정승 혹은 게임 강제 종료
 		}
