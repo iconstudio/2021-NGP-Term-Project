@@ -63,8 +63,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			case LOBBY:
 			{
 				// 방장의 게임 시작 메시지
-
-				// 게임 초기화
 				if (player_index == framework.player_captain &&
 					packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
@@ -146,10 +144,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 					} // 다른 메시지는 버린다.
 
-					/*
-						TODO: I/O Overlapeed 모델로 바꾸기 위해서는 APC 함수들이
-						필수적이라고 한다. 운영체제의 메시지 큐를 사용하는 함수가 있다.
-					*/
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
