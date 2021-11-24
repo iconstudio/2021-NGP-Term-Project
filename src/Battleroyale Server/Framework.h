@@ -94,8 +94,8 @@ public:
 	int GetClientCount() const;
 
 	void CastClientAccept(bool flag);
-	void CastStartGame(bool flag);
 	void CastStartReceive(bool flag);
+	void CastStartGame(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
 
@@ -111,8 +111,12 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
+	void ProceedReceiveIndex();
+	void BuildRenderings();
+
 	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 	void InterpretPlayerAction();
+	void ClearPlayerActions();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -123,8 +127,8 @@ public:
 	SERVER_STATES status;
 
 	friend DWORD WINAPI ConnectProcess(LPVOID arg);
-	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
@@ -133,6 +137,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 	WSAOVERLAPPED io_behavior;
+	int my_process_index;
 
 	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
@@ -161,6 +166,10 @@ private:
 	map<WPARAM, bool> key_checkers;
 
 	PlayerInfo* GetPlayer(int player_index);
+
+	void ContinueToReceive();
+	void ContinueToGameProcess();
+	void ContinueToSendingRenders();
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
