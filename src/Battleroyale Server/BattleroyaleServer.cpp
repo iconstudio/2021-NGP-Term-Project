@@ -72,6 +72,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						break;
 					}
 				} // 다른 메시지는 버린다.
+
+				Sleep(2000);
+				framework.CastStartGame(true);
+				break;
 			} break;
 
 			case GAME:
@@ -244,17 +248,17 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 CCharacter::CCharacter()
 	: GameInstance(), update_info{}
-	, attack_cooltime(0.0)
+	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
-	CBullet* collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
+	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
 	if (collide_bullet) {
-		health--;
+		GetHurt(1);
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
@@ -275,6 +279,22 @@ void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
 	update_info.player_hp = hp;
 	update_info.target_player = index;
 	update_info.players_count = count;
+}
+
+void CCharacter::GetHurt(int dmg) {
+	if (inv_time <= 0) {
+		health -= dmg;
+		if (health <= 0) {
+			cout << "플레이어 " << owner << " 사망." << endl;
+			Die();
+		} else {
+			inv_time = PLAYER_INVINCIBLE_DURATION;
+		}
+	}
+}
+
+void CCharacter::Die() {
+	framework.Kill(this);
 }
 
 CBullet::CBullet()
