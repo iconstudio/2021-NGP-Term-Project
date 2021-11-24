@@ -64,7 +64,7 @@ public:
 	double direction;
 
 private:
-	int image_index;
+	double image_index;
 	RECT box; // 충돌체
 	bool dead;
 

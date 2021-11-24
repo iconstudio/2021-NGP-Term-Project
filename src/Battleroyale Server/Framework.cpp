@@ -531,6 +531,7 @@ RenderInstance* GameInstance::MakeRenderInfos() {
 
 	my_renders.x = x;
 	my_renders.y = y;
+	my_renders.angle = direction;
 
 	return &my_renders;
 }
