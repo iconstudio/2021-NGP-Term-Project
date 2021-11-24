@@ -152,7 +152,7 @@ void ServerFramework::Startup() {
 			{
 				// 종료
 			}
-				return;
+			return;
 
 			default:
 				break;
