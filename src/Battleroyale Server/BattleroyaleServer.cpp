@@ -88,8 +88,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						if (data) {
 							switch (*data) {
-								case 'W':
-								case 'w':
+								case 'W': case 'w':
 								{
 									framework.QueingPlayerAction(client_info
 																 , ACTION_TYPES::SET_HSPEED
@@ -148,6 +147,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
 					framework.SendRenderings();
+
+					framework.CastSendRenders(false);
 
 					framework.CastStartReceive(true);
 				}
@@ -229,7 +230,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitClientAcceptEvent(); // event_game_process
+		framework.AwaitClientAcceptEvent();
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
