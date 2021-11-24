@@ -62,25 +62,25 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
-				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
+				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
 
-				// ê²Œì„ ì´ˆê¸°í™”
+				// °ÔÀÓ ÃÊ±âÈ­
 				if (player_index == framework.player_captain &&
 					packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
 						framework.CastStartGame(true);
 						break;
 					}
-				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
+				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
 			} break;
 
 			case GAME:
 			{
-				// ê¾¸ì¤€í•œ í†µì‹ 
+				// ²ÙÁØÇÑ Åë½Å
 				while (true) {
 					framework.AwaitReceiveEvent(); // event_recieves
 
-					// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
+					// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
 					if (0 < data_size) {
 						result = recv(client_socket, data, 1, MSG_WAITALL);
 						// result = recv(client_socket, data, data_size, MSG_WAITALL);
@@ -141,11 +141,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								break;
 							}
 						}
-					} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
+					} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
 
 					/*
-									TODO: I/O Overlapeed ëª¨ë¸ë¡œ ë°”ê¾¸ê¸° ìœ„í•´ì„œëŠ” APC í•¨ìˆ˜ë“¤ì´
-					   í•„ìˆ˜ì ì´ë¼ê³  í•œë‹¤. ìš´ì˜ì²´ì œì˜ ë©”ì‹œì§€ íë¥¼ ì‚¬ìš©í•˜ëŠ” í•¨ìˆ˜ê°€ ìˆë‹¤.
+									TODO: I/O Overlapeed ¸ğµ¨·Î ¹Ù²Ù±â À§ÇØ¼­´Â APC ÇÔ¼öµéÀÌ
+					   ÇÊ¼öÀûÀÌ¶ó°í ÇÑ´Ù. ¿î¿µÃ¼Á¦ÀÇ ¸Ş½ÃÁö Å¥¸¦ »ç¿ëÇÏ´Â ÇÔ¼ö°¡ ÀÖ´Ù.
 					*/
 					framework.CastProcessingGame();
 
@@ -207,25 +207,25 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 }
 
 /*
-	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
+	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
 
-	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
-	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
+	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
+	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent(); // ì´ í•¨ìˆ˜ë¥¼ WaitForSingleObjectExë¡œ,
+		framework.AwaitProcessingGameEvent(); // ÀÌ ÇÔ¼ö¸¦ WaitForSingleObjectEx·Î,
 											  // evemt_game_process
 		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // ì´ í•¨ìˆ˜ë¥¼ SleepExë¡œ
+		Sleep(LERP_MIN); // ÀÌ ÇÔ¼ö¸¦ SleepEx·Î
 
 		if (1 < framework.GetClientCount()) {
-		  // ê²Œì„ ì²˜ë¦¬
+		  // °ÔÀÓ Ã³¸®
 			framework.InterpretPlayerAction();
 
 			framework.ProceedReceiveIndex();
 		} else {
-			// ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
+			// °ÔÀÓ ÆÇÁ¤½Â È¤Àº °ÔÀÓ °­Á¦ Á¾·á
 		}
 	}
 
@@ -238,7 +238,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
-			cerr << "accept ì˜¤ë¥˜!";
+			cerr << "accept ¿À·ù!";
 			return 0;
 		}
 	}
@@ -260,7 +260,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 	if (collide_bullet) {
 		health--;
 		framework.Kill(collide_bullet);
-		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
+		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);

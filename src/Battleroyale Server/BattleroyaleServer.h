@@ -16,7 +16,7 @@ public:
 	int health;
 	double attack_cooltime;
 
-	// í´ë¼ì´ì–¸íŠ¸ì— ì „ë‹¬í•  í”Œë ˆì´ì–´ ì •ë³´
+	// Å¬¶óÀÌ¾ğÆ®¿¡ Àü´ŞÇÒ ÇÃ·¹ÀÌ¾î Á¤º¸
 	GameUpdateMessage update_info;
 };
 
