@@ -86,9 +86,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						data = new char;
-						result = recv(client_socket, data, 1, MSG_WAITALL);
-						char button = (*data);
+						data = new char[SEND_INPUT_COUNT];
+						result = recv(client_socket, data, SEND_INPUT_COUNT, MSG_WAITALL);
+
+						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
+							char button = (*data);
+
+						}
 
 						if (data) {
 							switch (*data) {

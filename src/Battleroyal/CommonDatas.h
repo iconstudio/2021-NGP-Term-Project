@@ -34,8 +34,12 @@ const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_VELOCITY = km_per_hr(50);		// 투사체 이동 속도
 
 // 프레임 수
-const int FRAMERATE = 20;
+const int FRAMERATE = 60;
 const double FRAME_TIME = (1.0 / FRAMERATE);
+
+// 송수신 설정
+const int SEND_INPUT_COUNT = 6;
+
 
 enum PACKETS : int {
 	// 클라이언트 -> 서버

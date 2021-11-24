@@ -37,6 +37,10 @@ const double SNOWBALL_VELOCITY = km_per_hr(50);		// 투사체 이동 속도
 const int FRAMERATE = 20;
 const double FRAME_TIME = (1.0 / FRAMERATE);
 
+// 송수신 설정
+const int SEND_INPUT_COUNT = 6;
+
+
 enum PACKETS : int {
 	// 클라이언트 -> 서버
 	CLIENT_PING = 0				// 빈 패킷을 보낼 때 사용하는 메시지

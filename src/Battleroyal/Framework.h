@@ -59,7 +59,7 @@ private:
 	SOCKADDR_IN	server_address;
 	int	player_index = 0;
 	int player_num = 1;
-	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
+	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
 	bool player_captain = false;
 	int title_duration = 0;
 
