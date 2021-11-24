@@ -1,7 +1,8 @@
-#include "BattleroyaleServer.h"
+#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
-#include "pch.h"
+#include "BattleroyaleServer.h"
+
 
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
@@ -48,8 +49,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		int rr = WSARecv(client_socket, &my_data, 1, my_size, &my_flags, NULL, NULL);
 		*/
 
-		int result = recv(client_socket, reinterpret_cast<char*>(&packet),
-						  sizeof(PACKETS), MSG_WAITALL);
+		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 
 		if (SOCKET_ERROR == result) {
 			framework.PlayerDisconnect(client_info);
@@ -101,8 +101,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								}
 								break;
 
-								case 'A':
-								case 'a':
+								case 'A': case 'a':
 								{
 									framework.QueingPlayerAction(client_info
 																 , ACTION_TYPES::SET_HSPEED
@@ -111,8 +110,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								}
 								break;
 
-								case 'S':
-								case 's':
+								case 'S': case 's':
 								{
 									framework.QueingPlayerAction(client_info
 																 , ACTION_TYPES::SET_VSPEED
@@ -121,8 +119,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								}
 								break;
 
-								case 'D':
-								case 'd':
+								case 'D': case 'd':
 								{
 									framework.QueingPlayerAction(client_info
 																 , ACTION_TYPES::SET_VSPEED
@@ -190,8 +187,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitStartGameEvent();
 
-		shuffle(framework.players.begin(), framework.players.end(),
-				server_randomizer);
+		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 
 		auto sz = framework.players.size();
 		for (int i = 0; i < sz; ++i) {
@@ -259,8 +255,8 @@ CCharacter::CCharacter()
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
-	CBullet* collide_bullet =
-		framework.SeekCollision<CBullet>(this, "Bullet");
+	CBullet* collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
+
 	if (collide_bullet) {
 		health--;
 		framework.Kill(collide_bullet);
