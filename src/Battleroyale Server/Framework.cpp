@@ -495,7 +495,7 @@ GameInstance::GameInstance()
 	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
 	, my_renders{}
 	, box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
+	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {
 	delete& my_renders;
