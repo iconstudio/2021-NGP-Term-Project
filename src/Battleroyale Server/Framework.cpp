@@ -75,6 +75,7 @@ bool ServerFramework::Initialize() {
 		ErrorAbort("listen()");
 		return false;
 	}
+	cout << "서버 시작" << endl;
 
 	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
