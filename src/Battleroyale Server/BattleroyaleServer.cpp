@@ -98,7 +98,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 																 , ACTION_TYPES::SET_HSPEED
 																 , -PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - w" << std::endl;
-								} break;
+								}
+								break;
 
 								case 'A':
 								case 'a':
@@ -107,7 +108,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 																 , ACTION_TYPES::SET_HSPEED
 																 , PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - a" << std::endl;
-								} break;
+								}
+								break;
 
 								case 'S':
 								case 's':
@@ -116,7 +118,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 																 , ACTION_TYPES::SET_VSPEED
 																 , -PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - s" << std::endl;
-								} break;
+								}
+								break;
 
 								case 'D':
 								case 'd':
@@ -125,12 +128,20 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 																 , ACTION_TYPES::SET_VSPEED
 																 , PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - d" << std::endl;
-								} break;
+								}
+								break;
 
 								case VK_SPACE:
 								{
+									auto cc = reinterpret_cast<CCharacter*>(client_info->player_character);
+									if (cc) {
+										framework.QueingPlayerAction(client_info
+																	 , ACTION_TYPES::SHOOT
+																	 , static_cast<int>(cc->direction));
+									}
 									std::cout << player_index << " - space" << std::endl;
-								} break;
+								}
+								break;
 							}
 						}
 					} // 다른 메시지는 버린다.
