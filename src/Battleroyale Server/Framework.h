@@ -112,11 +112,11 @@ public:
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
 	void ProceedReceiveIndex();
-	void BuildRenderings();
-
 	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 	void InterpretPlayerAction();
 	void ClearPlayerActions();
+	void BuildRenderings();
+	void SendRenderings();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
