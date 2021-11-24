@@ -196,11 +196,10 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 		for (int i = 0; i < sz; ++i) {
 			auto player = framework.players.at(i);
 			auto places = framework.PLAYER_SPAWN_PLACES[i];
-			player->player_character =
-				framework.Instantiate<CCharacter>(places[0], places[1]);
-			static_cast<CCharacter*>(player->player_character)->index =
-				player->index;
-			// 캐릭터 클래스에 캐릭터의 번호 부여
+			auto character = framework.Instantiate<CCharacter>(places[0], places[1]);
+
+			player->player_character = character;
+			character->owner = player->index;
 		}
 
 		framework.CastStartReceive(true);
@@ -266,7 +265,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
 
-	UpdateMessage(index, framework.GetClientCount(), x, y, health, direction);
+	UpdateMessage(owner, framework.GetClientCount(), x, y, health, direction);
 
 	GameInstance::OnUpdate(frame_advance);
 }
