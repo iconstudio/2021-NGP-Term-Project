@@ -81,12 +81,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.AwaitReceiveEvent(); // event_recieves
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
-					if (0 < data_size) {
+					if (packet == PACKETS::CLIENT_KEY_INPUT) {
+						data = new char;
 						result = recv(client_socket, data, 1, MSG_WAITALL);
-						// result = recv(client_socket, data, data_size, MSG_WAITALL);
-					}
-
-					if (data && packet == PACKETS::CLIENT_KEY_INPUT) {
 						char button = (*data);
 
 						if (data) {
@@ -144,8 +141,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					} // 다른 메시지는 버린다.
 
 					/*
-									TODO: I/O Overlapeed 모델로 바꾸기 위해서는 APC 함수들이
-					   필수적이라고 한다. 운영체제의 메시지 큐를 사용하는 함수가 있다.
+						TODO: I/O Overlapeed 모델로 바꾸기 위해서는 APC 함수들이
+						필수적이라고 한다. 운영체제의 메시지 큐를 사용하는 함수가 있다.
 					*/
 					framework.CastProcessingGame();
 
@@ -220,7 +217,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
 		if (1 < framework.GetClientCount()) {
-		  // 게임 처리
+			// 게임 처리
 			framework.ProceedContinuation();
 		} else {
 			// 게임 판정승 혹은 게임 강제 종료
