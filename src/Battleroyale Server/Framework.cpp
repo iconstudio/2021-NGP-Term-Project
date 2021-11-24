@@ -77,7 +77,7 @@ bool ServerFramework::Initialize() {
 	}
 	cout << "서버 시작" << endl;
 
-	event_player_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
+	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -195,11 +195,22 @@ SOCKET ServerFramework::PlayerConnect() {
 		{
 			// 첫번째 플레이어 접속
 			SetStatus(LOBBY);
+
+			if (client_number < PLAYERS_NUMBER_MAX) {
+				CastClientAccept(true);
+			} else {
+				return 0;
+			}
 		}
 		break;
 
 		case LOBBY:
 		{
+			if (client_number < PLAYERS_NUMBER_MAX) {
+				CastClientAccept(true);
+			} else {
+				return 0;
+			}
 		}
 		break;
 
@@ -246,12 +257,12 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		auto character = player->player_character;
 		if (character)
 			Kill(static_cast<GameInstance*>(character));
+		client_number--;
 
 		cout << "플레이어 종료: " << player->client_socket << endl;
 		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 		players.erase(dit);
-		client_number--;
 
 		// 플레이어 0명 혹은 1명
 		if (client_number < 2) {
@@ -266,7 +277,10 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 
 				case LOBBY:
 				{
-					SetStatus(LISTEN);
+					if (0 == client_number) {
+						SetStatus(LISTEN);
+						Clean();
+					}
 				}
 				break;
 
@@ -313,7 +327,7 @@ int ServerFramework::GetClientCount() const {
 	return client_number;
 }
 
-void ServerFramework::ProceedReceiveIndex() {
+void ServerFramework::ProceedContinuation() {
 	InterpretPlayerAction();
 
 	if (my_process_index < client_number) {
