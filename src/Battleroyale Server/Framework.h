@@ -57,6 +57,8 @@ public:
 
 	bool IsCollideWith(GameInstance* other);
 
+	RenderInstance* MakeRenderInfos();
+
 	int owner;
 	double x, y, hspeed, vspeed;
 	double direction;
@@ -65,6 +67,8 @@ private:
 	int image_index;
 	RECT box; // 충돌체
 	bool dead;
+
+	RenderInstance my_renders;
 };
 
 class ServerFramework {
@@ -174,9 +178,8 @@ private:
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };
-
 template<class _GameClassTarget, class _GameClassSelf>
-inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char *fid) {
+inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
 	if (self && !instances.empty()) {
 		auto CopyList = vector<GameInstance*>(instances);
 

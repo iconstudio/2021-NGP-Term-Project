@@ -164,6 +164,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
 
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
+
 				}
 			} break;
 

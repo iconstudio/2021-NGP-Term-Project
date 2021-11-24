@@ -522,3 +522,11 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 		|| GetBoundRT() < other->GetBoundLT()
 		|| GetBoundBT() < other->GetBoundTP());
 }
+
+RenderInstance* GameInstance::MakeRenderInfos() {
+	auto my_renders = new RenderInstance;
+	ZeroMemory(my_renders, sizeof(my_renders));
+
+
+	return nullptr;
+}
