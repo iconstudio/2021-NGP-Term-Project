@@ -471,10 +471,13 @@ void ErrorDisplay(const char* msg) {
 
 GameInstance::GameInstance()
 	: owner(-1)
-	, image_index(0), box{}, dead(false)
+	, image_index(0), box{}, my_renders{}
+	, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
-GameInstance::~GameInstance() {}
+GameInstance::~GameInstance() {
+	delete& my_renders;
+}
 
 void GameInstance::OnCreate() {}
 
@@ -524,9 +527,10 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 }
 
 RenderInstance* GameInstance::MakeRenderInfos() {
-	auto my_renders = new RenderInstance;
-	ZeroMemory(my_renders, sizeof(my_renders));
+	ZeroMemory(&my_renders, sizeof(my_renders));
 
+	my_renders.x = x;
+	my_renders.y = y;
 
-	return nullptr;
+	return &my_renders;
 }
