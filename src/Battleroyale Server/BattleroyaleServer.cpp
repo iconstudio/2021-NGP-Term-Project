@@ -91,11 +91,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
 							char button = (*data);
+							if (button == 0)
+								continue;
 
-						}
-
-						if (data) {
-							switch (*data) {
+							switch (button) {
 								case 'W': case 'w':
 								{
 									framework.QueingPlayerAction(client_info
@@ -273,7 +272,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
-	UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
+	//UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
 }
