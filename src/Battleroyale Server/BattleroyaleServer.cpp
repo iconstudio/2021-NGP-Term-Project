@@ -94,27 +94,36 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								case 'W':
 								case 'w':
 								{
-					   // auto action = framework.MakePlayerAction(client_info,
-					   // ACTION_TYPES::SET_HSPEED, -PLAYER_MOVE_SPEED);
-					   // framework.QueingPlayerAction(std::move(action));
+									framework.QueingPlayerAction(client_info
+																 , ACTION_TYPES::SET_HSPEED
+																 , -PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - w" << std::endl;
 								} break;
 
 								case 'A':
 								case 'a':
 								{
+									framework.QueingPlayerAction(client_info
+																 , ACTION_TYPES::SET_HSPEED
+																 , PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - a" << std::endl;
 								} break;
 
 								case 'S':
 								case 's':
 								{
+									framework.QueingPlayerAction(client_info
+																 , ACTION_TYPES::SET_VSPEED
+																 , -PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - s" << std::endl;
 								} break;
 
 								case 'D':
 								case 'd':
 								{
+									framework.QueingPlayerAction(client_info
+																 , ACTION_TYPES::SET_VSPEED
+																 , PLAYER_MOVE_SPEED);
 									std::cout << player_index << " - d" << std::endl;
 								} break;
 
@@ -133,8 +142,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
-
-					// 렌더링 정보 보내기
+					framework.SendRenderings();
 
 					framework.CastStartReceive(true);
 				}
