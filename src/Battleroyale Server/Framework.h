@@ -62,8 +62,8 @@ public:
 	RenderInstance* MakeRenderInfos();
 
 	int owner;
-	double x, y, hspeed, vspeed, direction;
-	double image_index, image_speed, image_number;
+	double x, y, hspeed, vspeed;
+	double image_angle, image_index, image_speed, image_number;
 
 private:
 	RECT box; // 충돌체

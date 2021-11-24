@@ -137,7 +137,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 									if (cc) {
 										framework.QueingPlayerAction(client_info
 																	 , ACTION_TYPES::SHOOT
-																	 , static_cast<int>(cc->direction));
+																	 , static_cast<int>(cc->image_angle));
 									}
 									std::cout << player_index << " - space" << std::endl;
 								}
@@ -211,11 +211,10 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 }
 
 /*
-				TODO: I/O Overlapped 모델로 변경하기
+	TODO: I/O Overlapped 모델로 변경하기
 
-				왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기
-   위해서는 동시 실행이 필수적이다. IOCP 말고 이 부분에만 Overlapped 모델을
-   사용하면 좋을 것 같다.
+	왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기 위해서는 동시 실행이 필수적이다.
+	IOCP 말고 이 부분에만 Overlapped 모델을 사용하면 좋을 것 같다.
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
@@ -229,7 +228,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			framework.InterpretPlayerAction();
 
 			framework.ProceedReceiveIndex();
-		} else { // 게임 판정승 혹은 게임 강제 종료
+		} else {
+			// 게임 판정승 혹은 게임 강제 종료
 		}
 	}
 
@@ -267,7 +267,8 @@ void CCharacter::OnUpdate(double frame_advance) {
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
 
-	UpdateMessage(owner, framework.GetClientCount(), x, y, health, direction);
+	image_angle = point_direction(0, 0, hspeed, vspeed);
+	UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
 }
@@ -297,6 +298,7 @@ void CBullet::OnUpdate(double frame_advance) {
 		return;
 	}
 
+	image_angle = point_direction(0, 0, hspeed, vspeed);
 	GameInstance::OnUpdate(frame_advance);
 }
 

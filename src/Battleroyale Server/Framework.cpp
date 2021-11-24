@@ -397,7 +397,7 @@ void ServerFramework::InterpretPlayerAction() {
 
 				case ACTION_TYPES::SHOOT:
 				{
-					player->direction = output->data;
+					player->image_angle = output->data;
 				}
 				break;
 
@@ -471,9 +471,10 @@ void ErrorDisplay(const char* msg) {
 
 GameInstance::GameInstance()
 	: owner(-1)
-	, image_index(0.0), image_speed(0.0), image_number(0.0), my_renders{}
+	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
+	, my_renders{}
 	, box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
+	, x(0), y(0), hspeed(0.0), vspeed(0.0) {}
 
 GameInstance::~GameInstance() {
 	delete& my_renders;
@@ -487,7 +488,6 @@ void GameInstance::OnUpdate(double frame_advance) {
 	if (hspeed != 0.0 || vspeed != 0.0) {
 		x += hspeed * frame_advance;
 		y += vspeed * frame_advance;
-		direction = point_direction(0, 0, hspeed, vspeed);
 	}
 
 	if (image_speed != 0.0 && 1.0 < image_number) {
@@ -543,10 +543,9 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 RenderInstance* GameInstance::MakeRenderInfos() {
 	ZeroMemory(&my_renders, sizeof(my_renders));
 
-	my_renders.instance_type = 0;
 	my_renders.x = x;
 	my_renders.y = y;
-	my_renders.angle = direction;
+	my_renders.angle = image_angle;
 
 	return &my_renders;
 }
