@@ -11,7 +11,7 @@ public:
 
 	virtual const char* GetIdentifier() const;
 
-	void UpdateMessage(int index, int count, double x, double y, double hp, double direction);
+	void UpdateMessage(int count);
 	void GetHurt(int dmg);
 	void Die();
 

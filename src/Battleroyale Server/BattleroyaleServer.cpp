@@ -271,7 +271,8 @@ void CCharacter::OnUpdate(double frame_advance) {
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
 
-	//image_angle = point_direction(0, 0, hspeed, vspeed);
+	direction = point_direction(0, 0, hspeed, vspeed);
+
 	//UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
@@ -279,13 +280,12 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
 
-void CCharacter::UpdateMessage(int index, int count, double x, double y, double hp,
-							   double direction) {
+void CCharacter::UpdateMessage(int count) {
+	update_info.target_player = owner;
 	update_info.player_x = x;
 	update_info.player_y = y;
 	update_info.player_direction = direction;
-	update_info.player_hp = hp;
-	update_info.target_player = index;
+	update_info.player_hp = health;
 	update_info.players_count = count;
 }
 
