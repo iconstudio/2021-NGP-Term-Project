@@ -8,13 +8,13 @@
 #define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
-	TITLE = 0		// Å¸ÀÌÆ² È­¸é
-	, LOBBY			// ·Îºñ
-	, GAME			// °ÔÀÓ
-	, SPECTATOR		// °ÔÀÓ °üÀü
-	, GAME_OVER		// °ÔÀÓ ¿Ï·á
-	, GAME_RESTART	// °ÔÀÓ ´Ù½Ã Âü°¡
-	, EXIT			// Å¬¶óÀÌ¾ğÆ® Á¾·á
+	TITLE = 0		// íƒ€ì´í‹€ í™”ë©´
+	, LOBBY			// ë¡œë¹„
+	, GAME			// ê²Œì„
+	, SPECTATOR		// ê²Œì„ ê´€ì „
+	, GAME_OVER		// ê²Œì„ ì™„ë£Œ
+	, GAME_RESTART	// ê²Œì„ ë‹¤ì‹œ ì°¸ê°€
+	, EXIT			// í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ
 
 };
 
@@ -66,7 +66,7 @@ private:
 	bool player_captain = false;
 	int title_duration = 0;
 
-	// ¸¶Áö¸·¿¡ ¼ö½ÅÇÑ ·»´õ¸µ Á¤º¸
+	// ë§ˆì§€ë§‰ì— ìˆ˜ì‹ í•œ ë Œë”ë§ ì •ë³´
 	RenderInstance* last_render_info;
 
 	class CInputChecker {
@@ -98,12 +98,12 @@ public:
 
 	BOOL initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR title, LPCWSTR id, INT cmd_show);
 
-	HINSTANCE instance;						// ÇÁ·Î¼¼½º ÀÎ½ºÅÏ½º
-	HWND hwindow;							// Ã¢ ÀÎ½ºÅÏ½º
-	WindowProcedure procedure;				// Ã¢ Ã³¸®±â
-	WNDCLASSEX properties;					// Ã¢ µî·ÏÁ¤º¸
-	LPCWSTR title_caption, class_id;		// Ã¢ ½Äº°ÀÚ
-	LONG width, height;						// Ã¢ Å©±â
+	HINSTANCE instance;						// í”„ë¡œì„¸ìŠ¤ ì¸ìŠ¤í„´ìŠ¤
+	HWND hwindow;							// ì°½ ì¸ìŠ¤í„´ìŠ¤
+	WindowProcedure procedure;				// ì°½ ì²˜ë¦¬ê¸°
+	WNDCLASSEX properties;					// ì°½ ë“±ë¡ì •ë³´
+	LPCWSTR title_caption, class_id;		// ì°½ ì‹ë³„ì
+	LONG width, height;						// ì°½ í¬ê¸°
 };
 
 //template<class Predicate>
