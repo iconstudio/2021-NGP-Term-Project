@@ -295,7 +295,9 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		// 방장이 나감
 		if (player_captain == id) {
 			if (0 < client_number) {
-				SetCaptain(players.at(0));
+				auto new_captain = players.at(0);
+				SetCaptain(new_captain);
+				SendData(new_captain->client_socket, PACKETS::SERVER_SET_CAPATIN);
 			}
 		}
 
