@@ -46,7 +46,7 @@ public:
 	virtual void OnDestroy();
 	virtual void OnUpdate(double frame_advance);
 
-	void SetSprite(int sprite);
+	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
 
 	void SetBoundBox(const RECT& mask);
@@ -66,7 +66,6 @@ public:
 	double image_index, image_speed, image_number;
 
 private:
-
 	RECT box; // 충돌체
 	bool dead;
 

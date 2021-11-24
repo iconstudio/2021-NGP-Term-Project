@@ -251,9 +251,10 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 CCharacter::CCharacter()
-	: GameInstance(), attack_cooltime(0.0),
-	health(PLAYER_HEALTH), update_info{} {
-	SetSprite(0);
+	: GameInstance(), update_info{}
+	, attack_cooltime(0.0)
+	, health(PLAYER_HEALTH) {
+	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
@@ -283,8 +284,9 @@ void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
 	update_info.players_count = count;
 }
 
-CBullet::CBullet() : GameInstance(), lifetime(SNOWBALL_DURATION) {
-	SetSprite(1);
+CBullet::CBullet()
+	: GameInstance(), lifetime(SNOWBALL_DURATION) {
+	SetRenderType(RENDER_TYPES::BULLET);
 	SetBoundBox(RECT{ -2, -2, 2, 2 });
 }
 
@@ -292,6 +294,7 @@ void CBullet::OnUpdate(double frame_advance) {
 	lifetime -= frame_advance;
 	if (lifetime <= 0) {
 		framework.Kill(this);
+		return;
 	}
 
 	GameInstance::OnUpdate(frame_advance);

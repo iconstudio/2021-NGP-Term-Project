@@ -501,8 +501,8 @@ void GameInstance::OnUpdate(double frame_advance) {
 	}
 }
 
-void GameInstance::SetSprite(int sprite) {
-	image_index = sprite;
+void GameInstance::SetRenderType(RENDER_TYPES sprite) {
+	my_renders.instance_type = sprite;
 }
 
 void GameInstance::SetImageNumber(int number) {
