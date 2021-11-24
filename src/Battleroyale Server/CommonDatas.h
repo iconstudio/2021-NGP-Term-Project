@@ -1,7 +1,24 @@
 #pragma once
 #include "pch.h"
-#define COMMON_PORT 15000
 
+#define COMMON_PORT 15000
+#define GAME_SCENE_W 1280
+#define GAME_SCENE_H 1280
+#define CLIENT_W 960
+#define CLIENT_H 540
+#define VIEW_W 320
+#define VIEW_H 240
+#define PORT_W 640
+#define PORT_H 480
+
+
+constexpr double METER_TO_PIXELS = 16.;
+constexpr double HOUR_TO_SECONDS = 3600.;
+constexpr double KPH_TO_PPS = (1000.0 * METER_TO_PIXELS / HOUR_TO_SECONDS);
+
+constexpr double km_per_hr(const double velocity) {
+	return velocity * KPH_TO_PPS;
+}
 
 // 자기장 완료 시간
 const double EWALL_CLOSE_PERIOD = 300.0;

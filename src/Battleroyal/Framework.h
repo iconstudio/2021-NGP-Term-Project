@@ -5,7 +5,6 @@
 
 //#define SERVER_IP "192.168.122.191"
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
@@ -17,8 +16,6 @@ enum CLIENT_STATES : int {
 	, EXIT			// 클라이언트 종료
 
 };
-
-typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
 
 class GameClientInstance {
 public:
@@ -90,6 +87,8 @@ private:
 
 	void DrawRenderInstances();
 };
+
+typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
 
 class WindowsClient {
 public:

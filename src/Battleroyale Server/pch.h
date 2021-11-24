@@ -50,14 +50,6 @@ enum WindowInfo : int
 	PORT_H = 480
 };
 
-constexpr double METER_TO_PIXELS = 16.;
-constexpr double HOUR_TO_SECONDS = 3600.;
-constexpr double KPH_TO_PPS = (1000.0 * METER_TO_PIXELS / HOUR_TO_SECONDS);
-
-constexpr double km_per_hr(const double velocity) {
-	return velocity * KPH_TO_PPS;
-}
-
 inline double radtodeg(double value) {
 	return value / M_PI * 180.0;
 }

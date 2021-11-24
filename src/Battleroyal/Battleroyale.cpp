@@ -33,8 +33,6 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 
 	// 코드
 	framework.background_color = COLOR_NAVY;
-
-
 	MSG msg;
 	while (true) {
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
