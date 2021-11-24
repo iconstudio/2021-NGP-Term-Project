@@ -17,6 +17,7 @@ public:
 
 	int health;
 	double attack_cooltime;
+	double inv_time;
 
 	// 클라이언트에 전달할 플레이어 정보
 	GameUpdateMessage update_info;

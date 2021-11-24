@@ -156,7 +156,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					framework.CastStartReceive(true);
 				}
-			} break;
+			}
+			break;
 
 			case GAME_OVER:
 			{
@@ -165,16 +166,20 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
 
 				}
-			} break;
+			}
+			break;
 
 			case GAME_RESTART:
 			{
 
-			} break;
+			}
+			break;
 
 			case EXIT:
 			{
-			} break;
+
+			}
+			break;
 
 			default:
 				break;
@@ -216,8 +221,8 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent(); // 이 함수를 WaitForSingleObjectEx로,
-											  // evemt_game_process
+		framework.AwaitProcessingGameEvent(); // event_game_process
+
 		framework.CastStartReceive(false);
 		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
