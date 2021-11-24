@@ -471,8 +471,8 @@ void ErrorDisplay(const char* msg) {
 
 GameInstance::GameInstance()
 	: owner(-1)
-	, image_index(0), box{}, my_renders{}
-	, dead(false)
+	, image_index(0.0), image_speed(0.0), image_number(0.0), my_renders{}
+	, box{}, dead(false)
 	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
 
 GameInstance::~GameInstance() {
@@ -493,6 +493,10 @@ void GameInstance::OnUpdate(double frame_advance) {
 
 void GameInstance::SetSprite(int sprite) {
 	image_index = sprite;
+}
+
+void GameInstance::SetImageNumber(int number) {
+	image_number = static_cast<double>(number);
 }
 
 void GameInstance::SetBoundBox(const RECT& mask) {
@@ -529,6 +533,7 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 RenderInstance* GameInstance::MakeRenderInfos() {
 	ZeroMemory(&my_renders, sizeof(my_renders));
 
+	my_renders.instance_type = 0;
 	my_renders.x = x;
 	my_renders.y = y;
 	my_renders.angle = direction;

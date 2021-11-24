@@ -47,6 +47,8 @@ public:
 	virtual void OnUpdate(double frame_advance);
 
 	void SetSprite(int sprite);
+	void SetImageNumber(int number);
+
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;
 	int GetBoundTP() const;
@@ -60,11 +62,11 @@ public:
 	RenderInstance* MakeRenderInfos();
 
 	int owner;
-	double x, y, hspeed, vspeed;
-	double direction;
+	double x, y, hspeed, vspeed, direction;
+	double image_index, image_speed, image_number;
 
 private:
-	double image_index;
+
 	RECT box; // 충돌체
 	bool dead;
 
