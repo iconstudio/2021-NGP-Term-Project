@@ -489,6 +489,16 @@ void GameInstance::OnUpdate(double frame_advance) {
 		y += vspeed * frame_advance;
 		direction = point_direction(0, 0, hspeed, vspeed);
 	}
+
+	if (image_speed != 0.0 && 1.0 < image_number) {
+		image_index += image_speed;
+
+		if (image_index < 0) {
+			image_index += image_number;
+		} else if (image_number <= image_index) {
+			image_index -= image_number;
+		}
+	}
 }
 
 void GameInstance::SetSprite(int sprite) {
