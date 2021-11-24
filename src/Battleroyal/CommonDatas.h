@@ -21,11 +21,12 @@ constexpr double km_per_hr(const double velocity) {
 }
 
 // 자기장 완료 시간
+const double EWALL_BEGIN_TIME = 30.0;
 const double EWALL_CLOSE_PERIOD = 300.0;
-const double EWALL_DAMAGE_PER_SECOND = 1.5;
+const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
 const int PLAYERS_NUMBER_MAX = 10;					// 최대 플레이어 수
-const int PLAYER_HEALTH = 10;						// 플레이어 최대 체력
+const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
 const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
@@ -34,7 +35,7 @@ const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_VELOCITY = km_per_hr(50);		// 투사체 이동 속도
 
 // 프레임 수
-const int FRAMERATE = 60;
+const int FRAMERATE = 100;
 const double FRAME_TIME = (1.0 / FRAMERATE);
 
 // 송수신 설정
