@@ -46,7 +46,7 @@ public:
 
 	int RecvTitleMessage(SOCKET sock);
 	int RecvLobbyMessage(SOCKET sock);
-	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
+	int SendGameMessage(SOCKET sock, PACKETS type, InputStream keys[]);
 	int RecvGameMessage(SOCKET sock);
 
 	CLIENT_STATES status;
@@ -57,26 +57,31 @@ public:
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
+
 	int	player_index = 0;
 	int player_num = 1;
-	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
 	bool player_captain = false;
 	int title_duration = 0;
+
+	InputStream keys[6];
+
+	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;
 
 	class CInputChecker {
 	public:
-		int time = -1;
+		int state = 0;			//안누르면 0 
 
-		void on_press() { time++; }
-		void on_release() { time = -1; }
+		void on_none() { state = NONE; }
+		void on_press() { state = PRESS; }
+		void on_release() { state = RELEASE; }
 		bool is_pressing() const { return (0 <= time); }
 		bool is_pressed() const { return (0 == time); }
 	};
 
-	map<WPARAM, CInputChecker> key_checkers;
+	map<WPARAM, CInputChecker> key_checkers;			//키 누른것 확인
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
 	bool view_track_enabled;

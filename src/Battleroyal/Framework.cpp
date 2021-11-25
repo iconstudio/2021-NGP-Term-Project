@@ -2,7 +2,32 @@
 #include "Framework.h"
 #include "resource.h"
 
-GameSprite playersprite("testimage.png", 0, 0, 0);
+GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
+
+void ErrorAbort(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+void ErrorDisplay(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
+}
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
@@ -39,31 +64,36 @@ void ClientFramework::Initialize() {
 	server_address.sin_port = htons(COMMON_PORT);
 
 
-	InputRegister('W');
-	InputRegister('S');
-	InputRegister('A');
-	InputRegister('D');
-	InputRegister(VK_SPACE);
+	keys[0].code = VK_UP;
+	keys[1].code = VK_DOWN;
+	keys[2].code = VK_LEFT;
+	keys[3].code = VK_RIGHT;
+	keys[4].code = 'a';
+	keys[5].code = 's';
+	
 	InputRegister(VK_ESCAPE);
 
 
 	SetSprite(&playersprite);
+	SetSprite(&player2sprite);
+	SetSprite(&buttonsprite);
 
 }
 
 void ClientFramework::Update() {
 	int retval;
 
-	for (auto& key_pair : key_checkers) {
-		short check = GetAsyncKeyState(key_pair.first);
+	for (int i = 0; i < 6; i++) {
+		short check = GetAsyncKeyState(keys[i].code);
 
-		auto state = key_pair.second;
-
-		if (HIBYTE(check) == 0) { // released
-			state.on_release();
+		if (check & 0x0000) { // released
+			keys[i].type = NONE;
 		}
 		else if (check & 0x8000) {
-			state.on_press();
+			keys[i].type = PRESS;
+		}
+		else if (check & 0x0001) {
+			keys[i].type = RELEASE;
 		}
 	}
 
@@ -99,26 +129,23 @@ void ClientFramework::Update() {
 		if (player_captain == true)
 		{
 			PACKETS packet = CLIENT_GAME_START;
-			int result = send(my_socket, reinterpret_cast<char*>(&packet), sizeof(packet), 0);;
-			if (result == SOCKET_ERROR)
+			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+			if (RecvPacket(my_socket) == SERVER_GAME_START)
 			{
-				ErrorDisplay("send()");
+				status = GAME;
 			}
-			status = GAME;
 		}
 	}
 	break;
 
 	case GAME:
 	{
-		int itercount = 0;
-		for (auto it = key_checkers.begin(); it != key_checkers.end(); it++) {
-			// key_checkers에서 값을 읽어 배열 제작
-			buttonsets[itercount] = (it->second.time == -1);
-			itercount++;
-		}
+		background_color = COLOR_GREEN;
 
-		SendGameMessage(my_socket, CLIENT_KEY_INPUT, reinterpret_cast<char*>(buttonsets));
+		int itercount = 0;
+		PACKETS gamemessage = CLIENT_KEY_INPUT;
+
+		SendData(my_socket, CLIENT_GAME_START, (char*)keys, sizeof(InputStream) * 6);
 		RecvGameMessage(my_socket);
 
 		if (view_track_enabled) {
@@ -159,14 +186,13 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
-	if (status == LOBBY)
-		sprites[CHARACTER]->draw(surface_double, 100, 100, 0.0, 0.0, 1.0, 1.0, 1.0);
+	if (status == LOBBY && player_captain == true)
+		sprites[2]->draw(surface_double, 120, 80, 0.0, 0.0,1.0, 1.0, 0.0);
 
 	// 파이프라인
 	if (status == GAME) {
 		for (auto inst = last_render_info; inst != NULL; inst++)
 		{
-
 			//if (!(view.x + view.w <= inst->bbox.left || inst->bbox.right < view.x
 			//	|| view.y + view.h <= inst->bbox.top || inst->bbox.bottom < view.y))
 			//	inst->draw(surface_double);
@@ -246,48 +272,7 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
-int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 1;
-	int retval;
 
-	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
-
-	if (0 == temp)
-		player_captain = true;					//0이면 방장 아니면 쩌리
-	else
-		player_captain = false;
-
-	return retval;
-}
-
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
-
-	return retval;
-}
-
-int ClientFramework::SendGameMessage(SOCKET sock, PACKETS type, char data[]) {
-	int result = send(sock, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
-	if (result == SOCKET_ERROR)
-	{
-		ErrorDisplay("send()");
-		return result;
-	}
-	send(sock, data, sizeof(data), 0);
-
-	return result;
-
-}
-
-int ClientFramework::RecvGameMessage(SOCKET sock) {
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-
-	return retval;
-}
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
@@ -336,25 +321,56 @@ void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites[0]->get_height();
 }
 
-void ErrorAbort(const char* msg) {
-	LPVOID lpMsgBuf;
+int ClientFramework::RecvTitleMessage(SOCKET sock) {
+	int temp = 1;
+	int retval;
 
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
 
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
+	if (0 == temp)
+		player_captain = true;					//0이면 방장 아니면 쩌리
+	else
+		player_captain = false;
 
-	LocalFree(lpMsgBuf);
-	exit(true);
+	return retval;
 }
 
-void ErrorDisplay(const char* msg) {
-	LPVOID lpMsgBuf;
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int retval;
 
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
 
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+	return retval;
+}
 
-	LocalFree(lpMsgBuf);
+int ClientFramework::RecvGameMessage(SOCKET sock) {
+	int retval;
+
+	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+
+	return retval;
+}
+PACKETS RecvPacket(SOCKET sock) {
+
+	PACKETS packet;
+	int retval = recv(sock, (char*)packet, sizeof(int), 0);
+	if (retval == SOCKET_ERROR) {
+		ErrorAbort("recv packet failed");
+	}
+
+	return packet;
+}
+
+void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
+	if (SOCKET_ERROR == result) {
+		ErrorAbort("send 1");
+	}
+
+	if (buffer) {
+		result = send(socket, buffer, length, 0);
+		if (SOCKET_ERROR == result) {
+			ErrorAbort("send 2");
+		}
+	}
 }
