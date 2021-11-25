@@ -165,11 +165,19 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 						}
 
-						int check_horz = check_rt - check_lt; // 좌우 이동
-						int check_vert = check_dw - check_up; // 상하 이동
+						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
+						if (pchar && !pchar->dead) {
+							int check_horz = check_rt - check_lt; // 좌우 이동
+							int check_vert = check_dw - check_up; // 상하 이동
 
-
-
+							if (0 != check_horz) {
+								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
+							}
+							
+							if (0 != check_vert) {
+								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
+							}
+						}
 					} // 다른 메시지는 버린다.
 
 					framework.CastProcessingGame();
@@ -179,6 +187,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					framework.CastSendRenders(false);
 
+					SleepEx(FRAME_TIME, TRUE);
 					framework.CastStartReceive(true);
 				}
 			}
@@ -324,6 +333,7 @@ void CCharacter::GetHurt(int dmg) {
 }
 
 void CCharacter::Die() {
+	dead = true;
 	framework.Kill(this);
 }
 
