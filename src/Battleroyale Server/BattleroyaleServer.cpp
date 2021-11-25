@@ -110,13 +110,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							switch (keystat) {
 								case NONE:
 								{
-									if (keycode == 'A') {
+									if (keycode == VK_LEFT) {
 										check_lt = false;
-									} else if (keycode == 'D') {
+									} else if (keycode == VK_RIGHT) {
 										check_rt = false;
-									} else if (keycode == 'W') {
+									} else if (keycode == VK_UP) {
 										check_up = false;
-									} else if (keycode == 'S') {
+									} else if (keycode == VK_DOWN) {
 										check_dw = false;
 									} else if (keycode == VK_SPACE) { // 특능
 										check_blink = false;
@@ -128,13 +128,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 								case PRESS:
 								{
-									if(keycode == 'A') {
+									if (keycode == VK_LEFT) {
 										check_lt = true;
-									} else if (keycode == 'D') {
+									} else if (keycode == VK_RIGHT) {
 										check_rt = true;
-									} else if (keycode == 'W') {
+									} else if (keycode == VK_UP) {
 										check_up = true;
-									} else if (keycode == 'S') {
+									} else if (keycode == VK_DOWN) {
 										check_dw = true;
 									} else if (keycode == VK_SPACE) { // 특능
 										check_blink = true;
@@ -146,13 +146,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 								case RELEASE:
 								{
-									if (keycode == 'A') {
+									if (keycode == VK_LEFT) {
 										check_lt = false;
-									} else if (keycode == 'D') {
+									} else if (keycode == VK_RIGHT) {
 										check_rt = false;
-									} else if (keycode == 'W') {
+									} else if (keycode == VK_UP) {
 										check_up = false;
-									} else if (keycode == 'S') {
+									} else if (keycode == VK_DOWN) {
 										check_dw = false;
 									} else if (keycode == VK_SPACE) { // 특능
 										check_blink = false;
@@ -184,6 +184,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							if (check_shoot) {
 
 							}
+						} else if (pchar && !pchar->dead) {
 
 						}
 					} // 다른 메시지는 버린다.
