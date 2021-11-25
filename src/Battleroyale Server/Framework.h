@@ -119,7 +119,6 @@ public:
 	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 
 	void ProceedContinuation();
-
 	void BuildRenderings();
 	void SendRenderings();
 
@@ -168,7 +167,6 @@ private:
 	vector<GameInstance*> instances;
 
 	vector<IO_MSG*> io_queue;
-	map<WPARAM, bool> key_checkers;
 
 	PlayerInfo* GetPlayer(int player_index);
 
