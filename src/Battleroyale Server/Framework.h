@@ -50,6 +50,8 @@ public:
 
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
+	void SetRenderInstance();
+	RenderInstance GetRenderInstance() const;
 
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;
@@ -180,6 +182,8 @@ private:
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };
+
+
 template<class _GameClassTarget, class _GameClassSelf>
 inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
 	if (self && !instances.empty()) {

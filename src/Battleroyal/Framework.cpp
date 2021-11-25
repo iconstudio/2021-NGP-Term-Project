@@ -130,7 +130,10 @@ void ClientFramework::Update() {
 		{
 			PACKETS packet = CLIENT_GAME_START;
 			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
-			
+			if (RecvPacket(my_socket) == SERVER_GAME_START)
+			{
+				status = GAME;
+			}
 		}
 	}
 	break;
@@ -269,35 +272,7 @@ void ClientFramework::ViewSetPosition(int vx, int vy) {
 	view.y = max(0, min(WORLD_H - view.h, vy - view.yoff));
 }
 
-int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 1;
-	int retval;
 
-	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
-
-	if (0 == temp)
-		player_captain = true;					//0이면 방장 아니면 쩌리
-	else
-		player_captain = false;
-
-	return retval;
-}
-
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
-	int retval;
-	
-	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
-
-	return retval;
-}
-
-int ClientFramework::RecvGameMessage(SOCKET sock) {
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-
-	return retval;
-}
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
@@ -344,6 +319,46 @@ void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.push_back(sprite);
 	
 	sprites[0]->get_height();
+}
+
+int ClientFramework::RecvTitleMessage(SOCKET sock) {
+	int temp = 1;
+	int retval;
+
+	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
+
+	if (0 == temp)
+		player_captain = true;					//0이면 방장 아니면 쩌리
+	else
+		player_captain = false;
+
+	return retval;
+}
+
+int ClientFramework::RecvLobbyMessage(SOCKET sock) {
+	int retval;
+
+	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
+
+	return retval;
+}
+
+int ClientFramework::RecvGameMessage(SOCKET sock) {
+	int retval;
+
+	retval = recv(sock, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+
+	return retval;
+}
+PACKETS RecvPacket(SOCKET sock) {
+
+	PACKETS packet;
+	int retval = recv(sock, (char*)packet, sizeof(int), 0);
+	if (retval == SOCKET_ERROR) {
+		ErrorAbort("recv packet failed");
+	}
+
+	return packet;
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
