@@ -346,11 +346,20 @@ void ServerFramework::ProceedContinuation() {
 }
 
 void ServerFramework::BuildRenderings() {
-
+	ForeachInstances([&](GameInstance*& inst) {
+		inst->SetRenderInstance();
+	});
 }
 
 void ServerFramework::SendRenderings() {
+	for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
+		for (auto inst_iter = instances.begin(); inst_iter != instances.end(); ++inst_iter) {
+			auto render = (*inst_iter)->GetRenderInstance();
 
+			SendData((*p_iter)->client_socket, SERVER_RENDER_INFO
+				, reinterpret_cast<char*>(&render), sizeof(render));
+		}
+	}
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
@@ -527,6 +536,20 @@ void GameInstance::SetRenderType(RENDER_TYPES sprite) {
 
 void GameInstance::SetImageNumber(int number) {
 	image_number = static_cast<double>(number);
+}
+
+void GameInstance::SetRenderInstance()
+{
+	my_renders.x = x;
+	my_renders.y = y;
+
+	my_renders.image_index = image_index;
+	my_renders.angle = image_angle;
+}
+
+RenderInstance GameInstance::GetRenderInstance() const
+{
+	return my_renders;
 }
 
 void GameInstance::SetBoundBox(const RECT& mask) {
