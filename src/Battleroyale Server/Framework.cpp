@@ -238,7 +238,6 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	players.emplace_back(client_info);
 
-
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
