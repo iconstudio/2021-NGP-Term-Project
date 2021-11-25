@@ -63,13 +63,13 @@ public:
 
 	RenderInstance* MakeRenderInfos();
 
+	bool dead;
 	int owner;
 	double x, y, hspeed, vspeed, direction;
 	double image_angle, image_index, image_speed, image_number;
 
 private:
 	RECT box; // �浹ü
-	bool dead;
 
 	RenderInstance my_renders;
 };
