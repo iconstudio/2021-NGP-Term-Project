@@ -45,8 +45,6 @@ enum PACKETS : int {
 	// 클라이언트 -> 서버
 	CLIENT_PING = 0				// 빈 패킷을 보낼 때 사용하는 메시지
 	, CLIENT_KEY_INPUT			// 입력을 보낼 때 사용하는 메시지
-	, CLIENT_KEY_PRESS			// 입력을 보낼 때 사용하는 메시지
-	, CLIENT_KEY_RELEASE		// 입력을 보낼 때 사용하는 메시지
 	, CLIENT_GAME_START			// 서버에게 게임 시작을 요청하는 메시지
 	, CLIENT_PLAY_CONTINUE		// 게임을 다시 시작하기 위해 재접속을 요청하는 메시지
 	, CLIENT_PLAY_DENY			// 게임을 다시하지 않는다고 알려주는 메시지
@@ -72,6 +70,17 @@ struct GameUpdateMessage {
 enum RENDER_TYPES : int {
 	CHARACTER = 0
 	, BULLET
+};
+
+enum INPUT_TYPES : int {
+	NONE = 0
+	, PRESS = 1
+	, RELEASE = 2
+};
+
+struct InputStream {
+	int code = 0;
+	INPUT_TYPES type;
 };
 
 struct RenderInstance {

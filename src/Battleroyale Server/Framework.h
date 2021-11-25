@@ -142,7 +142,7 @@ private:
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
 	WSAOVERLAPPED io_behavior;
-	int my_process_index;
+	int my_process_index; // 현재 처리 중인 플레이어의 순번 (0~client_number)
 
 	vector<HANDLE> thread_list; // 스레드 목록
 	vector<PlayerInfo*> players; // 플레이어 목록
