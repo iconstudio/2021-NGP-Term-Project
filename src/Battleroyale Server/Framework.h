@@ -3,33 +3,41 @@
 #include "CommonDatas.h"
 
 
+DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
-
-void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
-void ErrorAbort(std::string);
-void ErrorDisplay(std::string);
-
 struct PlayerInfo {
 	SOCKET client_socket;
 	HANDLE client_handle;
-	int index; // í”Œë ˆì´ì–´ ë²ˆí˜¸
 
+	int index; // ÇÃ·¹ÀÌ¾î ¹øÈ£
+	map<WPARAM, INPUT_TYPES> key_storage;
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
+	~PlayerInfo();
 };
 
 enum SERVER_STATES : int {
-	LISTEN = 0			// í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ëŒ€ê¸°
-	, LOBBY				// ë¡œë¹„
-	, GAME				// ê²Œì„
-	, GAME_OVER			// ê²Œì„ ì™„ë£Œ
-	, GAME_RESTART		// ê²Œì„ ë‹¤ì‹œ ì‹œì‘
-	, EXIT				// ì„œë²„ ì¢…ë£Œ
+	LISTEN = 0			// Å¬¶óÀÌ¾ğÆ® Á¢¼Ó ´ë±â
+	, LOBBY				// ·Îºñ
+	, GAME				// °ÔÀÓ
+	, GAME_OVER			// °ÔÀÓ ¿Ï·á
+	, GAME_RESTART		// °ÔÀÓ ´Ù½Ã ½ÃÀÛ
+	, EXIT				// ¼­¹ö Á¾·á
 };
+
+enum class ACTION_TYPES : int {
+	NONE = 0
+	, SET_HSPEED
+	, SET_VSPEED
+	, SHOOT // Åõ»çÃ¼ ¹ß»ç
+};
+
+const int LERP_MIN = 50;
+const int LERP_MAX = 200;
 
 class GameInstance {
 public:
@@ -40,40 +48,83 @@ public:
 	virtual void OnDestroy();
 	virtual void OnUpdate(double frame_advance);
 
-	void SetSprite(int sprite);
+	void SetRenderType(RENDER_TYPES sprite);
+	void SetImageNumber(int number);
+	void SetRenderInstance();
+	RenderInstance GetRenderInstance() const;
+
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;
 	int GetBoundTP() const;
 	int GetBoundRT() const;
 	int GetBoundBT() const;
 
-	bool IsCollideWith(RECT& other);
-	bool IsCollideWith(GameInstance*& other);
+	virtual const char* GetIdentifier() const;
 
+	bool IsCollideWith(GameInstance* other);
+
+	RenderInstance* MakeRenderInfos();
+
+	bool dead;
 	int owner;
-	double x, y, hspeed, vspeed;
+	double x, y, hspeed, vspeed, direction;
+	double image_angle, image_index, image_speed, image_number;
 
 private:
-	int sprite_index;
-	RECT box; // ì¶©ëŒì²´
-	bool dead;
+	RECT box; // Ãæµ¹Ã¼
+
+	RenderInstance my_renders;
 };
 
 class ServerFramework {
+private:
+	struct IO_MSG {
+		ACTION_TYPES type;
+		int player_index = 0;
+		int data = 0;
+	};
+
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
 	bool Initialize();
 	void Startup();
+	void GameUpdate();
+	void Clean();
 
 	SOCKET PlayerConnect();
-	void PlayerDisconnect(PlayerInfo*& player);
- 
+	void PlayerDisconnect(PlayerInfo* player);
+
+	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
 
-	template<class Predicate>
-	void ForeachInstances(Predicate predicate);
+	SERVER_STATES GetStatus() const;
+	int GetClientCount() const;
+
+	void CastClientAccept(bool flag);
+	void CastStartReceive(bool flag);
+	void CastStartGame(bool flag);
+	void CastProcessingGame();
+	void CastSendRenders(bool flag);
+
+	template<class _GameClassTarget, class _GameClassSelf>
+	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
+
+	template<class _GameClass1, class _GameClass2>
+	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
+
+	inline DWORD WINAPI AwaitClientAcceptEvent();
+	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitStartGameEvent();
+	inline DWORD WINAPI AwaitProcessingGameEvent();
+	inline DWORD WINAPI AwaitSendRendersEvent();
+
+	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
+
+	void ProceedContinuation();
+	void BuildRenderings();
+	void SendRenderings();
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(int x = 0, int y = 0);
@@ -81,47 +132,84 @@ public:
 	template<class _GameClass = GameInstance>
 	void Kill(_GameClass* target);
 
-	SERVER_STATES status;
-
-	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
+	friend DWORD WINAPI ConnectProcess(LPVOID arg);
 	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	SERVER_STATES status;
+	bool status_begin;
+
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+	WSAOVERLAPPED io_behavior;
+	int my_process_index; // ÇöÀç Ã³¸® ÁßÀÎ ÇÃ·¹ÀÌ¾îÀÇ ¼ø¹ø (0~client_number)
 
-	vector<HANDLE> thread_list; // ìŠ¤ë ˆë“œ ëª©ë¡
-	vector<PlayerInfo*> players; // í”Œë ˆì´ì–´ ëª©ë¡
+	vector<HANDLE> thread_list; // ½º·¹µå ¸ñ·Ï
+	vector<PlayerInfo*> players; // ÇÃ·¹ÀÌ¾î ¸ñ·Ï
+
+	int	client_number; // Áö±İ Á¢¼ÓÇÑ ÇÃ·¹ÀÌ¾îÀÇ ¼ö
+	int player_number_last; // ¸¶Áö¸·¿¡ Ãß°¡µÈ ÇÃ·¹ÀÌ¾îÀÇ ¹øÈ£
+	int	player_captain; // ¹æÀå ÇÃ·¹ÀÌ¾î
 
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
-	HANDLE event_game_start; // ê²Œì„ ì‹œì‘ì„ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_receives; // í”Œë ˆì´ì–´ì˜ ì…ë ¥ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_game_process; // ì¶©ëŒ ì²˜ë¦¬ë¥¼ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_send_renders; // ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_player_accept; // ÇÃ·¹ÀÌ¾î Á¢¼ÓÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_game_start; // °ÔÀÓ ½ÃÀÛÀ» ÇÏ´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_receives; // ÇÃ·¹ÀÌ¾îÀÇ ÀÔ·ÂÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_game_process; // Ãæµ¹ Ã³¸®¸¦ ÇÏ´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_send_renders; // ·»´õ¸µ Á¤º¸¸¦ º¸³»´Â ÀÌº¥Æ® °´Ã¼
 
-	int **PLAYER_SPAWN_PLACES; // í”Œë ˆì´ì–´ê°€ ë§¨ ì²˜ìŒì— ìƒì„±ë  ìœ„ì¹˜ì˜ ë°°ì—´
+	int** PLAYER_SPAWN_PLACES; // ÇÃ·¹ÀÌ¾î°¡ ¸Ç Ã³À½¿¡ »ı¼ºµÉ À§Ä¡ÀÇ ¹è¿­
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
-	int	client_number; // ì§€ê¸ˆ ì ‘ì†í•œ í”Œë ˆì´ì–´ì˜ ìˆ˜
-	int player_number_last; // ë§ˆì§€ë§‰ì— ì¶”ê°€ëœ í”Œë ˆì´ì–´ì˜ ë²ˆí˜¸
-	int	player_captain; // ë°©ì¥ í”Œë ˆì´ì–´
-
 	RenderInstance render_last[40];
 	vector<GameInstance*> instances;
-	vector<int> player_msg_queue;
+
+	vector<IO_MSG*> io_queue;
+
+	PlayerInfo* GetPlayer(int player_index);
+
+	void InterpretPlayerAction();
+	void ClearPlayerActions();
+	void ContinueToReceive();
+	void ContinueToGameProcess();
+	void ContinueToSendingRenders();
+
+	template<class Predicate>
+	void ForeachInstances(Predicate predicate);
 };
 
-template<class Predicate>
-inline void ServerFramework::ForeachInstances(Predicate predicate) {
-	if (!instances.empty()) {
+
+template<class _GameClassTarget, class _GameClassSelf>
+inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
+	if (self && !instances.empty()) {
 		auto CopyList = vector<GameInstance*>(instances);
 
-		std::for_each(CopyList.begin(), CopyList.end(), predicate);
+		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
+			auto iid = inst->GetIdentifier();
+			auto id_check = strcmp(iid, fid);
+
+			return (0 == id_check);
+		});
+
+		if (it != CopyList.end()) {
+			return dynamic_cast<_GameClassTarget*>(*it);
+		}
 	}
+	return nullptr;
+}
+
+template<class _GameClass1, class _GameClass2>
+inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClass2* other) {
+	if (self && other && self != other) {
+		if (self->IsCollideWith(other))
+			return other;
+	}
+	return nullptr;
 }
 
 template<class _GameClass>
@@ -140,10 +228,39 @@ template<class _GameClass>
 inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
-	});
+		});
 
 	if (loc != instances.end()) {
 		target->OnDestroy();
 		instances.erase(loc);
 	}
+}
+
+template<class Predicate>
+inline void ServerFramework::ForeachInstances(Predicate predicate) {
+	if (!instances.empty()) {
+		auto CopyList = vector<GameInstance*>(instances);
+
+		std::for_each(CopyList.begin(), CopyList.end(), predicate);
+	}
+}
+
+inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
+	return WaitForSingleObject(event_player_accept, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
+	return WaitForSingleObject(event_receives, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
+	return WaitForSingleObject(event_game_start, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
+	return WaitForSingleObject(event_game_process, INFINITE);
+}
+
+inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
+	return WaitForSingleObject(event_send_renders, INFINITE);
 }

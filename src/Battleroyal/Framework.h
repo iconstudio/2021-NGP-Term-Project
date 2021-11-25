@@ -3,21 +3,19 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
+//#define SERVER_IP "192.168.122.191"
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PT 9000
 
 enum CLIENT_STATES : int {
-	TITLE = 0		// Å¸ÀÌÆ² È­¸é
-	, LOBBY			// ·Îºñ
-	, GAME			// °ÔÀÓ
-	, SPECTATOR		// °ÔÀÓ °üÀü
-	, GAME_OVER		// °ÔÀÓ ¿Ï·á
-	, GAME_RESTART	// °ÔÀÓ ´Ù½Ã Âü°¡
-	, EXIT			// Å¬¶óÀÌ¾ğÆ® Á¾·á
+	TITLE = 0		// íƒ€ì´í‹€ í™”ë©´
+	, LOBBY			// ë¡œë¹„
+	, GAME			// ê²Œì„
+	, SPECTATOR		// ê²Œì„ ê´€ì „
+	, GAME_OVER		// ê²Œì„ ì™„ë£Œ
+	, GAME_RESTART	// ê²Œì„ ë‹¤ì‹œ ì°¸ê°€
+	, EXIT			// í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ
 
 };
-
-typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
 
 class GameClientInstance {
 public:
@@ -44,9 +42,12 @@ public:
 	void ViewSetTarget(int target_player);
 	void ViewSetPosition(int vx, int vy);
 
+	void SetSprite(GameSprite* sprite);
+
+	PACKETS RecvPacket(SOCKET sock);
 	int RecvTitleMessage(SOCKET sock);
 	int RecvLobbyMessage(SOCKET sock);
-	int SendGameMessage(SOCKET sock, PACKETS type, char data[]);
+	int SendGameMessage(SOCKET sock, PACKETS type, InputStream keys[]);
 	int RecvGameMessage(SOCKET sock);
 
 	CLIENT_STATES status;
@@ -57,25 +58,31 @@ public:
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
+
 	int	player_index = 0;
 	int player_num = 1;
-	bool buttonsets[6];						//0 = w, 1 = s, 2 = a, 3 = d
-	bool player_captain;
+	bool player_captain = false;
+	int title_duration = 0;
 
-	// ¸¶Áö¸·¿¡ ¼ö½ÅÇÑ ·»´õ¸µ Á¤º¸
+	InputStream keys[6];
+
+	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
+
+	// ë§ˆì§€ë§‰ì— ìˆ˜ì‹ í•œ ë Œë”ë§ ì •ë³´
 	RenderInstance* last_render_info;
 
 	class CInputChecker {
 	public:
-		int time = -1;
+		int state = 0;			//ì•ˆëˆ„ë¥´ë©´ 0 
 
-		void on_press() { time++; }
-		void on_release() { time = -1; }
+		void on_none() { state = NONE; }
+		void on_press() { state = PRESS; }
+		void on_release() { state = RELEASE; }
 		bool is_pressing() const { return (0 <= time); }
 		bool is_pressed() const { return (0 == time); }
 	};
 
-	map<WPARAM, CInputChecker> key_checkers;
+	map<WPARAM, CInputChecker> key_checkers;			//í‚¤ ëˆ„ë¥¸ê²ƒ í™•ì¸
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
 	bool view_track_enabled;
@@ -83,7 +90,11 @@ private:
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+
+	void DrawRenderInstances();
 };
+
+typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
 
 class WindowsClient {
 public:
@@ -92,10 +103,17 @@ public:
 
 	BOOL initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR title, LPCWSTR id, INT cmd_show);
 
-	HINSTANCE instance;						// ÇÁ·Î¼¼½º ÀÎ½ºÅÏ½º
-	HWND hwindow;							// Ã¢ ÀÎ½ºÅÏ½º
-	WindowProcedure procedure;				// Ã¢ Ã³¸®±â
-	WNDCLASSEX properties;					// Ã¢ µî·ÏÁ¤º¸
-	LPCWSTR title_caption, class_id;		// Ã¢ ½Äº°ÀÚ
-	LONG width, height;						// Ã¢ Å©±â
+	HINSTANCE instance;						// í”„ë¡œì„¸ìŠ¤ ì¸ìŠ¤í„´ìŠ¤
+	HWND hwindow;							// ì°½ ì¸ìŠ¤í„´ìŠ¤
+	WindowProcedure procedure;				// ì°½ ì²˜ë¦¬ê¸°
+	WNDCLASSEX properties;					// ì°½ ë“±ë¡ì •ë³´
+	LPCWSTR title_caption, class_id;		// ì°½ ì‹ë³„ì
+	LONG width, height;						// ì°½ í¬ê¸°
 };
+
+//template<class Predicate>
+//inline void ClientFramework::for_each_instances(Predicate predicate) {
+//	if (!instances.empty()) {
+//		std::for_each(instances.begin(), instances.end(), predicate);
+//	}
+//}
