@@ -63,9 +63,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			case LOBBY:
 			{
 				// 방장의 게임 시작 메시지
-				if (player_index == framework.player_captain &&
-					packet == PACKETS::CLIENT_GAME_START) {
-					if (1 < framework.client_number) {
+				if (packet == PACKETS::CLIENT_GAME_START) {
+					if (0 < framework.GetClientCount()) {
 						framework.CastStartGame(true);
 						break;
 					}
@@ -247,6 +246,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 
 			player->player_character = character;
 			character->owner = player->index;
+			SendData(player->client_socket, PACKETS::SERVER_GAME_START);
 		}
 
 		framework.CastStartReceive(true);
@@ -312,8 +312,6 @@ void CCharacter::OnUpdate(double frame_advance) {
 	}
 
 	direction = point_direction(0, 0, hspeed, vspeed);
-
-	//UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
 }
