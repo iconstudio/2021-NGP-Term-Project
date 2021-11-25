@@ -78,8 +78,10 @@ enum INPUT_TYPES : int {
 	, RELEASE = 2
 };
 
+const WPARAM keybinding[6] = { VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, 'a', 's' };
+
 struct InputStream {
-	int code = 0;
+	WPARAM code = 0;
 	INPUT_TYPES type;
 };
 
