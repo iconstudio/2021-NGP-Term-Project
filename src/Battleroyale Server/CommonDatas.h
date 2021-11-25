@@ -29,6 +29,7 @@ const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
 const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
+const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
 
 const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_VELOCITY = km_per_hr(50);		// 투사체 이동 속도

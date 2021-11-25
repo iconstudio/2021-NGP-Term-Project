@@ -177,6 +177,15 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							if (0 != check_vert) {
 								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
 							}
+
+							if (check_blink) {
+
+							}
+
+							if (check_shoot) {
+
+							}
+
 						}
 					} // 다른 메시지는 버린다.
 
