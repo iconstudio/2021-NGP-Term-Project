@@ -11,11 +11,13 @@ DWORD WINAPI GameProcess(LPVOID arg);
 struct PlayerInfo {
 	SOCKET client_socket;
 	HANDLE client_handle;
-	int index; // 플레이어 번호
 
+	int index; // 플레이어 번호
+	InputStream* key_storage = nullptr;
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
+	~PlayerInfo();
 };
 
 enum SERVER_STATES : int {
@@ -128,14 +130,13 @@ public:
 	template<class _GameClass = GameInstance>
 	void Kill(_GameClass* target);
 
-	SERVER_STATES status;
-
 	friend DWORD WINAPI ConnectProcess(LPVOID arg);
 	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	SERVER_STATES status;
 	bool status_begin;
 
 	SOCKET my_socket;

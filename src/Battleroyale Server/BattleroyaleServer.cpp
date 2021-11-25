@@ -32,7 +32,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
 	int player_index = client_info->index;
-	auto key_storage = new InputStream[SEND_INPUT_COUNT];
+	auto key_storage = client_info->key_storage;
 
 	while (true) {
 		PACKETS packet;
@@ -84,9 +84,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						data_size = sizeof(key_storage);
+						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
 
-						result = recv(client_socket, reinterpret_cast<char*>(key_storage), data_size, MSG_WAITALL);
+						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
+									  , data_size, MSG_WAITALL);
 						if (SOCKET_ERROR == result) {
 							framework.PlayerDisconnect(client_info);
 							break;
