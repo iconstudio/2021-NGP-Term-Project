@@ -223,7 +223,6 @@ SOCKET ServerFramework::PlayerConnect() {
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
-	client_info->key_storage = new InputStream[SEND_INPUT_COUNT];
 
 	// 첫번째 플레이어
 	if (client_number == 0) {
@@ -453,7 +452,8 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 PlayerInfo::~PlayerInfo() {
-	delete[] key_storage;
+	key_storage.clear();
+	delete& key_storage;
 	delete player_character;
 }
 

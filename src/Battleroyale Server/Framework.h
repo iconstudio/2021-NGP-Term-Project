@@ -13,7 +13,7 @@ struct PlayerInfo {
 	HANDLE client_handle;
 
 	int index; // 플레이어 번호
-	InputStream* key_storage = nullptr;
+	map<WPARAM, INPUT_TYPES> key_storage;
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
