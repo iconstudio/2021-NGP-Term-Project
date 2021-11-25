@@ -36,7 +36,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	while (true) {
 		PACKETS packet;
 		int data_size = 0;
-		char* data = nullptr;
 
 		/*
 		LPDWORD my_size = nullptr;
@@ -84,13 +83,22 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						data = new char[SEND_INPUT_COUNT];
-						result = recv(client_socket, data, SEND_INPUT_COUNT, MSG_WAITALL);
+						auto data = new InputStream[SEND_INPUT_COUNT];
+						data_size = sizeof(InputStream) * SEND_INPUT_COUNT;
+
+						result = recv(client_socket, reinterpret_cast<char*>(data), data_size, MSG_WAITALL);
+						if (SOCKET_ERROR == result) {
+							framework.PlayerDisconnect(client_info);
+							break;
+						} else if (0 == result) {
+							framework.PlayerDisconnect(client_info);
+							break;
+						}
 
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
-							char button = (*data);
-							if (button == 0)
-								continue;
+							auto button = data[i];
+							auto keycode = button.code;
+							auto keystat = button.type;
 
 							switch (button) {
 								case 'W': case 'w':
