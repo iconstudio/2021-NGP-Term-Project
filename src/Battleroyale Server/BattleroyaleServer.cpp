@@ -62,37 +62,38 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
-				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
-
-				// ê²Œì„ ì´ˆê¸°í™”
+				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
 				if (player_index == framework.player_captain &&
 					packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
 						framework.CastStartGame(true);
 						break;
 					}
-				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
+				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+
+				Sleep(2000);
+				framework.CastStartGame(true);
+				break;
 			} break;
 
 			case GAME:
 			{
-				// ê¾¸ì¤€í•œ í†µì‹ 
+				// ²ÙÁØÇÑ Åë½Å
 				while (true) {
 					framework.AwaitReceiveEvent(); // event_recieves
 
-					// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
-					if (0 < data_size) {
-						result = recv(client_socket, data, 1, MSG_WAITALL);
-						// result = recv(client_socket, data, data_size, MSG_WAITALL);
-					}
+					// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
+					if (packet == PACKETS::CLIENT_KEY_INPUT) {
+						data = new char[SEND_INPUT_COUNT];
+						result = recv(client_socket, data, SEND_INPUT_COUNT, MSG_WAITALL);
 
-					if (data && packet == PACKETS::CLIENT_KEY_INPUT) {
-						char button = (*data);
+						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
+							char button = (*data);
+							if (button == 0)
+								continue;
 
-						if (data) {
-							switch (*data) {
-								case 'W':
-								case 'w':
+							switch (button) {
+								case 'W': case 'w':
 								{
 									framework.QueingPlayerAction(client_info
 																 , ACTION_TYPES::SET_HSPEED
@@ -141,20 +142,19 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								break;
 							}
 						}
-					} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
+					} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
 
-					/*
-									TODO: I/O Overlapeed ëª¨ë¸ë¡œ ë°”ê¾¸ê¸° ìœ„í•´ì„œëŠ” APC í•¨ìˆ˜ë“¤ì´
-					   í•„ìˆ˜ì ì´ë¼ê³  í•œë‹¤. ìš´ì˜ì²´ì œì˜ ë©”ì‹œì§€ íë¥¼ ì‚¬ìš©í•˜ëŠ” í•¨ìˆ˜ê°€ ìˆë‹¤.
-					*/
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
 					framework.SendRenderings();
 
+					framework.CastSendRenders(false);
+
 					framework.CastStartReceive(true);
 				}
-			} break;
+			}
+			break;
 
 			case GAME_OVER:
 			{
@@ -163,16 +163,20 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
 
 				}
-			} break;
+			}
+			break;
 
 			case GAME_RESTART:
 			{
 
-			} break;
+			}
+			break;
 
 			case EXIT:
 			{
-			} break;
+
+			}
+			break;
 
 			default:
 				break;
@@ -207,25 +211,23 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 }
 
 /*
-	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
+	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
 
-	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
-	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
+	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
+	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent(); // ì´ í•¨ìˆ˜ë¥¼ WaitForSingleObjectExë¡œ,
-											  // evemt_game_process
+		framework.AwaitProcessingGameEvent(); // event_game_process
+
 		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // ì´ í•¨ìˆ˜ë¥¼ SleepExë¡œ
+		Sleep(LERP_MIN); // ÀÌ ÇÔ¼ö¸¦ SleepEx·Î
 
 		if (1 < framework.GetClientCount()) {
-		  // ê²Œì„ ì²˜ë¦¬
-			framework.InterpretPlayerAction();
-
-			framework.ProceedReceiveIndex();
+			// °ÔÀÓ Ã³¸®
+			framework.ProceedContinuation();
 		} else {
-			// ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
+			// °ÔÀÓ ÆÇÁ¤½Â È¤Àº °ÔÀÓ °­Á¦ Á¾·á
 		}
 	}
 
@@ -234,11 +236,11 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitClientAcceptEvent(); // event_game_process
+		framework.AwaitClientAcceptEvent();
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
-			cerr << "accept ì˜¤ë¥˜!";
+			cerr << "accept ¿À·ù!";
 			return 0;
 		}
 	}
@@ -248,37 +250,53 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 CCharacter::CCharacter()
 	: GameInstance(), update_info{}
-	, attack_cooltime(0.0)
+	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
-	CBullet* collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
+	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
 	if (collide_bullet) {
-		health--;
+		GetHurt(1);
 		framework.Kill(collide_bullet);
-		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
+		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
 	}
 
-	image_angle = point_direction(0, 0, hspeed, vspeed);
-	UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
+	direction = point_direction(0, 0, hspeed, vspeed);
+
+	//UpdateMessage(owner, framework.GetClientCount(), x, y, health, image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
 
-void CCharacter::UpdateMessage(int index, int count, double x, double y, int hp,
-							   double direction) {
+void CCharacter::UpdateMessage(int count) {
+	update_info.target_player = owner;
 	update_info.player_x = x;
 	update_info.player_y = y;
 	update_info.player_direction = direction;
-	update_info.player_hp = hp;
-	update_info.target_player = index;
+	update_info.player_hp = health;
 	update_info.players_count = count;
+}
+
+void CCharacter::GetHurt(int dmg) {
+	if (inv_time <= 0) {
+		health -= dmg;
+		if (health <= 0) {
+			cout << "ÇÃ·¹ÀÌ¾î " << owner << " »ç¸Á." << endl;
+			Die();
+		} else {
+			inv_time = PLAYER_INVINCIBLE_DURATION;
+		}
+	}
+}
+
+void CCharacter::Die() {
+	framework.Kill(this);
 }
 
 CBullet::CBullet()

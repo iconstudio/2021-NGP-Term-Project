@@ -3,28 +3,28 @@
 #pragma comment(lib, "Ws2_32.lib")
 #pragma warning(disable: 4244)
 
-/// Windows í—¤ë” íŒŒì¼:
-#define WIN32_LEAN_AND_MEAN // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì€ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
+/// Windows Çì´õ ÆÄÀÏ:
+#define WIN32_LEAN_AND_MEAN // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀº Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
 #include <windows.h>
 #include <winperf.h>
 
-/// C ëŸ°íƒ€ì„ í—¤ë” íŒŒì¼ì…ë‹ˆë‹¤.
+/// C ·±Å¸ÀÓ Çì´õ ÆÄÀÏÀÔ´Ï´Ù.
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
 #include <time.h>
 
-/// ATL / MFC í—¤ë” íŒŒì¼:
-#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS // ì¼ë¶€ CString ìƒì„±ìëŠ” ëª…ì‹œì ìœ¼ë¡œ ì„ ì–¸ë©ë‹ˆë‹¤.
+/// ATL / MFC Çì´õ ÆÄÀÏ:
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS // ÀÏºÎ CString »ı¼ºÀÚ´Â ¸í½ÃÀûÀ¸·Î ¼±¾ğµË´Ï´Ù.
 #include <atlbase.h>
 #include <atlimage.h>
 #include <atlstr.h>
 
-// ìˆ˜í•™ ìƒìˆ˜ ì„ ì–¸
+// ¼öÇĞ »ó¼ö ¼±¾ğ
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-// í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬
+// Ç¥ÁØ ¶óÀÌºê·¯¸®
 #include <memory>
 #include <vector>
 #include <map>
@@ -49,14 +49,6 @@ enum WindowInfo : int
 	PORT_W = 640,
 	PORT_H = 480
 };
-
-constexpr double METER_TO_PIXELS = 16.;
-constexpr double HOUR_TO_SECONDS = 3600.;
-constexpr double KPH_TO_PPS = (1000.0 * METER_TO_PIXELS / HOUR_TO_SECONDS);
-
-constexpr double km_per_hr(const double velocity) {
-	return velocity * KPH_TO_PPS;
-}
 
 inline double radtodeg(double value) {
 	return value / M_PI * 180.0;

@@ -11,7 +11,7 @@ DWORD WINAPI GameProcess(LPVOID arg);
 struct PlayerInfo {
 	SOCKET client_socket;
 	HANDLE client_handle;
-	int index; // í”Œë ˆì´ì–´ ë²ˆí˜¸
+	int index; // ÇÃ·¹ÀÌ¾î ¹øÈ£
 
 	void* player_character = nullptr;
 
@@ -19,19 +19,19 @@ struct PlayerInfo {
 };
 
 enum SERVER_STATES : int {
-	LISTEN = 0			// í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ëŒ€ê¸°
-	, LOBBY				// ë¡œë¹„
-	, GAME				// ê²Œì„
-	, GAME_OVER			// ê²Œì„ ì™„ë£Œ
-	, GAME_RESTART		// ê²Œì„ ë‹¤ì‹œ ì‹œì‘
-	, EXIT				// ì„œë²„ ì¢…ë£Œ
+	LISTEN = 0			// Å¬¶óÀÌ¾ğÆ® Á¢¼Ó ´ë±â
+	, LOBBY				// ·Îºñ
+	, GAME				// °ÔÀÓ
+	, GAME_OVER			// °ÔÀÓ ¿Ï·á
+	, GAME_RESTART		// °ÔÀÓ ´Ù½Ã ½ÃÀÛ
+	, EXIT				// ¼­¹ö Á¾·á
 };
 
 enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
-	, SHOOT // íˆ¬ì‚¬ì²´ ë°œì‚¬
+	, SHOOT // Åõ»çÃ¼ ¹ß»ç
 };
 
 const int LERP_MIN = 50;
@@ -62,11 +62,11 @@ public:
 	RenderInstance* MakeRenderInfos();
 
 	int owner;
-	double x, y, hspeed, vspeed;
+	double x, y, hspeed, vspeed, direction;
 	double image_angle, image_index, image_speed, image_number;
 
 private:
-	RECT box; // ì¶©ëŒì²´
+	RECT box; // Ãæµ¹Ã¼
 	bool dead;
 
 	RenderInstance my_renders;
@@ -116,10 +116,10 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	void ProceedReceiveIndex();
 	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-	void InterpretPlayerAction();
-	void ClearPlayerActions();
+
+	void ProceedContinuation();
+
 	void BuildRenderings();
 	void SendRenderings();
 
@@ -144,23 +144,23 @@ private:
 	WSAOVERLAPPED io_behavior;
 	int my_process_index;
 
-	vector<HANDLE> thread_list; // ìŠ¤ë ˆë“œ ëª©ë¡
-	vector<PlayerInfo*> players; // í”Œë ˆì´ì–´ ëª©ë¡
+	vector<HANDLE> thread_list; // ½º·¹µå ¸ñ·Ï
+	vector<PlayerInfo*> players; // ÇÃ·¹ÀÌ¾î ¸ñ·Ï
 
-	int	client_number; // ì§€ê¸ˆ ì ‘ì†í•œ í”Œë ˆì´ì–´ì˜ ìˆ˜
-	int player_number_last; // ë§ˆì§€ë§‰ì— ì¶”ê°€ëœ í”Œë ˆì´ì–´ì˜ ë²ˆí˜¸
-	int	player_captain; // ë°©ì¥ í”Œë ˆì´ì–´
+	int	client_number; // Áö±İ Á¢¼ÓÇÑ ÇÃ·¹ÀÌ¾îÀÇ ¼ö
+	int player_number_last; // ¸¶Áö¸·¿¡ Ãß°¡µÈ ÇÃ·¹ÀÌ¾îÀÇ ¹øÈ£
+	int	player_captain; // ¹æÀå ÇÃ·¹ÀÌ¾î
 
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
-	HANDLE event_player_accept; // í”Œë ˆì´ì–´ ì ‘ì†ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_game_start; // ê²Œì„ ì‹œì‘ì„ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_receives; // í”Œë ˆì´ì–´ì˜ ì…ë ¥ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_game_process; // ì¶©ëŒ ì²˜ë¦¬ë¥¼ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
-	HANDLE event_send_renders; // ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_player_accept; // ÇÃ·¹ÀÌ¾î Á¢¼ÓÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_game_start; // °ÔÀÓ ½ÃÀÛÀ» ÇÏ´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_receives; // ÇÃ·¹ÀÌ¾îÀÇ ÀÔ·ÂÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_game_process; // Ãæµ¹ Ã³¸®¸¦ ÇÏ´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_send_renders; // ·»´õ¸µ Á¤º¸¸¦ º¸³»´Â ÀÌº¥Æ® °´Ã¼
 
-	int** PLAYER_SPAWN_PLACES; // í”Œë ˆì´ì–´ê°€ ë§¨ ì²˜ìŒì— ìƒì„±ë  ìœ„ì¹˜ì˜ ë°°ì—´
+	int** PLAYER_SPAWN_PLACES; // ÇÃ·¹ÀÌ¾î°¡ ¸Ç Ã³À½¿¡ »ı¼ºµÉ À§Ä¡ÀÇ ¹è¿­
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
@@ -172,6 +172,8 @@ private:
 
 	PlayerInfo* GetPlayer(int player_index);
 
+	void InterpretPlayerAction();
+	void ClearPlayerActions();
 	void ContinueToReceive();
 	void ContinueToGameProcess();
 	void ContinueToSendingRenders();

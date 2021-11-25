@@ -11,12 +11,15 @@ public:
 
 	virtual const char* GetIdentifier() const;
 
-	void UpdateMessage(int index, int count, double x, double y, int hp, double direction);
+	void UpdateMessage(int count);
+	void GetHurt(int dmg);
+	void Die();
 
-	int health;
+	double health;
 	double attack_cooltime;
+	double inv_time;
 
-	// í´ë¼ì´ì–¸íŠ¸ì— ì „ë‹¬í•  í”Œë ˆì´ì–´ ì •ë³´
+	// Å¬¶óÀÌ¾ğÆ®¿¡ Àü´ŞÇÒ ÇÃ·¹ÀÌ¾î Á¤º¸
 	GameUpdateMessage update_info;
 };
 
