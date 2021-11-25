@@ -62,14 +62,14 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
-				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
+				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
 				if (player_index == framework.player_captain &&
 					packet == PACKETS::CLIENT_GAME_START) {
 					if (1 < framework.client_number) {
 						framework.CastStartGame(true);
 						break;
 					}
-				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 
 				Sleep(2000);
 				framework.CastStartGame(true);
@@ -78,11 +78,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME:
 			{
-				// ²ÙÁØÇÑ Åë½Å
+				// ê¾¸ì¤€í•œ í†µì‹ 
 				while (true) {
 					framework.AwaitReceiveEvent(); // event_recieves
 
-					// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
+					// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
 						auto key_storage = new InputStream[SEND_INPUT_COUNT];
 						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
@@ -119,9 +119,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										check_up = false;
 									} else if (keycode == 'S') {
 										check_dw = false;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
+									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
 										check_blink = false;
-									} else if (keycode == 'A') { // °ø°İ
+									} else if (keycode == 'A') { // ê³µê²©
 										check_shoot = false;
 									}
 								}
@@ -137,9 +137,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										check_up = true;
 									} else if (keycode == 'S') {
 										check_dw = true;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
+									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
 										check_blink = true;
-									} else if (keycode == 'A') { // °ø°İ
+									} else if (keycode == 'A') { // ê³µê²©
 										check_shoot = true;
 									}
 								}
@@ -155,9 +155,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										check_up = false;
 									} else if (keycode == 'S') {
 										check_dw = false;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
+									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
 										check_blink = false;
-									} else if (keycode == 'A') { // °ø°İ
+									} else if (keycode == 'A') { // ê³µê²©
 										check_shoot = false;
 									}
 								}
@@ -165,12 +165,29 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 						}
 
-						int check_horz = check_rt - check_lt; // ÁÂ¿ì ÀÌµ¿
-						int check_vert = check_dw - check_up; // »óÇÏ ÀÌµ¿
+						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
+						if (pchar && !pchar->dead) {
+							int check_horz = check_rt - check_lt; // ì¢Œìš° ì´ë™
+							int check_vert = check_dw - check_up; // ìƒí•˜ ì´ë™
 
+							if (0 != check_horz) {
+								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
+							}
+							
+							if (0 != check_vert) {
+								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
+							}
 
+							if (check_blink) {
 
-					} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+							}
+
+							if (check_shoot) {
+
+							}
+
+						}
+					} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 
 					framework.CastProcessingGame();
 
@@ -179,6 +196,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					framework.CastSendRenders(false);
 
+					SleepEx(FRAME_TIME, TRUE);
 					framework.CastStartReceive(true);
 				}
 			}
@@ -239,23 +257,23 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 }
 
 /*
-	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
+	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
 
-	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
-	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
+	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
+	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitProcessingGameEvent(); // event_game_process
 
 		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // ÀÌ ÇÔ¼ö¸¦ SleepEx·Î
+		Sleep(LERP_MIN); // ì´ í•¨ìˆ˜ë¥¼ SleepExë¡œ
 
 		if (1 < framework.GetClientCount()) {
-			// °ÔÀÓ Ã³¸®
+			// ê²Œì„ ì²˜ë¦¬
 			framework.ProceedContinuation();
 		} else {
-			// °ÔÀÓ ÆÇÁ¤½Â È¤Àº °ÔÀÓ °­Á¦ Á¾·á
+			// ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
 		}
 	}
 
@@ -268,7 +286,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
-			cerr << "accept ¿À·ù!";
+			cerr << "accept ì˜¤ë¥˜!";
 			return 0;
 		}
 	}
@@ -290,7 +308,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 	if (collide_bullet) {
 		GetHurt(1);
 		framework.Kill(collide_bullet);
-		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
+		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
 	}
 
 	direction = point_direction(0, 0, hspeed, vspeed);
@@ -306,7 +324,7 @@ void CCharacter::GetHurt(int dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "ÇÃ·¹ÀÌ¾î " << owner << " »ç¸Á." << endl;
+			cout << "í”Œë ˆì´ì–´ " << owner << " ì‚¬ë§." << endl;
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
@@ -315,6 +333,7 @@ void CCharacter::GetHurt(int dmg) {
 }
 
 void CCharacter::Die() {
+	dead = true;
 	framework.Kill(this);
 }
 
