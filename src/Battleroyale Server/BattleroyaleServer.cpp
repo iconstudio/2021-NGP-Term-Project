@@ -32,11 +32,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
 	int player_index = client_info->index;
+	auto& player_key_storage = client_info->key_storage;
 
 	while (true) {
 		PACKETS packet;
 		int data_size = 0;
-		char* data = nullptr;
 
 		/*
 		LPDWORD my_size = nullptr;
@@ -84,64 +84,92 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						data = new char[SEND_INPUT_COUNT];
-						result = recv(client_socket, data, SEND_INPUT_COUNT, MSG_WAITALL);
+						auto key_storage = new InputStream[SEND_INPUT_COUNT];
+						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
 
+						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
+									  , data_size, MSG_WAITALL);
+						if (SOCKET_ERROR == result) {
+							framework.PlayerDisconnect(client_info);
+							break;
+						} else if (0 == result) {
+							framework.PlayerDisconnect(client_info);
+							break;
+						}
+
+						bool check_lt = false;
+						bool check_rt = false;
+						bool check_up = false;
+						bool check_dw = false;
+						bool check_shoot = false;
+						bool check_blink = false;
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
-							char button = (*data);
-							if (button == 0)
-								continue;
-
-							switch (button) {
-								case 'W': case 'w':
+							auto button = key_storage[i];
+							auto keycode = button.code;
+							auto keystat = button.type;
+							
+							switch (keystat) {
+								case NONE:
 								{
-									framework.QueingPlayerAction(client_info
-																 , ACTION_TYPES::SET_HSPEED
-																 , -PLAYER_MOVE_SPEED);
-									std::cout << player_index << " - w" << std::endl;
-								}
-								break;
-
-								case 'A': case 'a':
-								{
-									framework.QueingPlayerAction(client_info
-																 , ACTION_TYPES::SET_HSPEED
-																 , PLAYER_MOVE_SPEED);
-									std::cout << player_index << " - a" << std::endl;
-								}
-								break;
-
-								case 'S': case 's':
-								{
-									framework.QueingPlayerAction(client_info
-																 , ACTION_TYPES::SET_VSPEED
-																 , -PLAYER_MOVE_SPEED);
-									std::cout << player_index << " - s" << std::endl;
-								}
-								break;
-
-								case 'D': case 'd':
-								{
-									framework.QueingPlayerAction(client_info
-																 , ACTION_TYPES::SET_VSPEED
-																 , PLAYER_MOVE_SPEED);
-									std::cout << player_index << " - d" << std::endl;
-								}
-								break;
-
-								case VK_SPACE:
-								{
-									auto cc = reinterpret_cast<CCharacter*>(client_info->player_character);
-									if (cc) {
-										framework.QueingPlayerAction(client_info
-																	 , ACTION_TYPES::SHOOT
-																	 , static_cast<int>(cc->image_angle));
+									if (keycode == 'A') {
+										check_lt = false;
+									} else if (keycode == 'D') {
+										check_rt = false;
+									} else if (keycode == 'W') {
+										check_up = false;
+									} else if (keycode == 'S') {
+										check_dw = false;
+									} else if (keycode == VK_SPACE) { // 특능
+										check_blink = false;
+									} else if (keycode == 'A') { // 공격
+										check_shoot = false;
 									}
-									std::cout << player_index << " - space" << std::endl;
+								}
+								break;
+
+								case PRESS:
+								{
+									if(keycode == 'A') {
+										check_lt = true;
+									} else if (keycode == 'D') {
+										check_rt = true;
+									} else if (keycode == 'W') {
+										check_up = true;
+									} else if (keycode == 'S') {
+										check_dw = true;
+									} else if (keycode == VK_SPACE) { // 특능
+										check_blink = true;
+									} else if (keycode == 'A') { // 공격
+										check_shoot = true;
+									}
+								}
+								break;
+
+								case RELEASE:
+								{
+									if (keycode == 'A') {
+										check_lt = false;
+									} else if (keycode == 'D') {
+										check_rt = false;
+									} else if (keycode == 'W') {
+										check_up = false;
+									} else if (keycode == 'S') {
+										check_dw = false;
+									} else if (keycode == VK_SPACE) { // 특능
+										check_blink = false;
+									} else if (keycode == 'A') { // 공격
+										check_shoot = false;
+									}
 								}
 								break;
 							}
 						}
+
+						int check_horz = check_rt - check_lt; // 좌우 이동
+						int check_vert = check_dw - check_up; // 상하 이동
+
+
+
 					} // 다른 메시지는 버린다.
 
 					framework.CastProcessingGame();

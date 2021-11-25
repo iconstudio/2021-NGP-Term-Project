@@ -223,7 +223,6 @@ SOCKET ServerFramework::PlayerConnect() {
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
-	//thread_list.push_back(new_thread);
 
 	// 첫번째 플레이어
 	if (client_number == 0) {
@@ -459,6 +458,12 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
 	client_handle = hd;
 	index = id;
+}
+
+PlayerInfo::~PlayerInfo() {
+	key_storage.clear();
+	delete& key_storage;
+	delete player_character;
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
