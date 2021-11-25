@@ -86,8 +86,8 @@ struct InputStream {
 struct RenderInstance {
 	RENDER_TYPES instance_type;
 
-	int image_index;
-	double x, y, angle;
+	int image_index;		// 몇 번째 이미지를 스프라이트에서 사용할지
+	double x, y, angle;		// 이미지 회전 각도/방향
 };
 
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
