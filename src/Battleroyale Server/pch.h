@@ -38,18 +38,6 @@
 
 using namespace std;
 
-enum WindowInfo : int
-{
-	GAME_SCENE_W = 1280,
-	GAME_SCENE_H = 720,
-	CLIENT_W = 960,
-	CLIENT_H = 540,
-	VIEW_W = 320,
-	VIEW_H = 240,
-	PORT_W = 640,
-	PORT_H = 480
-};
-
 inline double radtodeg(double value) {
 	return value / M_PI * 180.0;
 }
