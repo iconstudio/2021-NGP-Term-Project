@@ -98,8 +98,28 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
 							auto button = data[i];
 							auto keycode = button.code;
-							auto keystat = button.type;
+							auto keystat = button.type; // NONE, PRESS, RELEASE
 
+							switch (keystat) {
+								case NONE:
+								{
+
+								}
+								break;
+
+								case PRESS:
+								{
+
+								}
+								break;
+
+								case RELEASE:
+								{
+
+								}
+								break;
+
+							}
 							switch (button) {
 								case 'W': case 'w':
 								{
