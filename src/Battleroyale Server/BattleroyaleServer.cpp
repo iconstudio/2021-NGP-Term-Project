@@ -295,7 +295,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 CCharacter::CCharacter()
-	: GameInstance(), update_info{}
+	: GameInstance()
 	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
@@ -319,15 +319,6 @@ void CCharacter::OnUpdate(double frame_advance) {
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
-
-void CCharacter::UpdateMessage(int count) {
-	update_info.target_player = owner;
-	update_info.player_x = x;
-	update_info.player_y = y;
-	update_info.player_direction = direction;
-	update_info.player_hp = health;
-	update_info.players_count = count;
-}
 
 void CCharacter::GetHurt(int dmg) {
 	if (inv_time <= 0) {

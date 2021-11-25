@@ -11,16 +11,12 @@ public:
 
 	virtual const char* GetIdentifier() const;
 
-	void UpdateMessage(int count);
 	void GetHurt(int dmg);
 	void Die();
 
 	double health;
 	double attack_cooltime;
 	double inv_time;
-
-	// 클라이언트에 전달할 플레이어 정보
-	GameUpdateMessage update_info;
 };
 
 class CBullet : public GameInstance {
