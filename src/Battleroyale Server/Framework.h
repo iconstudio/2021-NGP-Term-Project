@@ -93,9 +93,6 @@ public:
 	void GameUpdate();
 	void Clean();
 
-	SOCKET PlayerConnect();
-	void PlayerDisconnect(PlayerInfo* player);
-
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
 
@@ -107,6 +104,10 @@ public:
 	void CastStartGame(bool flag);
 	void CastProcessingGame();
 	void CastSendRenders(bool flag);
+
+	SOCKET PlayerConnect();
+	void PlayerDisconnect(PlayerInfo* player);
+	bool CheckClientNumber() const;
 
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
@@ -182,7 +183,6 @@ private:
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };
-
 
 template<class _GameClassTarget, class _GameClassSelf>
 inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {

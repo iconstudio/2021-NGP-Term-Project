@@ -64,7 +64,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
-					if (0 < framework.GetClientCount()) {
+					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
 						break;
 					}
@@ -106,7 +106,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							auto button = key_storage[i];
 							auto keycode = button.code;
 							auto keystat = button.type;
-							
+
 							switch (keystat) {
 								case NONE:
 								{
@@ -165,7 +165,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 
 						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-						if (pchar && !pchar->dead) {
+						if (pchar && !pchar->dead) { // 게임 상태
 							int check_horz = check_rt - check_lt; // 좌우 이동
 							int check_vert = check_dw - check_up; // 상하 이동
 
@@ -184,8 +184,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							if (check_shoot) {
 
 							}
-						} else if (pchar && !pchar->dead) {
-
+						} else if (pchar && pchar->dead) { // 관전 상태
 						}
 					} // 다른 메시지는 버린다.
 
@@ -270,7 +269,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		framework.CastStartReceive(false);
 		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
-		if (1 < framework.GetClientCount()) {
+		if (framework.CheckClientNumber()) {
 			// 게임 처리
 			framework.ProceedContinuation();
 		} else {
@@ -328,6 +327,8 @@ void CCharacter::GetHurt(int dmg) {
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
+	} else {
+		inv_time -= FRAME_TIME;
 	}
 }
 

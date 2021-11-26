@@ -302,6 +302,10 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 	}
 }
 
+bool ServerFramework::CheckClientNumber() const {
+	return (CLIENT_NUMBER_MIN <= client_number);
+}
+
 void ServerFramework::SetCaptain(PlayerInfo* player) {
 	if (player) {
 		player_captain = player->index;
