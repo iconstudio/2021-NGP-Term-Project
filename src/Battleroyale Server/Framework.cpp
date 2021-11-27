@@ -351,8 +351,8 @@ void ServerFramework::BuildRenderings() {
 	if (!instances.empty()) {
 		if (render_last) {
 			delete[] render_last;
-			render_last = new RenderInstance[RENDER_INST_COUNT];
 		}
+		render_last = new RenderInstance[RENDER_INST_COUNT];
 
 		auto CopyList = vector<GameInstance*>(instances);
 
@@ -375,9 +375,12 @@ void ServerFramework::BuildRenderings() {
 
 void ServerFramework::SendRenderings() {
 	if (render_last) {
+		const char* my_render_info = reinterpret_cast<char*>(&render_last);
+		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
+
 		for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
-			SendData((*p_iter)->client_socket, SERVER_RENDER_INFO
-				, reinterpret_cast<char*>(&render), sizeof(render));
+			auto my_socket = (*p_iter)->client_socket;
+			SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
 		}
 	}
 }
