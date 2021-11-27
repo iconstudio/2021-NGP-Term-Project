@@ -310,6 +310,8 @@ void CCharacter::OnUpdate(double frame_advance) {
 	if (hspeed != 0.0 || vspeed != 0.0)
 		direction = point_direction(0, 0, hspeed, vspeed);
 
+	AssignRenderingInfo(direction);
+
 	GameInstance::OnUpdate(frame_advance);
 }
 
@@ -348,6 +350,8 @@ void CBullet::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
+	AssignRenderingInfo(image_angle);
+
 	GameInstance::OnUpdate(frame_advance);
 }
 

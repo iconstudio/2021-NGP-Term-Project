@@ -592,10 +592,10 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 		|| GetBoundBT() < other->GetBoundTP());
 }
 
-RenderInstance& GameInstance::MakeRenderInfos() {
+RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
 	my_renders.x = x;
 	my_renders.y = y;
-	my_renders.angle = image_angle;
+	my_renders.angle = angle;
 
 	return my_renders;
 }

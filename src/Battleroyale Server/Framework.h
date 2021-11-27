@@ -62,7 +62,7 @@ public:
 
 	bool IsCollideWith(GameInstance* other);
 
-	RenderInstance& MakeRenderInfos();
+	RenderInstance& AssignRenderingInfo(double angle);
 
 	bool dead;
 	int owner;
