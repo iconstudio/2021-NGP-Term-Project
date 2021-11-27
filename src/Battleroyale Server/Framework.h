@@ -94,12 +94,13 @@ public:
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
 	SERVER_STATES GetStatus() const;
-	int GetClientCount() const;
+	int GetClientNumber() const;
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
 	bool CheckClientNumber() const;
 	void ProceedContinuation();
+
 	void BuildRenderings();
 	void SendRenderings(SOCKET my_socket);
 

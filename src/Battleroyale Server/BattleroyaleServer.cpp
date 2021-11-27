@@ -169,12 +169,12 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 
 							if (check_blink) {
-
+								//TODO
 							}
 
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
-								
+								//TODO
 							}
 						} else if (pchar && pchar->dead) { // 관전 상태
 						}
@@ -195,7 +195,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME_OVER:
 			{
-				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
+				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) { //TODO
 
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
 
@@ -205,13 +205,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME_RESTART:
 			{
-
+				//TODO
 			}
 			break;
 
 			case EXIT:
 			{
-
+				//TODO
 			}
 			break;
 

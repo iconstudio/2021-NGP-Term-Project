@@ -330,7 +330,7 @@ SERVER_STATES ServerFramework::GetStatus() const {
 	return status;
 }
 
-int ServerFramework::GetClientCount() const {
+int ServerFramework::GetClientNumber() const {
 	return client_number;
 }
 
@@ -340,8 +340,12 @@ void ServerFramework::ProceedContinuation() {
 	} else {
 		my_process_index = 0;
 
+		// 게임 상태 갱신
 		GameUpdate();
 		BuildRenderings();
+
+		// 게임 승패 판정
+
 
 		CastSendRenders(true);
 	}
@@ -439,43 +443,6 @@ PlayerInfo::~PlayerInfo() {
 	delete player_character;
 }
 
-void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
-	if (SOCKET_ERROR == result) {
-		ErrorAbort("send 1");
-	}
-
-	if (buffer) {
-		result = send(socket, buffer, length, 0);
-		if (SOCKET_ERROR == result) {
-			ErrorAbort("send 2");
-		}
-	}
-}
-
-void ErrorAbort(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
-
-	LocalFree(lpMsgBuf);
-	exit(true);
-}
-
-void ErrorDisplay(const char* msg) {
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
-
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
-
-	LocalFree(lpMsgBuf);
-}
-
 GameInstance::GameInstance()
 	: owner(-1)
 	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
@@ -561,4 +528,41 @@ RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
 	my_renders.angle = angle;
 
 	return my_renders;
+}
+
+void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
+	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
+	if (SOCKET_ERROR == result) {
+		ErrorAbort("send 1");
+	}
+
+	if (buffer) {
+		result = send(socket, buffer, length, 0);
+		if (SOCKET_ERROR == result) {
+			ErrorAbort("send 2");
+		}
+	}
+}
+
+void ErrorAbort(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
+
+	LocalFree(lpMsgBuf);
+	exit(true);
+}
+
+void ErrorDisplay(const char* msg) {
+	LPVOID lpMsgBuf;
+
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
+
+	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+
+	LocalFree(lpMsgBuf);
 }
