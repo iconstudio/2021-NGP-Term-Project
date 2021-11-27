@@ -3,6 +3,9 @@
 #include "CommonDatas.h"
 
 
+const int LERP_MIN = 50;
+const int LERP_MAX = 200;
+
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
@@ -35,9 +38,6 @@ enum class ACTION_TYPES : int {
 	, SHOOT // 투사체 발사
 };
 
-const int LERP_MIN = 50;
-const int LERP_MAX = 200;
-
 class GameInstance {
 public:
 	GameInstance();
@@ -52,7 +52,6 @@ public:
 	void SetImageNumber(int number);
 
 	RenderInstance& AssignRenderingInfo(double angle);
-
 	RenderInstance& GetRenderInstance();
 
 	void SetBoundBox(const RECT& mask);
@@ -172,7 +171,7 @@ private:
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
-	RenderInstance *render_last;
+	RenderInstance* render_last;
 	vector<GameInstance*> instances;
 };
 
@@ -234,7 +233,7 @@ template<class _GameClass>
 inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
-		});
+	});
 
 	if (loc != instances.end()) {
 		target->OnDestroy();
