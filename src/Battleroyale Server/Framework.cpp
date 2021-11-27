@@ -112,7 +112,12 @@ void ServerFramework::Startup() {
 				if (!status_begin) {
 					cout << "S: Lobby" << endl;
 
-					CastClientAccept(true);
+
+					if (client_number < PLAYERS_NUMBER_MAX) {
+						CastClientAccept(true);
+					} else {
+						CastClientAccept(false);
+					}
 					status_begin = true;
 				}
 			}
@@ -200,21 +205,12 @@ SOCKET ServerFramework::PlayerConnect() {
 		{
 			// 첫번째 플레이어 접속
 			SetStatus(LOBBY);
-
-			if (client_number < PLAYERS_NUMBER_MAX) {
-				CastClientAccept(true);
-			} else {
-				closesocket(new_socket);
-				return 0;
-			}
 		}
 		break;
 
 		case LOBBY:
 		{
-			if (client_number < PLAYERS_NUMBER_MAX) {
-				CastClientAccept(true);
-			} else {
+			if (PLAYERS_NUMBER_MAX <= client_number) {
 				closesocket(new_socket);
 				return 0;
 			}

@@ -288,9 +288,10 @@ void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
 	if (collide_bullet) {
-		GetHurt(1);
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+
+		GetHurt(1);
 	}
 
 	if (hspeed != 0.0 || vspeed != 0.0)
