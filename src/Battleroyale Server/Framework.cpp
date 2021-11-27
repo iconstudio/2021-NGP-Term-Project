@@ -349,8 +349,8 @@ void ServerFramework::ProceedContinuation() {
 }
 
 void ServerFramework::BuildRenderings() {
-	ForeachInstances([&](GameInstance*& inst) {
-	});
+	//ForeachInstances([&](GameInstance*& inst) {});
+
 }
 
 void ServerFramework::SendRenderings() {

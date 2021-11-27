@@ -41,6 +41,7 @@ const double FRAME_TIME = (1.0 / FRAMERATE);
 /* 송수신 설정 */
 const int SEND_INPUT_COUNT = 6;
 const int CLIENT_NUMBER_MIN = 1;
+const int RENDER_INST_COUNT = 40;
 
 
 enum PACKETS : int {
