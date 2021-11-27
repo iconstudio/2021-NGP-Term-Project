@@ -177,11 +177,9 @@ void ServerFramework::GameUpdate() {
 void ServerFramework::Clean() {
 	players.clear();
 	instances.clear();
-	io_queue.clear();
 
 	players.shrink_to_fit();
 	instances.shrink_to_fit();
-	io_queue.shrink_to_fit();
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 	SetCaptain(nullptr);
@@ -341,8 +339,6 @@ int ServerFramework::GetClientCount() const {
 }
 
 void ServerFramework::ProceedContinuation() {
-	InterpretPlayerAction();
-
 	if (my_process_index < client_number) {
 		my_process_index++;
 	} else {
@@ -353,8 +349,6 @@ void ServerFramework::ProceedContinuation() {
 
 		CastSendRenders(true);
 	}
-
-	ClearPlayerActions();
 }
 
 void ServerFramework::BuildRenderings() {
@@ -426,52 +420,6 @@ void ServerFramework::CastSendRenders(bool flag) {
 	} else {
 		ResetEvent(event_send_renders);
 	}
-}
-
-ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
-															 , ACTION_TYPES type
-															 , int data) {
-	auto* result = new IO_MSG{ type, player->index, data };
-	io_queue.push_back(std::move(result));
-	return result;
-}
-
-void ServerFramework::InterpretPlayerAction() {
-	if (0 < io_queue.size()) {
-		for (auto& output : io_queue) {
-			auto player = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
-
-			switch (output->type) {
-				case ACTION_TYPES::SET_HSPEED:
-				{
-					player->hspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SET_VSPEED:
-				{
-					player->vspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT:
-				{
-					player->image_angle = output->data;
-				}
-				break;
-
-				default:
-				{
-
-				}
-				break;
-			}
-		}
-	}
-}
-
-void ServerFramework::ClearPlayerActions() {
-	io_queue.clear();
 }
 
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {

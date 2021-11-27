@@ -131,12 +131,15 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	PlayerInfo* GetPlayer(int player_index);
+
+	template<class Predicate>
+	void ForeachInstances(Predicate predicate);
+
 	SERVER_STATES status;
 	bool status_begin;
 
@@ -171,19 +174,6 @@ private:
 
 	RenderInstance *render_last;
 	vector<GameInstance*> instances;
-
-	vector<IO_MSG*> io_queue;
-
-	PlayerInfo* GetPlayer(int player_index);
-
-	void InterpretPlayerAction();
-	void ClearPlayerActions();
-	void ContinueToReceive();
-	void ContinueToGameProcess();
-	void ContinueToSendingRenders();
-
-	template<class Predicate>
-	void ForeachInstances(Predicate predicate);
 };
 
 template<class _GamePlayerClass>
