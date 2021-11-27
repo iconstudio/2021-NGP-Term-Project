@@ -173,13 +173,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 
 							if (check_blink) {
-								// 湲곗〈 ?대? 嫄곕━? 3諛곗 嫄곕━濡 ?媛?대(諛곗? 蹂寃?媛??
-								// 醫??諛⑺??媛?대
+								// 기존 이동한 거리의 3배의 거리로 순간이동(배수는 변경 가능)
+								// 좌우 방향 순간이동
 								if (0 != check_horz) {
 									pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
 								}
 
-								// ?? 諛⑺??媛?대
+								// 상하 방향 순간이동
 								if (0 != check_vert) {
 									pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
 								}
@@ -189,6 +189,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 							}
 
+							if (check_reload) {
 
 							}
 						} else if (pchar && pchar->dead) {
