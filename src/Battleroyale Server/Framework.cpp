@@ -164,6 +164,8 @@ void ServerFramework::Startup() {
 void ServerFramework::GameReady() {
 	shuffle(players.begin(), players.end(), randomizer);
 
+	my_process_index = 0;
+	player_winner = -1;
 }
 
 void ServerFramework::GameUpdate() {
