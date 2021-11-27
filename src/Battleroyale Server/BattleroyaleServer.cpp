@@ -178,7 +178,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
-
+								
 							}
 						} else if (pchar && pchar->dead) { // 관전 상태
 						}
@@ -307,7 +307,8 @@ void CCharacter::OnUpdate(double frame_advance) {
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 	}
 
-	direction = point_direction(0, 0, hspeed, vspeed);
+	if (hspeed != 0.0 || vspeed != 0.0)
+		direction = point_direction(0, 0, hspeed, vspeed);
 
 	GameInstance::OnUpdate(frame_advance);
 }
