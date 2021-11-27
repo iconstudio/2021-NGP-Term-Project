@@ -6,7 +6,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
-	, thread_game_starter(NULL), thread_game_process(NULL)
+	, thread_game_starter(NULL), thread_game_process(NULL), render_last(nullptr)
 	, player_number_last(0), player_captain(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
@@ -340,7 +340,6 @@ void ServerFramework::ProceedContinuation() {
 		my_process_index = 0;
 
 		GameUpdate();
-		BuildRenderings();
 
 		CastSendRenders(true);
 	}
@@ -349,15 +348,33 @@ void ServerFramework::ProceedContinuation() {
 }
 
 void ServerFramework::BuildRenderings() {
-	//ForeachInstances([&](GameInstance*& inst) {});
+	if (!instances.empty()) {
+		if (render_last) {
+			delete[] render_last;
+			render_last = new RenderInstance[RENDER_INST_COUNT];
+		}
 
+		auto CopyList = vector<GameInstance*>(instances);
+
+		// 플레이어 개체를 맨 위로
+		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
+			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+		});
+
+		for (auto it = CopyList.begin(); it != instances.end(); ++it) {
+			auto& render = (*it)->GetRenderInstance();
+
+			
+		}
+	} else if (render_last) {
+		delete[] render_last;
+		render_last = nullptr;
+	}
 }
 
 void ServerFramework::SendRenderings() {
-	for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
-		for (auto inst_iter = instances.begin(); inst_iter != instances.end(); ++inst_iter) {
-			auto render = (*inst_iter)->GetRenderInstance();
-
+	if (render_last) {
+		for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
 			SendData((*p_iter)->client_socket, SERVER_RENDER_INFO
 				, reinterpret_cast<char*>(&render), sizeof(render));
 		}

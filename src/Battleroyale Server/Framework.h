@@ -166,7 +166,7 @@ private:
 	const int WORLD_W, WORLD_H;
 	const int SPAWN_DISTANCE;
 
-	RenderInstance render_last[RENDER_INST_COUNT];
+	RenderInstance *render_last;
 	vector<GameInstance*> instances;
 
 	vector<IO_MSG*> io_queue;
