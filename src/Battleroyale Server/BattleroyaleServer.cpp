@@ -230,17 +230,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 		framework.AwaitStartGameEvent();
 
 		framework.GameReady();
-		
-		auto sz = framework.players.size();
-		for (int i = 0; i < sz; ++i) {
-			auto player = framework.players.at(i);
-			auto places = framework.PLAYER_SPAWN_PLACES[i];
-			auto character = framework.Instantiate<CCharacter>(places[0], places[1]);
-
-			player->player_character = character;
-			character->owner = player->index;
-			SendData(player->client_socket, PACKETS::SERVER_GAME_START);
-		}
+		framework.CreatePlayerCharacters<CCharacter>();
 
 		framework.CastStartReceive(true);
 		framework.SetStatus(GAME);

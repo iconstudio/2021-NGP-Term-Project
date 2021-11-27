@@ -95,34 +95,12 @@ public:
 
 	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
-
 	SERVER_STATES GetStatus() const;
 	int GetClientCount() const;
-
-	void CastClientAccept(bool flag);
-	void CastStartReceive(bool flag);
-	void CastStartGame(bool flag);
-	void CastProcessingGame();
-	void CastSendRenders(bool flag);
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
 	bool CheckClientNumber() const;
-
-	template<class _GameClassTarget, class _GameClassSelf>
-	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
-
-	template<class _GameClass1, class _GameClass2>
-	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
-
-	inline DWORD WINAPI AwaitClientAcceptEvent();
-	inline DWORD WINAPI AwaitReceiveEvent();
-	inline DWORD WINAPI AwaitStartGameEvent();
-	inline DWORD WINAPI AwaitProcessingGameEvent();
-	inline DWORD WINAPI AwaitSendRendersEvent();
-
-	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-
 	void ProceedContinuation();
 	void BuildRenderings();
 	void SendRenderings();
@@ -132,6 +110,29 @@ public:
 
 	template<class _GameClass = GameInstance>
 	void Kill(_GameClass* target);
+
+	template<class _GamePlayerClass>
+	void CreatePlayerCharacters();
+
+	template<class _GameClassTarget, class _GameClassSelf>
+	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
+
+	template<class _GameClass1, class _GameClass2>
+	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
+
+	void CastClientAccept(bool flag);
+	void CastStartReceive(bool flag);
+	void CastStartGame(bool flag);
+	void CastProcessingGame();
+	void CastSendRenders(bool flag);
+
+	inline DWORD WINAPI AwaitClientAcceptEvent();
+	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitStartGameEvent();
+	inline DWORD WINAPI AwaitProcessingGameEvent();
+	inline DWORD WINAPI AwaitSendRendersEvent();
+
+	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
 
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
@@ -185,6 +186,20 @@ private:
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);
 };
+
+template<class _GamePlayerClass>
+void ServerFramework::CreatePlayerCharacters() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		auto places = PLAYER_SPAWN_PLACES[i];
+		auto character = Instantiate<_GamePlayerClass>(places[0], places[1]);
+
+		player->player_character = character;
+		character->owner = player->index;
+		SendData(player->client_socket, PACKETS::SERVER_GAME_START);
+	}
+}
 
 template<class _GameClassTarget, class _GameClassSelf>
 inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
