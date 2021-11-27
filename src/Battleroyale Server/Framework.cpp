@@ -345,6 +345,7 @@ void ServerFramework::ProceedContinuation() {
 		my_process_index = 0;
 
 		GameUpdate();
+		BuildRenderings();
 
 		CastSendRenders(true);
 	}
