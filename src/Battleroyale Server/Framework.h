@@ -103,7 +103,7 @@ public:
 	bool CheckClientNumber() const;
 	void ProceedContinuation();
 	void BuildRenderings();
-	void SendRenderings();
+	void SendRenderings(SOCKET my_socket);
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(double x = 0.0, double y = 0.0);

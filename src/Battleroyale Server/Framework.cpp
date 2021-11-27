@@ -81,7 +81,7 @@ bool ServerFramework::Initialize() {
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
 
 	// event_player_accept
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
@@ -381,15 +381,12 @@ void ServerFramework::BuildRenderings() {
 	}
 }
 
-void ServerFramework::SendRenderings() {
+void ServerFramework::SendRenderings(SOCKET my_socket) {
 	if (render_last) {
 		const char* my_render_info = reinterpret_cast<char*>(&render_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
-		for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
-			auto my_socket = (*p_iter)->client_socket;
-			SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
-		}
+		SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
 	}
 }
 
