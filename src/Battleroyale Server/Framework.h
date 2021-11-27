@@ -47,11 +47,12 @@ public:
 	virtual void OnCreate();
 	virtual void OnDestroy();
 	virtual void OnUpdate(double frame_advance);
+	virtual const char* GetIdentifier() const;
 
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
 	void SetRenderInstance();
-	RenderInstance GetRenderInstance() const;
+	RenderInstance& GetRenderInstance();
 
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;
@@ -59,11 +60,9 @@ public:
 	int GetBoundRT() const;
 	int GetBoundBT() const;
 
-	virtual const char* GetIdentifier() const;
-
 	bool IsCollideWith(GameInstance* other);
 
-	RenderInstance* MakeRenderInfos();
+	RenderInstance& MakeRenderInfos();
 
 	bool dead;
 	int owner;

@@ -512,7 +512,9 @@ GameInstance::GameInstance()
 	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
 	, my_renders{}
 	, box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
+	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {
+	ZeroMemory(&my_renders, sizeof(my_renders));
+}
 
 GameInstance::~GameInstance() {
 	delete& my_renders;
@@ -547,8 +549,7 @@ void GameInstance::SetImageNumber(int number) {
 	image_number = static_cast<double>(number);
 }
 
-void GameInstance::SetRenderInstance()
-{
+void GameInstance::SetRenderInstance() {
 	my_renders.x = x;
 	my_renders.y = y;
 
@@ -556,8 +557,7 @@ void GameInstance::SetRenderInstance()
 	my_renders.angle = image_angle;
 }
 
-RenderInstance GameInstance::GetRenderInstance() const
-{
+RenderInstance& GameInstance::GetRenderInstance() {
 	return my_renders;
 }
 
@@ -592,12 +592,10 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 		|| GetBoundBT() < other->GetBoundTP());
 }
 
-RenderInstance* GameInstance::MakeRenderInfos() {
-	ZeroMemory(&my_renders, sizeof(my_renders));
-
+RenderInstance& GameInstance::MakeRenderInfos() {
 	my_renders.x = x;
 	my_renders.y = y;
 	my_renders.angle = image_angle;
 
-	return &my_renders;
+	return my_renders;
 }
