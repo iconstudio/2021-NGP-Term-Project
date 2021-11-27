@@ -361,10 +361,11 @@ void ServerFramework::BuildRenderings() {
 			return (strcmp(inst->GetIdentifier(), "Player") == 0);
 		});
 
-		for (auto it = CopyList.begin(); it != instances.end(); ++it) {
-			auto& render = (*it)->GetRenderInstance();
+		int index = 0;
+		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
+			auto& render_infos = (*it)->GetRenderInstance();
 
-			
+			render_last[index++] = render_infos;
 		}
 	} else if (render_last) {
 		delete[] render_last;
