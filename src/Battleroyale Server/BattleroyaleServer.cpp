@@ -41,11 +41,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		*/
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-
-		if (SOCKET_ERROR == result) {
-			framework.PlayerDisconnect(client_info);
-			break;
-		} else if (0 == result) {
+		if (!framework.CheckMessage(result)) {
 			framework.PlayerDisconnect(client_info);
 			break;
 		}
@@ -61,7 +57,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					}
 				} // 다른 메시지는 버린다.
 
-				Sleep(2000);
+				Sleep(5000);
 				framework.CastStartGame(true);
 				break;
 			} break;

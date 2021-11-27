@@ -309,6 +309,16 @@ bool ServerFramework::CheckClientNumber() const {
 	return (CLIENT_NUMBER_MIN <= client_number);
 }
 
+bool ServerFramework::CheckMessage(int socket_state) {
+	if (SOCKET_ERROR == socket_state) {
+		return false;
+	} else if (0 == socket_state) {
+		return false;
+	}
+
+	return true;
+}
+
 void ServerFramework::SetCaptain(PlayerInfo* player) {
 	if (player) {
 		player_captain = player->index;

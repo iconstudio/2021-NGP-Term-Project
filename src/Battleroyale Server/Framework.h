@@ -98,9 +98,10 @@ public:
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
-	bool CheckClientNumber() const;
-	void ProceedContinuation();
 
+	bool CheckClientNumber() const;
+	bool CheckMessage(int socket_state);
+	void ProceedContinuation();
 	void BuildRenderings();
 	void SendRenderings(SOCKET my_socket);
 
