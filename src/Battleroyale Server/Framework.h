@@ -74,13 +74,6 @@ private:
 };
 
 class ServerFramework {
-private:
-	struct IO_MSG {
-		ACTION_TYPES type;
-		int player_index = 0;
-		int data = 0;
-	};
-
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
