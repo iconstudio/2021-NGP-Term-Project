@@ -7,7 +7,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), render_last(nullptr)
-	, player_number_last(0), player_captain(-1) {
+	, player_number_last(0), player_captain(-1), player_winner(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 
@@ -159,6 +159,10 @@ void ServerFramework::Startup() {
 				break;
 		}
 	}
+}
+
+void ServerFramework::GameReady() {
+
 }
 
 void ServerFramework::GameUpdate() {

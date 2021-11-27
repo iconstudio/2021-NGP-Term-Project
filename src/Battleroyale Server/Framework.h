@@ -89,6 +89,7 @@ public:
 
 	bool Initialize();
 	void Startup();
+	void GameReady();
 	void GameUpdate();
 	void Clean();
 
@@ -152,6 +153,7 @@ private:
 	int	client_number; // 지금 접속한 플레이어의 수
 	int player_number_last; // 마지막에 추가된 플레이어의 번호
 	int	player_captain; // 방장 플레이어
+	int player_winner; // 승리한 플레이어
 
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;

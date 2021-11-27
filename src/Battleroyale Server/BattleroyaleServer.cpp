@@ -232,6 +232,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitStartGameEvent();
 
+		framework.GameReady();
 		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
 
 		auto sz = framework.players.size();
