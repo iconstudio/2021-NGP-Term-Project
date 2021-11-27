@@ -6,9 +6,6 @@
 
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
-normal_distribution<> server_distrubution;
-default_random_engine server_randomizer{ 0 };
-
 int main() {
 	cout << "Hello World!\n";
 
@@ -233,8 +230,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 		framework.AwaitStartGameEvent();
 
 		framework.GameReady();
-		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
-
+		
 		auto sz = framework.players.size();
 		for (int i = 0; i < sz; ++i) {
 			auto player = framework.players.at(i);

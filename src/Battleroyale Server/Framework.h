@@ -133,8 +133,6 @@ public:
 	template<class _GameClass = GameInstance>
 	void Kill(_GameClass* target);
 
-	friend DWORD WINAPI ConnectProcess(LPVOID arg);
-	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
@@ -163,6 +161,9 @@ private:
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
+
+	normal_distribution<> random_distrubution;
+	default_random_engine randomizer;
 
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;

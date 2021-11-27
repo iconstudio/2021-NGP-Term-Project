@@ -3,7 +3,7 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework(int rw, int rh)
-	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
+	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), render_last(nullptr)
@@ -162,6 +162,7 @@ void ServerFramework::Startup() {
 }
 
 void ServerFramework::GameReady() {
+	shuffle(players.begin(), players.end(), randomizer);
 
 }
 
