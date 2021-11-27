@@ -351,12 +351,15 @@ void ServerFramework::BuildRenderings() {
 }
 
 void ServerFramework::SendRenderings() {
-	for (auto p_iter = players.begin(); p_iter != players.end(); ++p_iter) {
-		for (auto inst_iter = instances.begin(); inst_iter != instances.end(); ++inst_iter) {
-			auto render = (*inst_iter)->GetRenderInstance();
+	for (auto player = players.begin(); player != players.end(); ++player) {
+		for (auto instance = instances.begin(); instance != instances.end(); ++instance) {
+			auto render = (*instance)->GetRenderInstance();
 
-			SendData((*p_iter)->client_socket, SERVER_RENDER_INFO
-				, reinterpret_cast<char*>(&render), sizeof(render));
+			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
+			if (!(*instance)->dead) {
+				SendData((*player)->client_socket, SERVER_RENDER_INFO
+					, reinterpret_cast<char*>(&render), sizeof(render));
+			}
 		}
 	}
 }
