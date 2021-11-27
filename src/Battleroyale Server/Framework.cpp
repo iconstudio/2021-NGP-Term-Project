@@ -350,7 +350,6 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BuildRenderings() {
 	ForeachInstances([&](GameInstance*& inst) {
-		inst->SetRenderInstance();
 	});
 }
 
@@ -549,14 +548,6 @@ void GameInstance::SetImageNumber(int number) {
 	image_number = static_cast<double>(number);
 }
 
-void GameInstance::SetRenderInstance() {
-	my_renders.x = x;
-	my_renders.y = y;
-
-	my_renders.image_index = image_index;
-	my_renders.angle = image_angle;
-}
-
 RenderInstance& GameInstance::GetRenderInstance() {
 	return my_renders;
 }
@@ -595,6 +586,8 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
 	my_renders.x = x;
 	my_renders.y = y;
+
+	my_renders.image_index = image_index;
 	my_renders.angle = angle;
 
 	return my_renders;

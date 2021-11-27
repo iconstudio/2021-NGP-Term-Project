@@ -51,7 +51,9 @@ public:
 
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
-	void SetRenderInstance();
+
+	RenderInstance& AssignRenderingInfo(double angle);
+
 	RenderInstance& GetRenderInstance();
 
 	void SetBoundBox(const RECT& mask);
@@ -61,8 +63,6 @@ public:
 	int GetBoundBT() const;
 
 	bool IsCollideWith(GameInstance* other);
-
-	RenderInstance& AssignRenderingInfo(double angle);
 
 	bool dead;
 	int owner;
