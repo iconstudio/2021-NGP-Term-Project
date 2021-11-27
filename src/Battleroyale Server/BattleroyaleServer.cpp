@@ -173,7 +173,16 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 
 							if (check_blink) {
+								// 湲곗〈 ?대? 嫄곕━? 3諛곗 嫄곕━濡 ?媛?대(諛곗? 蹂寃?媛??
+								// 醫??諛⑺??媛?대
+								if (0 != check_horz) {
+									pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
+								}
 
+								// ?? 諛⑺??媛?대
+								if (0 != check_vert) {
+									pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
+								}
 							}
 
 							if (check_shoot) {
