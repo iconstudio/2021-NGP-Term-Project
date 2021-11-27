@@ -17,11 +17,6 @@ int main() {
 		return 0;
 	}
 
-	framework.Instantiate<CCharacter>(40, 40);
-	auto a = framework.Instantiate<CBullet>(40, 40);
-	auto b = framework.Instantiate<CBullet>(40, 40);
-	auto c = framework.Instantiate<CBullet>(140, 40);
-	framework.GameUpdate();
 	framework.Startup();
 
 	WSACleanup();
@@ -182,6 +177,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							}
 
 							if (check_shoot) {
+								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
 
 							}
 						} else if (pchar && pchar->dead) { // 관전 상태

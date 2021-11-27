@@ -128,7 +128,7 @@ public:
 	void SendRenderings();
 
 	template<class _GameClass = GameInstance>
-	_GameClass* Instantiate(int x = 0, int y = 0);
+	_GameClass* Instantiate(double x = 0.0, double y = 0.0);
 
 	template<class _GameClass = GameInstance>
 	void Kill(_GameClass* target);
@@ -213,7 +213,7 @@ inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClas
 }
 
 template<class _GameClass>
-inline _GameClass* ServerFramework::Instantiate(int x, int y) {
+inline _GameClass* ServerFramework::Instantiate(double x, double y) {
 	auto result = new _GameClass();
 	result->x = x;
 	result->y = y;
