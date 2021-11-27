@@ -204,6 +204,7 @@ SOCKET ServerFramework::PlayerConnect() {
 			if (client_number < PLAYERS_NUMBER_MAX) {
 				CastClientAccept(true);
 			} else {
+				closesocket(new_socket);
 				return 0;
 			}
 		}
@@ -214,6 +215,7 @@ SOCKET ServerFramework::PlayerConnect() {
 			if (client_number < PLAYERS_NUMBER_MAX) {
 				CastClientAccept(true);
 			} else {
+				closesocket(new_socket);
 				return 0;
 			}
 		}
