@@ -492,8 +492,6 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 PlayerInfo::~PlayerInfo() {
-	key_storage.clear();
-	delete& key_storage;
 	delete player_character;
 }
 
