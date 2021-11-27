@@ -187,9 +187,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 							if (check_shoot) {
 
-						} else if (pchar && pchar->dead) {
+							}
+
 
 							}
+						} else if (pchar && pchar->dead) {
 
 						}
 					} // 다른 메시지는 버린다.
