@@ -102,6 +102,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						bool check_dw = false;
 						bool check_shoot = false;
 						bool check_blink = false;
+						bool check_reload = false;
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
 							auto button = key_storage[i];
 							auto keycode = button.code;
@@ -110,54 +111,48 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							switch (keystat) {
 								case NONE:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = false;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = false;
-									} else if (keycode == VK_UP) {
-										check_up = false;
-									} else if (keycode == VK_DOWN) {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // 특능
-										check_blink = false;
-									} else if (keycode == 'A') { // 공격
-										check_shoot = false;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = false; } break;
+										case VK_RIGHT: { check_rt = false; } break;
+										case VK_UP: { check_up = false; } break;
+										case VK_DOWN: { check_dw = false;} break;
+										case VK_SPACE: { check_blink = false; }	 break;			// 특수능력
+										case 'A': case 'a': { check_shoot = false; } break;		// 공격
+										case 'R': case 'r': { check_reload = false; } break;	// 재장전
+										default: break;
 									}
 								}
 								break;
 
 								case PRESS:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = true;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = true;
-									} else if (keycode == VK_UP) {
-										check_up = true;
-									} else if (keycode == VK_DOWN) {
-										check_dw = true;
-									} else if (keycode == VK_SPACE) { // 특능
-										check_blink = true;
-									} else if (keycode == 'A') { // 공격
-										check_shoot = true;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = true; } break;
+										case VK_RIGHT: { check_rt = true; } break;
+										case VK_UP: { check_up = true; } break;
+										case VK_DOWN: { check_dw = true; } break;
+										case VK_SPACE: { check_blink = true; }	 break;			// 특수능력
+										case 'A': case 'a': { check_shoot = true; } break;		// 공격
+										case 'R': case 'r': { check_reload = true; } break;		// 재장전
+										default: break;
 									}
 								}
 								break;
 
 								case RELEASE:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = false;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = false;
-									} else if (keycode == VK_UP) {
-										check_up = false;
-									} else if (keycode == VK_DOWN) {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // 특능
-										check_blink = false;
-									} else if (keycode == 'A') { // 공격
-										check_shoot = false;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = false; } break;
+										case VK_RIGHT: { check_rt = false; } break;
+										case VK_UP: { check_up = false; } break;
+										case VK_DOWN: { check_dw = false; } break;
+										case VK_SPACE: { check_blink = false; }	 break;			// 특수능력
+										case 'A': case 'a': { check_shoot = false; } break;		// 공격
+										case 'R': case 'r': { check_reload = false; } break;	// 재장전
+										default: break;
 									}
 								}
 								break;
