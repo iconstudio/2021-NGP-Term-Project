@@ -25,7 +25,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	SOCKET client_socket = client_info->client_socket;
 	int player_index = client_info->index;
 
-	while (true) {
+	bool thread_done = false;
+	while (!thread_done) {
 		PACKETS packet;
 		int data_size = 0;
 
@@ -188,7 +189,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) { //TODO
 
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
-
+					framework.PlayerDisconnect(client_info);
+					thread_done = true;
 				}
 			}
 			break;
@@ -201,7 +203,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case EXIT:
 			{
-				//TODO
+				thread_done = true;
 			}
 			break;
 
