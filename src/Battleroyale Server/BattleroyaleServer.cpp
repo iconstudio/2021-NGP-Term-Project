@@ -95,12 +95,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							switch (keystat) {
 								case NONE:
 								{
-									switch (keycode)
-									{
+									switch (keycode) {
 										case VK_LEFT: { check_lt = false; } break;
 										case VK_RIGHT: { check_rt = false; } break;
 										case VK_UP: { check_up = false; } break;
-										case VK_DOWN: { check_dw = false;} break;
+										case VK_DOWN: { check_dw = false; } break;
 										case VK_SPACE: { check_blink = false; }	 break; // 특능
 										case 'A': case 'a': { check_shoot = false; } break; // 공격
 										case 'R': case 'r': { check_reload = false; } break; // 재장전
@@ -111,12 +110,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 								case PRESS:
 								{
-									switch (keycode)
-									{
+									switch (keycode) {
 										case VK_LEFT: { check_lt = true; } break;
 										case VK_RIGHT: { check_rt = true; } break;
 										case VK_UP: { check_up = true; } break;
-										case VK_DOWN: { check_dw = true;} break;
+										case VK_DOWN: { check_dw = true; } break;
 										case VK_SPACE: { check_blink = true; }	 break; // 특능
 										case 'A': case 'a': { check_shoot = true; } break; // 공격
 										case 'R': case 'r': { check_reload = true; } break; // 재장전
@@ -127,12 +125,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 								case RELEASE:
 								{
-									switch (keycode)
-									{
+									switch (keycode) {
 										case VK_LEFT: { check_lt = false; } break;
 										case VK_RIGHT: { check_rt = false; } break;
 										case VK_UP: { check_up = false; } break;
-										case VK_DOWN: { check_dw = false;} break;
+										case VK_DOWN: { check_dw = false; } break;
 										case VK_SPACE: { check_blink = false; }	 break; // 특능
 										case 'A': case 'a': { check_shoot = false; } break; // 공격
 										case 'R': case 'r': { check_reload = false; } break; // 재장전
@@ -151,49 +148,38 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							if (0 != check_horz) {
 								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
 							}
-							
+
 							if (0 != check_vert) {
 								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
 							}
 
-              // 湲곗〈 대 嫄곕━ 3諛곗 嫄곕━濡 媛대(諛곗 蹂寃 媛)
-              // 醫 諛⑺ 媛대
-              if (0 != check_horz) {
-                pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
-              }
-
-              //  諛⑺ 媛대
-              if (0 != check_vert) {
-                pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
-              }
-
-              if (check_blink) {
-                //TODO
+							if (check_blink) {
+								//TODO
 							}
 
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
 								//TODO
 							}
-              
+
 							if (check_reload) {
 
 							}
 						} else if (pchar && pchar->dead) { // 관전 상태
 
 						}
-					} // 다른 메시지는 버린다.
+					}
+				} // 다른 메시지는 버린다.
 
-					framework.CastProcessingGame();
+				framework.CastProcessingGame();
 
-					framework.AwaitSendRendersEvent(); // event_send_renders
-					framework.SendRenderingInfos(client_socket);
+				framework.AwaitSendRendersEvent(); // event_send_renders
+				framework.SendRenderingInfos(client_socket);
 
-					framework.CastSendingRenderingInfos(false);
+				framework.CastSendingRenderingInfos(false);
 
-					SleepEx(FRAME_TIME, TRUE);
-					framework.CastStartReceive(true);
-				}
+				SleepEx(FRAME_TIME, TRUE);
+				framework.CastStartReceive(true);
 			}
 			break;
 
