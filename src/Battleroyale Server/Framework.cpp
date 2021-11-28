@@ -6,7 +6,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
-	, thread_game_starter(NULL), thread_game_process(NULL), render_last(nullptr)
+	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
@@ -363,10 +363,10 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BuildRenderings() {
 	if (!instances.empty()) {
-		if (render_last) {
-			delete[] render_last;
+		if (rendering_infos_last) {
+			delete[] rendering_infos_last;
 		}
-		render_last = new RenderInstance[RENDER_INST_COUNT];
+		rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
 
 		auto CopyList = vector<GameInstance*>(instances);
 
@@ -379,17 +379,17 @@ void ServerFramework::BuildRenderings() {
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
 			auto& render_infos = (*it)->GetRenderInstance();
 
-			render_last[index++] = render_infos;
+			rendering_infos_last[index++] = render_infos;
 		}
-	} else if (render_last) {
-		delete[] render_last;
-		render_last = nullptr;
+	} else if (rendering_infos_last) {
+		delete[] rendering_infos_last;
+		rendering_infos_last = nullptr;
 	}
 }
 
 void ServerFramework::SendRenderings(SOCKET my_socket) {
-	if (render_last) {
-		const char* my_render_info = reinterpret_cast<char*>(&render_last);
+	if (rendering_infos_last) {
+		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
 		SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);

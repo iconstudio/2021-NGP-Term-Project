@@ -137,10 +137,20 @@ private:
 	SERVER_STATES status;
 	bool status_begin;
 
+	/* 통신 관련 속성 */
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+
+	/* 다중 스레드 관련 속성 */
 	WSAOVERLAPPED io_behavior;
-	int my_process_index; // 현재 처리 중인 플레이어의 순번 (0~client_number)
+	HANDLE thread_game_starter;
+	HANDLE thread_game_process;
+	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
+	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
+	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
+	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
+	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
+	int my_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
 
 	/* 플레이어 관련 속성 */
 	vector<PlayerInfo*> players; // 플레이어 목록
@@ -149,24 +159,16 @@ private:
 	int	player_captain; // 방장 플레이어
 	int player_winner; // 승리한 플레이어
 
-	HANDLE thread_game_starter;
-	HANDLE thread_game_process;
-
-	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
-	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
-	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
-	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
-	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
-
-	normal_distribution<> random_distrubution;
+	/* 게임 관련 속성 */
+	vector<GameInstance*> instances; // 인스턴스 목록
+	normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 	default_random_engine randomizer;
 
-	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int WORLD_W, WORLD_H;
+	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE;
 
-	RenderInstance* render_last;
-	vector<GameInstance*> instances;
+	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
 };
 
 template<class _GamePlayerClass>
