@@ -50,6 +50,9 @@ public:
 
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
+	void SetDirection(double dir);
+	void SetSpeed(double speed);
+	void SetVelocity(double speed, double dir);
 
 	RenderInstance& AssignRenderingInfo(double angle);
 	RenderInstance& GetRenderInstance();

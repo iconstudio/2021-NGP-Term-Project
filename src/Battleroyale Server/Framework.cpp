@@ -530,6 +530,31 @@ void GameInstance::SetImageNumber(int number) {
 	image_number = static_cast<double>(number);
 }
 
+void GameInstance::SetDirection(double dir) {
+	if (hspeed != 0.0 || vspeed != 0.0) {
+		auto speed = point_distance(0, 0, hspeed, vspeed);
+
+		hspeed = lengthdir_x(speed, dir);
+		vspeed = lengthdir_y(speed, dir);
+	}
+
+	direction = dir;
+}
+
+void GameInstance::SetSpeed(double speed) {
+	if (hspeed != 0.0 || vspeed != 0.0) {
+		auto old_dir = point_direction(0, 0, hspeed, vspeed);
+
+		hspeed = lengthdir_x(speed, old_dir);
+		vspeed = lengthdir_y(speed, old_dir);
+	}
+}
+
+void GameInstance::SetVelocity(double speed, double dir) {
+	hspeed = lengthdir_x(speed, dir);
+	vspeed = lengthdir_y(speed, dir);
+}
+
 RenderInstance& GameInstance::GetRenderInstance() {
 	return my_renders;
 }
