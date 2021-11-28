@@ -156,7 +156,7 @@ void ServerFramework::Startup() {
 
 			case EXIT:
 			{
-				exit(0);
+				return;
 			}
 			return;
 
