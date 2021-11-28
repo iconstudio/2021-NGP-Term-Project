@@ -156,7 +156,7 @@ void ServerFramework::Startup() {
 
 			case EXIT:
 			{
-				// Á¾·á
+				exit(0);
 			}
 			return;
 
@@ -558,14 +558,15 @@ void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
 
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
+	int error = WSAGetLastError();
 
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
 	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
-	exit(true);
+	exit(error);
 }
 
 void ErrorDisplay(const char* msg) {
