@@ -84,8 +84,8 @@ public:
 	void GameUpdate();
 	void Clean();
 
-	void SetCaptain(PlayerInfo* player);
 	void SetStatus(SERVER_STATES state);
+	void SetCaptain(PlayerInfo* player);
 	SERVER_STATES GetStatus() const;
 	int GetClientNumber() const;
 
@@ -93,10 +93,10 @@ public:
 	void PlayerDisconnect(PlayerInfo* player);
 
 	bool CheckClientNumber() const;
-	bool CheckMessage(int socket_state);
+	bool ValidateSocketMessage(int socket_state);
 	void ProceedContinuation();
-	void BuildRenderings();
-	void SendRenderings(SOCKET my_socket);
+	void BakeRenderingInfos();
+	void SendRenderingInfos(SOCKET my_socket);
 
 	template<class _GameClass = GameInstance>
 	_GameClass* Instantiate(double x = 0.0, double y = 0.0);
@@ -110,14 +110,11 @@ public:
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
-	template<class _GameClass1, class _GameClass2>
-	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
-
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastStartGame(bool flag);
 	void CastProcessingGame();
-	void CastSendRenders(bool flag);
+	void CastSendingRenderingInfos(bool flag);
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
@@ -130,6 +127,9 @@ public:
 
 private:
 	PlayerInfo* GetPlayer(int player_index);
+
+	template<class _GameClass1, class _GameClass2>
+	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
 
 	template<class Predicate>
 	void ForeachInstances(Predicate predicate);

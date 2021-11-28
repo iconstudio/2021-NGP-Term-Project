@@ -41,7 +41,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		*/
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (!framework.CheckMessage(result)) {
+		if (!framework.ValidateSocketMessage(result)) {
 			framework.PlayerDisconnect(client_info);
 			break;
 		}
@@ -75,7 +75,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
 									  , data_size, MSG_WAITALL);
-						if (!framework.CheckMessage(result)) {
+						if (!framework.ValidateSocketMessage(result)) {
 							framework.PlayerDisconnect(client_info);
 							break;
 						}
@@ -176,9 +176,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
-					framework.SendRenderings(client_socket);
+					framework.SendRenderingInfos(client_socket);
 
-					framework.CastSendRenders(false);
+					framework.CastSendingRenderingInfos(false);
 
 					SleepEx(FRAME_TIME, TRUE);
 					framework.CastStartReceive(true);

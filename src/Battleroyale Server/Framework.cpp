@@ -309,7 +309,7 @@ bool ServerFramework::CheckClientNumber() const {
 	return (CLIENT_NUMBER_MIN <= client_number);
 }
 
-bool ServerFramework::CheckMessage(int socket_state) {
+bool ServerFramework::ValidateSocketMessage(int socket_state) {
 	if (SOCKET_ERROR == socket_state) {
 		return false;
 	} else if (0 == socket_state) {
@@ -352,16 +352,16 @@ void ServerFramework::ProceedContinuation() {
 
 		// 게임 상태 갱신
 		GameUpdate();
-		BuildRenderings();
+		BakeRenderingInfos();
 
 		// 게임 승패 판정
 
 
-		CastSendRenders(true);
+		CastSendingRenderingInfos(true);
 	}
 }
 
-void ServerFramework::BuildRenderings() {
+void ServerFramework::BakeRenderingInfos() {
 	if (!instances.empty()) {
 		if (rendering_infos_last) {
 			delete[] rendering_infos_last;
@@ -387,7 +387,7 @@ void ServerFramework::BuildRenderings() {
 	}
 }
 
-void ServerFramework::SendRenderings(SOCKET my_socket) {
+void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	if (rendering_infos_last) {
 		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
@@ -424,7 +424,7 @@ void ServerFramework::CastProcessingGame() {
 	SetEvent(event_game_process);
 }
 
-void ServerFramework::CastSendRenders(bool flag) {
+void ServerFramework::CastSendingRenderingInfos(bool flag) {
 	if (flag) {
 		SetEvent(event_send_renders);
 	} else {
