@@ -81,7 +81,7 @@ public:
 	bool Initialize();
 	void Startup();
 	void GameReady();
-	void GameUpdate();
+	void GameProcess();
 	void Clean();
 
 	void SetStatus(SERVER_STATES state);

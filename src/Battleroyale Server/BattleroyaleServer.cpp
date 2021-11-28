@@ -238,17 +238,7 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitProcessingGameEvent(); // event_game_process
-
-		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // 이 함수를 SleepEx로
-
-		if (framework.CheckClientNumber()) {
-			// 게임 처리
-			framework.ProceedContinuation();
-		} else {
-			// 게임 판정승 혹은 게임 강제 종료
-		}
+		framework.GameProcess();
 	}
 
 	return 0;
@@ -256,13 +246,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitClientAcceptEvent();
-
-		SOCKET new_client = framework.PlayerConnect();
-		if (INVALID_SOCKET == new_client) {
-			cerr << "accept 오류!";
-			return 0;
-		}
+		framework.ConnectProcess();
 	}
 
 	return 0;

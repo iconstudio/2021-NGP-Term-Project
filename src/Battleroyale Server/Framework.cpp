@@ -9,12 +9,12 @@ ServerFramework::ServerFramework(int rw, int rh)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
 
-	players.reserve(PLAYERS_NUMBER_MAX);
+	players.reserve(CLIENT_NUMBER_MAX);
 
-	PLAYER_SPAWN_PLACES = new int* [PLAYERS_NUMBER_MAX];
+	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
-	double dir_increment = (360.0 / PLAYERS_NUMBER_MAX);
-	for (int i = 0; i < PLAYERS_NUMBER_MAX; ++i) {
+	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
 		double dir = dir_increment * i;
 		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
 		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
@@ -44,20 +44,20 @@ ServerFramework::~ServerFramework() {
 bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// 오류
+		ErrorDisplay("WSAStartup()");
 		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// 오류
+		ErrorDisplay("socket()");
 		return false;
 	}
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
 		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		// 오류
+		ErrorDisplay("setsockopt()");
 		return false;
 	}
 
@@ -67,12 +67,12 @@ bool ServerFramework::Initialize() {
 	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		ErrorAbort("bind()");
+		ErrorDisplay("bind()");
 		return false;
 	}
 
-	if (SOCKET_ERROR == listen(my_socket, PLAYERS_NUMBER_MAX + 1)) {
-		ErrorAbort("listen()");
+	if (SOCKET_ERROR == listen(my_socket, CLIENT_NUMBER_MAX + 1)) {
+		ErrorDisplay("listen()");
 		return false;
 	}
 	cout << "서버 시작" << endl;
@@ -113,7 +113,7 @@ void ServerFramework::Startup() {
 					cout << "S: Lobby" << endl;
 
 
-					if (client_number < PLAYERS_NUMBER_MAX) {
+					if (client_number < CLIENT_NUMBER_MAX) {
 						CastClientAccept(true);
 					} else {
 						CastClientAccept(false);
@@ -166,6 +166,15 @@ void ServerFramework::Startup() {
 	}
 }
 
+void ServerFramework::ConnectProcess() {
+	AwaitClientAcceptEvent();
+
+	SOCKET new_client = PlayerConnect();
+	if (INVALID_SOCKET == new_client) {
+		ErrorDisplay("PlayerConnect()");
+	}
+}
+
 void ServerFramework::GameReady() {
 	shuffle(players.begin(), players.end(), randomizer);
 
@@ -173,10 +182,26 @@ void ServerFramework::GameReady() {
 	player_winner = -1;
 }
 
-void ServerFramework::GameUpdate() {
-	ForeachInstances([&](GameInstance*& inst) {
-		inst->OnUpdate(FRAME_TIME);
-	});
+void ServerFramework::GameProcess() {
+	AwaitProcessingGameEvent();
+
+	CastStartReceive(false);
+	Sleep(LERP_MIN);
+
+	if (CheckClientNumber()) { // 게임 처리	
+		ProceedContinuation();
+	} else { // 게임 판정승 혹은 게임 강제 종료
+		auto numb = GetClientNumber();
+
+		if (0 == numb) {
+			Clean();
+			SetStatus(LISTEN);
+		} else if (1 == numb) {
+			Clean();
+			SetStatus(LOBBY);
+			//TODO
+		}
+	}
 }
 
 void ServerFramework::Clean() {
@@ -186,7 +211,7 @@ void ServerFramework::Clean() {
 	players.shrink_to_fit();
 	instances.shrink_to_fit();
 
-	players.reserve(PLAYERS_NUMBER_MAX);
+	players.reserve(CLIENT_NUMBER_MAX);
 	SetCaptain(nullptr);
 }
 
@@ -210,7 +235,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 		case LOBBY:
 		{
-			if (PLAYERS_NUMBER_MAX <= client_number) {
+			if (CLIENT_NUMBER_MAX <= client_number) {
 				closesocket(new_socket);
 				return 0;
 			}
@@ -236,7 +261,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	client_number++;
 	cout << "새 플레이어 접속: " << new_socket << endl;
-	cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+	cout << "현재 플레이어 수: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
 
@@ -261,7 +286,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		client_number--;
 
 		cout << "플레이어 종료: " << player->client_socket << endl;
-		cout << "현재 플레이어 수: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+		cout << "현재 플레이어 수: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
 
 		players.erase(dit);
 
@@ -351,7 +376,10 @@ void ServerFramework::ProceedContinuation() {
 		my_process_index = 0;
 
 		// 게임 상태 갱신
-		GameUpdate();
+		ForeachInstances([&](GameInstance*& inst) {
+			inst->OnUpdate(FRAME_TIME);
+		});
+
 		BakeRenderingInfos();
 
 		// 게임 승패 판정
@@ -399,7 +427,7 @@ void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
-	if (flag && client_number < PLAYERS_NUMBER_MAX) {
+	if (flag && client_number < CLIENT_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
 		ResetEvent(event_player_accept);

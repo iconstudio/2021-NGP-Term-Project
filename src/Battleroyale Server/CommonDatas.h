@@ -24,7 +24,6 @@ const double EWALL_BEGIN_TIME = 30.0;				// 자기장 시작 시간
 const double EWALL_CLOSE_PERIOD = 300.0;			// 자기장 완료 시간
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
-const int PLAYERS_NUMBER_MAX = 10;					// 최대 플레이어 수
 const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
 const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
@@ -40,7 +39,8 @@ const double FRAME_TIME = (1.0 / FRAMERATE);
 
 /* 송수신 설정 */
 const int SEND_INPUT_COUNT = 6;
-const int CLIENT_NUMBER_MIN = 1;
+const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
+const int CLIENT_NUMBER_MIN = 2;
 const int RENDER_INST_COUNT = 40;
 
 
