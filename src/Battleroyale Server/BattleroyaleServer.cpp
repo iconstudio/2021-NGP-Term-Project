@@ -75,10 +75,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
 									  , data_size, MSG_WAITALL);
-						if (SOCKET_ERROR == result) {
-							framework.PlayerDisconnect(client_info);
-							break;
-						} else if (0 == result) {
+						if (!framework.CheckMessage(result)) {
 							framework.PlayerDisconnect(client_info);
 							break;
 						}
