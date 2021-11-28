@@ -86,7 +86,7 @@ bool ServerFramework::Initialize() {
 	// event_player_accept
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, GameInitializeProcess, nullptr, 0, NULL);
+	thread_game_starter = CreateThread(NULL, 0, GameReadyProcess, nullptr, 0, NULL);
 	// event_game_process
 	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
 
@@ -175,11 +175,16 @@ void ServerFramework::ConnectProcess() {
 	}
 }
 
-void ServerFramework::GameReady() {
+void ServerFramework::GameReadyProcess() {
+	AwaitStartGameEvent();
+
 	shuffle(players.begin(), players.end(), randomizer);
 
 	my_process_index = 0;
 	player_winner = -1;
+
+	CastStartReceive(true);
+	SetStatus(GAME);
 }
 
 void ServerFramework::GameProcess() {

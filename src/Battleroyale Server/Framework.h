@@ -8,7 +8,7 @@ const int LERP_MAX = 200;
 
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
-DWORD WINAPI GameInitializeProcess(LPVOID arg);
+DWORD WINAPI GameReadyProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
 struct PlayerInfo {
@@ -80,7 +80,8 @@ public:
 
 	bool Initialize();
 	void Startup();
-	void GameReady();
+	void ConnectProcess();
+	void GameReadyProcess();
 	void GameProcess();
 	void Clean();
 

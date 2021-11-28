@@ -4,6 +4,12 @@
 #include "BattleroyaleServer.h"
 
 
+/*
+	TODO: I/O Overlapped 모델로 변경하기
+
+	왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기 위해서는 동시 실행이 필수적이다.
+	IOCP 말고 이 부분에만 Overlapped 모델을 사용하면 좋을 것 같다.
+*/
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
 int main() {
@@ -216,26 +222,15 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
-DWORD WINAPI GameInitializeProcess(LPVOID arg) {
+DWORD WINAPI GameReadyProcess(LPVOID arg) {
 	while (true) {
-		framework.AwaitStartGameEvent();
-
-		framework.GameReady();
+		framework.GameReadyProcess();
 		framework.CreatePlayerCharacters<CCharacter>();
-
-		framework.CastStartReceive(true);
-		framework.SetStatus(GAME);
 	}
 
 	return 0;
 }
 
-/*
-	TODO: I/O Overlapped 모델로 변경하기
-
-	왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기 위해서는 동시 실행이 필수적이다.
-	IOCP 말고 이 부분에만 Overlapped 모델을 사용하면 좋을 것 같다.
-*/
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.GameProcess();
