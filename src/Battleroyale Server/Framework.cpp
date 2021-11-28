@@ -44,20 +44,20 @@ ServerFramework::~ServerFramework() {
 bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return false;
 	}
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
 		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return false;
 	}
 
@@ -75,13 +75,13 @@ bool ServerFramework::Initialize() {
 		ErrorAbort("listen()");
 		return false;
 	}
-	cout << "¼­¹ö ½ÃÀÛ" << endl;
+	cout << "ì„œë²„ ì‹œì‘" << endl;
 
 	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // ¼öµ¿ ¸®¼Â ÀÌº¥Æ® °´Ã¼
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // ìˆ˜ë™ ë¦¬ì…‹ ì´ë²¤íŠ¸ ê°ì²´
 
 	// event_player_accept
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
@@ -156,7 +156,7 @@ void ServerFramework::Startup() {
 
 			case EXIT:
 			{
-				// Á¾·á
+				// ì¢…ë£Œ
 			}
 			return;
 
@@ -196,14 +196,14 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
 	if (INVALID_SOCKET == new_socket) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return new_socket;
 	}
 
 	switch (GetStatus()) {
 		case LISTEN:
 		{
-			// Ã¹¹øÂ° ÇÃ·¹ÀÌ¾î Á¢¼Ó
+			// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´ ì ‘ì†
 			SetStatus(LOBBY);
 		}
 		break;
@@ -227,7 +227,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
 
-	// Ã¹¹øÂ° ÇÃ·¹ÀÌ¾î
+	// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´
 	if (client_number == 0) {
 		SetCaptain(client_info);
 
@@ -235,8 +235,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	}
 
 	client_number++;
-	cout << "»õ ÇÃ·¹ÀÌ¾î Á¢¼Ó: " << new_socket << endl;
-	cout << "ÇöÀç ÇÃ·¹ÀÌ¾î ¼ö: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+	cout << "ìƒˆ í”Œë ˆì´ì–´ ì ‘ì†: " << new_socket << endl;
+	cout << "í˜„ì¬ í”Œë ˆì´ì–´ ìˆ˜: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
 
@@ -260,12 +260,12 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 			Kill(static_cast<GameInstance*>(character));
 		client_number--;
 
-		cout << "ÇÃ·¹ÀÌ¾î Á¾·á: " << player->client_socket << endl;
-		cout << "ÇöÀç ÇÃ·¹ÀÌ¾î ¼ö: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+		cout << "í”Œë ˆì´ì–´ ì¢…ë£Œ: " << player->client_socket << endl;
+		cout << "í˜„ì¬ í”Œë ˆì´ì–´ ìˆ˜: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 		players.erase(dit);
 
-		// ÇÃ·¹ÀÌ¾î 0¸í È¤Àº 1¸í
+		// í”Œë ˆì´ì–´ 0ëª… í˜¹ì€ 1ëª…
 		if (client_number < 2) {
 			switch (status) {
 				case LISTEN:
@@ -285,15 +285,15 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				}
 				break;
 
-				case GAME: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
-				case GAME_OVER: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
-				case GAME_RESTART: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
-				case EXIT: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
+				case GAME: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
+				case GAME_OVER: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
+				case GAME_RESTART: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
+				case EXIT: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
 				default: break;
 			}
 		}
 
-		// ¹æÀåÀÌ ³ª°¨
+		// ë°©ì¥ì´ ë‚˜ê°
 		if (player_captain == id) {
 			if (0 < client_number) {
 				auto new_captain = players.at(0);
@@ -329,7 +329,7 @@ void ServerFramework::SetCaptain(PlayerInfo* player) {
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		cout << "¼­¹ö »óÅÂ º¯°æ: " << status << " -> " << state << endl;
+		cout << "ì„œë²„ ìƒíƒœ ë³€ê²½: " << status << " -> " << state << endl;
 
 		status = state;
 		status_begin = false;
@@ -350,11 +350,11 @@ void ServerFramework::ProceedContinuation() {
 	} else {
 		my_process_index = 0;
 
-		// °ÔÀÓ »óÅÂ °»½Å
+		// ê²Œì„ ìƒíƒœ ê°±ì‹ 
 		GameUpdate();
 		BakeRenderingInfos();
 
-		// °ÔÀÓ ½ÂÆĞ ÆÇÁ¤
+		// ê²Œì„ ìŠ¹íŒ¨ íŒì •
 
 
 		CastSendingRenderingInfos(true);
@@ -370,7 +370,7 @@ void ServerFramework::BakeRenderingInfos() {
 
 		auto CopyList = vector<GameInstance*>(instances);
 
-		// ÇÃ·¹ÀÌ¾î °³Ã¼¸¦ ¸Ç À§·Î
+		// í”Œë ˆì´ì–´ ê°œì²´ë¥¼ ë§¨ ìœ„ë¡œ
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
 			return (strcmp(inst->GetIdentifier(), "Player") == 0);
 		});
@@ -379,7 +379,9 @@ void ServerFramework::BakeRenderingInfos() {
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
 			auto& render_infos = (*it)->GetRenderInstance();
 
-			rendering_infos_last[index++] = render_infos;
+      // ì¸ìŠ¤í„´ìŠ¤ê°€ ì‚´ì•„ìˆëŠ” ê²½ìš°ì—ë§Œ ë Œë”ë§ ë©”ì„¸ì§€ ì „ì†¡
+      if (!(*it)->dead)
+			  rendering_infos_last[index++] = render_infos;
 		}
 	} else if (rendering_infos_last) {
 		delete[] rendering_infos_last;

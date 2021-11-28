@@ -49,13 +49,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
-				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
+				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
 						break;
 					}
-				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 
 				Sleep(5000);
 				framework.CastStartGame(true);
@@ -64,11 +64,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME:
 			{
-				// ²ÙÁØÇÑ Åë½Å
+				// ê¾¸ì¤€í•œ í†µì‹ 
 				while (true) {
 					framework.AwaitReceiveEvent(); // event_recieves
 
-					// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
+					// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
 						auto key_storage = new InputStream[SEND_INPUT_COUNT];
 						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
@@ -86,6 +86,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						bool check_dw = false;
 						bool check_shoot = false;
 						bool check_blink = false;
+						bool check_reload = false;
 						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
 							auto button = key_storage[i];
 							auto keycode = button.code;
@@ -94,54 +95,48 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							switch (keystat) {
 								case NONE:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = false;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = false;
-									} else if (keycode == VK_UP) {
-										check_up = false;
-									} else if (keycode == VK_DOWN) {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
-										check_blink = false;
-									} else if (keycode == 'A') { // °ø°İ
-										check_shoot = false;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = false; } break;
+										case VK_RIGHT: { check_rt = false; } break;
+										case VK_UP: { check_up = false; } break;
+										case VK_DOWN: { check_dw = false;} break;
+										case VK_SPACE: { check_blink = false; }	 break; // íŠ¹ëŠ¥
+										case 'A': case 'a': { check_shoot = false; } break; // ê³µê²©
+										case 'R': case 'r': { check_reload = false; } break; // ì¬ì¥ì „
+										default: break;
 									}
 								}
 								break;
 
 								case PRESS:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = true;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = true;
-									} else if (keycode == VK_UP) {
-										check_up = true;
-									} else if (keycode == VK_DOWN) {
-										check_dw = true;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
-										check_blink = true;
-									} else if (keycode == 'A') { // °ø°İ
-										check_shoot = true;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = true; } break;
+										case VK_RIGHT: { check_rt = true; } break;
+										case VK_UP: { check_up = true; } break;
+										case VK_DOWN: { check_dw = true;} break;
+										case VK_SPACE: { check_blink = true; }	 break; // íŠ¹ëŠ¥
+										case 'A': case 'a': { check_shoot = true; } break; // ê³µê²©
+										case 'R': case 'r': { check_reload = true; } break; // ì¬ì¥ì „
+										default: break;
 									}
 								}
 								break;
 
 								case RELEASE:
 								{
-									if (keycode == VK_LEFT) {
-										check_lt = false;
-									} else if (keycode == VK_RIGHT) {
-										check_rt = false;
-									} else if (keycode == VK_UP) {
-										check_up = false;
-									} else if (keycode == VK_DOWN) {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // Æ¯´É
-										check_blink = false;
-									} else if (keycode == 'A') { // °ø°İ
-										check_shoot = false;
+									switch (keycode)
+									{
+										case VK_LEFT: { check_lt = false; } break;
+										case VK_RIGHT: { check_rt = false; } break;
+										case VK_UP: { check_up = false; } break;
+										case VK_DOWN: { check_dw = false;} break;
+										case VK_SPACE: { check_blink = false; }	 break; // íŠ¹ëŠ¥
+										case 'A': case 'a': { check_shoot = false; } break; // ê³µê²©
+										case 'R': case 'r': { check_reload = false; } break; // ì¬ì¥ì „
+										default: break;
 									}
 								}
 								break;
@@ -149,9 +144,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 
 						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-						if (pchar && !pchar->dead) { // °ÔÀÓ »óÅÂ
-							int check_horz = check_rt - check_lt; // ÁÂ¿ì ÀÌµ¿
-							int check_vert = check_dw - check_up; // »óÇÏ ÀÌµ¿
+						if (pchar && !pchar->dead) { // ê²Œì„ ìƒíƒœ
+							int check_horz = check_rt - check_lt; // ì¢Œìš° ì´ë™
+							int check_vert = check_dw - check_up; // ìƒí•˜ ì´ë™
 
 							if (0 != check_horz) {
 								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
@@ -161,17 +156,33 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
 							}
 
-							if (check_blink) {
-								//TODO
+              // æ¹²ê³—ã€ˆ ÂëŒ€Â™Â•Âœ å«„ê³•â”ÂÂ˜ 3è«›ê³—ÂÂ˜ å«„ê³•â”æ¿¡Âœ ÂˆÂœåª›Â„ÂëŒ€Â™(è«›ê³—ÂˆÂ˜ÂŠÂ” è¹‚Â€å¯ƒ åª›Â€ÂŠ)
+              // é†«ÂŒÂš è«›â‘ºÂ– ÂˆÂœåª›Â„ÂëŒ€Â™
+              if (0 != check_horz) {
+                pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
+              }
+
+              // ÂƒÂÂ•Â˜ è«›â‘ºÂ– ÂˆÂœåª›Â„ÂëŒ€Â™
+              if (0 != check_vert) {
+                pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
+              }
+
+              if (check_blink) {
+                //TODO
 							}
 
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
 								//TODO
 							}
-						} else if (pchar && pchar->dead) { // °üÀü »óÅÂ
+              
+							if (check_reload) {
+
+							}
+						} else if (pchar && pchar->dead) { // ê´€ì „ ìƒíƒœ
+
 						}
-					} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+					} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 
 					framework.CastProcessingGame();
 
@@ -232,23 +243,23 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 }
 
 /*
-	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
+	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
 
-	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
-	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
+	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
+	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
 */
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitProcessingGameEvent(); // event_game_process
 
 		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // ÀÌ ÇÔ¼ö¸¦ SleepEx·Î
+		Sleep(LERP_MIN); // ì´ í•¨ìˆ˜ë¥¼ SleepExë¡œ
 
 		if (framework.CheckClientNumber()) {
-			// °ÔÀÓ Ã³¸®
+			// ê²Œì„ ì²˜ë¦¬
 			framework.ProceedContinuation();
 		} else {
-			// °ÔÀÓ ÆÇÁ¤½Â È¤Àº °ÔÀÓ °­Á¦ Á¾·á
+			// ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
 		}
 	}
 
@@ -261,7 +272,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 		SOCKET new_client = framework.PlayerConnect();
 		if (INVALID_SOCKET == new_client) {
-			cerr << "accept ¿À·ù!";
+			cerr << "accept ì˜¤ë¥˜!";
 			return 0;
 		}
 	}
@@ -282,7 +293,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (collide_bullet) {
 		framework.Kill(collide_bullet);
-		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
+		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
 
 		GetHurt(1);
 	}
@@ -301,7 +312,7 @@ void CCharacter::GetHurt(int dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "ÇÃ·¹ÀÌ¾î " << owner << " »ç¸Á." << endl;
+			cout << "í”Œë ˆì´ì–´ " << owner << " ì‚¬ë§." << endl;
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
