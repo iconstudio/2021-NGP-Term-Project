@@ -594,7 +594,7 @@ RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
 	my_renders.x = x;
 	my_renders.y = y;
 
-	my_renders.image_index = image_index;
+	my_renders.image_index = static_cast<int>(image_index);
 	my_renders.angle = angle;
 
 	return my_renders;
