@@ -224,7 +224,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 DWORD WINAPI GameReadyProcess(LPVOID arg) {
 	while (true) {
-		framework.GameReadyProcess();
+		framework.ProcessReady();
 		framework.CreatePlayerCharacters<CCharacter>();
 	}
 
@@ -233,7 +233,7 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
-		framework.GameProcess();
+		framework.ProcessGame();
 	}
 
 	return 0;
@@ -241,7 +241,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.ConnectProcess();
+		framework.ProcessConnect();
 	}
 
 	return 0;

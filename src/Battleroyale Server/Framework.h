@@ -80,9 +80,9 @@ public:
 
 	bool Initialize();
 	void Startup();
-	void ConnectProcess();
-	void GameReadyProcess();
-	void GameProcess();
+	void ProcessConnect();
+	void ProcessReady();
+	void ProcessGame();
 	void Clean();
 
 	void SetStatus(SERVER_STATES state);

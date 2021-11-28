@@ -84,11 +84,11 @@ bool ServerFramework::Initialize() {
 	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
 
 	// event_player_accept
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, GameReadyProcess, nullptr, 0, NULL);
+	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
 	// event_game_process
-	thread_game_process = CreateThread(NULL, 0, GameProcess, nullptr, 0, NULL);
+	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
 
 	return true;
 }
@@ -166,7 +166,7 @@ void ServerFramework::Startup() {
 	}
 }
 
-void ServerFramework::ConnectProcess() {
+void ServerFramework::ProcessConnect() {
 	AwaitClientAcceptEvent();
 
 	SOCKET new_client = PlayerConnect();
@@ -175,7 +175,7 @@ void ServerFramework::ConnectProcess() {
 	}
 }
 
-void ServerFramework::GameReadyProcess() {
+void ServerFramework::ProcessReady() {
 	AwaitStartGameEvent();
 
 	shuffle(players.begin(), players.end(), randomizer);
@@ -187,7 +187,7 @@ void ServerFramework::GameReadyProcess() {
 	SetStatus(GAME);
 }
 
-void ServerFramework::GameProcess() {
+void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
 
 	CastStartReceive(false);
