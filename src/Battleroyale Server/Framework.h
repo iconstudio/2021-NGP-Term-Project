@@ -3,6 +3,9 @@
 #include "CommonDatas.h"
 
 
+const int LERP_MIN = 50;
+const int LERP_MAX = 200;
+
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameInitializeProcess(LPVOID arg);
@@ -13,7 +16,6 @@ struct PlayerInfo {
 	HANDLE client_handle;
 
 	int index; // 플레이어 번호
-	map<WPARAM, INPUT_TYPES> key_storage;
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
@@ -36,9 +38,6 @@ enum class ACTION_TYPES : int {
 	, SHOOT // 투사체 발사
 };
 
-const int LERP_MIN = 50;
-const int LERP_MAX = 200;
-
 class GameInstance {
 public:
 	GameInstance();
@@ -47,11 +46,13 @@ public:
 	virtual void OnCreate();
 	virtual void OnDestroy();
 	virtual void OnUpdate(double frame_advance);
+	virtual const char* GetIdentifier() const;
 
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
-	void SetRenderInstance();
-	RenderInstance GetRenderInstance() const;
+
+	RenderInstance& AssignRenderingInfo(double angle);
+	RenderInstance& GetRenderInstance();
 
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;
@@ -59,11 +60,7 @@ public:
 	int GetBoundRT() const;
 	int GetBoundBT() const;
 
-	virtual const char* GetIdentifier() const;
-
 	bool IsCollideWith(GameInstance* other);
-
-	RenderInstance* MakeRenderInfos();
 
 	bool dead;
 	int owner;
@@ -77,42 +74,47 @@ private:
 };
 
 class ServerFramework {
-private:
-	struct IO_MSG {
-		ACTION_TYPES type;
-		int player_index = 0;
-		int data = 0;
-	};
-
 public:
 	ServerFramework(int room_width, int room_height);
 	~ServerFramework();
 
 	bool Initialize();
 	void Startup();
+	void GameReady();
 	void GameUpdate();
 	void Clean();
+
+	void SetStatus(SERVER_STATES state);
+	void SetCaptain(PlayerInfo* player);
+	SERVER_STATES GetStatus() const;
+	int GetClientNumber() const;
 
 	SOCKET PlayerConnect();
 	void PlayerDisconnect(PlayerInfo* player);
 
-	void SetCaptain(PlayerInfo* player);
-	void SetStatus(SERVER_STATES state);
+	bool CheckClientNumber() const;
+	bool ValidateSocketMessage(int socket_state);
+	void ProceedContinuation();
+	void BakeRenderingInfos();
+	void SendRenderingInfos(SOCKET my_socket);
 
-	SERVER_STATES GetStatus() const;
-	int GetClientCount() const;
+	template<class _GameClass = GameInstance>
+	_GameClass* Instantiate(double x = 0.0, double y = 0.0);
+
+	template<class _GameClass = GameInstance>
+	void Kill(_GameClass* target);
+
+	template<class _GamePlayerClass>
+	void CreatePlayerCharacters();
+
+	template<class _GameClassTarget, class _GameClassSelf>
+	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastStartGame(bool flag);
 	void CastProcessingGame();
-	void CastSendRenders(bool flag);
-
-	template<class _GameClassTarget, class _GameClassSelf>
-	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
-
-	template<class _GameClass1, class _GameClass2>
-	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
+	void CastSendingRenderingInfos(bool flag);
 
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
@@ -120,69 +122,68 @@ public:
 	inline DWORD WINAPI AwaitProcessingGameEvent();
 	inline DWORD WINAPI AwaitSendRendersEvent();
 
-	IO_MSG* QueingPlayerAction(PlayerInfo* player, ACTION_TYPES type, int data = 0);
-
-	void ProceedContinuation();
-	void BuildRenderings();
-	void SendRenderings();
-
-	template<class _GameClass = GameInstance>
-	_GameClass* Instantiate(int x = 0, int y = 0);
-
-	template<class _GameClass = GameInstance>
-	void Kill(_GameClass* target);
-
-	friend DWORD WINAPI ConnectProcess(LPVOID arg);
-	friend DWORD WINAPI GameInitializeProcess(LPVOID arg);
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
 private:
+	PlayerInfo* GetPlayer(int player_index);
+
+	template<class _GameClass1, class _GameClass2>
+	_GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other);
+
+	template<class Predicate>
+	void ForeachInstances(Predicate predicate);
+
 	SERVER_STATES status;
 	bool status_begin;
 
+	/* 통신 관련 속성 */
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+
+	/* 다중 스레드 관련 속성 */
 	WSAOVERLAPPED io_behavior;
-	int my_process_index; // 현재 처리 중인 플레이어의 순번 (0~client_number)
-
-	vector<HANDLE> thread_list; // 스레드 목록
-	vector<PlayerInfo*> players; // 플레이어 목록
-
-	int	client_number; // 지금 접속한 플레이어의 수
-	int player_number_last; // 마지막에 추가된 플레이어의 번호
-	int	player_captain; // 방장 플레이어
-
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
-
 	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
 	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
+	int my_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
 
-	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
+	/* 플레이어 관련 속성 */
+	vector<PlayerInfo*> players; // 플레이어 목록
+	int	client_number; // 지금 접속한 플레이어의 수
+	int player_number_last; // 마지막에 추가된 플레이어의 번호
+	int	player_captain; // 방장 플레이어
+	int player_winner; // 승리한 플레이어
+
+	/* 게임 관련 속성 */
+	vector<GameInstance*> instances; // 인스턴스 목록
+	normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
+	default_random_engine randomizer;
+
 	const int WORLD_W, WORLD_H;
+	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE;
 
-	RenderInstance render_last[40];
-	vector<GameInstance*> instances;
-
-	vector<IO_MSG*> io_queue;
-
-	PlayerInfo* GetPlayer(int player_index);
-
-	void InterpretPlayerAction();
-	void ClearPlayerActions();
-	void ContinueToReceive();
-	void ContinueToGameProcess();
-	void ContinueToSendingRenders();
-
-	template<class Predicate>
-	void ForeachInstances(Predicate predicate);
+	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
 };
 
+template<class _GamePlayerClass>
+void ServerFramework::CreatePlayerCharacters() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		auto places = PLAYER_SPAWN_PLACES[i];
+		auto character = Instantiate<_GamePlayerClass>(places[0], places[1]);
+
+		player->player_character = character;
+		character->owner = player->index;
+		SendData(player->client_socket, PACKETS::SERVER_GAME_START);
+	}
+}
 
 template<class _GameClassTarget, class _GameClassSelf>
 inline _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
@@ -213,7 +214,7 @@ inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClas
 }
 
 template<class _GameClass>
-inline _GameClass* ServerFramework::Instantiate(int x, int y) {
+inline _GameClass* ServerFramework::Instantiate(double x, double y) {
 	auto result = new _GameClass();
 	result->x = x;
 	result->y = y;
@@ -228,7 +229,7 @@ template<class _GameClass>
 inline void ServerFramework::Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target](const auto& lhs) {
 		return (lhs == target);
-		});
+	});
 
 	if (loc != instances.end()) {
 		target->OnDestroy();

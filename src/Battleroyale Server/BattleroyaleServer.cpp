@@ -6,9 +6,6 @@
 
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
-normal_distribution<> server_distrubution;
-default_random_engine server_randomizer{ 0 };
-
 int main() {
 	cout << "Hello World!\n";
 
@@ -17,11 +14,6 @@ int main() {
 		return 0;
 	}
 
-	framework.Instantiate<CCharacter>(40, 40);
-	auto a = framework.Instantiate<CBullet>(40, 40);
-	auto b = framework.Instantiate<CBullet>(40, 40);
-	auto c = framework.Instantiate<CBullet>(140, 40);
-	framework.GameUpdate();
 	framework.Startup();
 
 	WSACleanup();
@@ -32,7 +24,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
 	int player_index = client_info->index;
-	auto& player_key_storage = client_info->key_storage;
 
 	while (true) {
 		PACKETS packet;
@@ -50,11 +41,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		*/
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-
-		if (SOCKET_ERROR == result) {
-			framework.PlayerDisconnect(client_info);
-			break;
-		} else if (0 == result) {
+		if (!framework.ValidateSocketMessage(result)) {
 			framework.PlayerDisconnect(client_info);
 			break;
 		}
@@ -64,13 +51,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
-					if (0 < framework.GetClientCount()) {
+					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
 						break;
 					}
 				} // 다른 메시지는 버린다.
 
-				Sleep(2000);
+				Sleep(5000);
 				framework.CastStartGame(true);
 				break;
 			} break;
@@ -88,10 +75,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
 									  , data_size, MSG_WAITALL);
-						if (SOCKET_ERROR == result) {
-							framework.PlayerDisconnect(client_info);
-							break;
-						} else if (0 == result) {
+						if (!framework.ValidateSocketMessage(result)) {
 							framework.PlayerDisconnect(client_info);
 							break;
 						}
@@ -107,7 +91,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							auto button = key_storage[i];
 							auto keycode = button.code;
 							auto keystat = button.type;
-							
+
 							switch (keystat) {
 								case NONE:
 								{
@@ -117,9 +101,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										case VK_RIGHT: { check_rt = false; } break;
 										case VK_UP: { check_up = false; } break;
 										case VK_DOWN: { check_dw = false;} break;
-										case VK_SPACE: { check_blink = false; }	 break;			// 특수능력
-										case 'A': case 'a': { check_shoot = false; } break;		// 공격
-										case 'R': case 'r': { check_reload = false; } break;	// 재장전
+										case VK_SPACE: { check_blink = false; }	 break; // 특능
+										case 'A': case 'a': { check_shoot = false; } break; // 공격
+										case 'R': case 'r': { check_reload = false; } break; // 재장전
 										default: break;
 									}
 								}
@@ -132,10 +116,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										case VK_LEFT: { check_lt = true; } break;
 										case VK_RIGHT: { check_rt = true; } break;
 										case VK_UP: { check_up = true; } break;
-										case VK_DOWN: { check_dw = true; } break;
-										case VK_SPACE: { check_blink = true; }	 break;			// 특수능력
-										case 'A': case 'a': { check_shoot = true; } break;		// 공격
-										case 'R': case 'r': { check_reload = true; } break;		// 재장전
+										case VK_DOWN: { check_dw = true;} break;
+										case VK_SPACE: { check_blink = true; }	 break; // 특능
+										case 'A': case 'a': { check_shoot = true; } break; // 공격
+										case 'R': case 'r': { check_reload = true; } break; // 재장전
 										default: break;
 									}
 								}
@@ -148,10 +132,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 										case VK_LEFT: { check_lt = false; } break;
 										case VK_RIGHT: { check_rt = false; } break;
 										case VK_UP: { check_up = false; } break;
-										case VK_DOWN: { check_dw = false; } break;
-										case VK_SPACE: { check_blink = false; }	 break;			// 특수능력
-										case 'A': case 'a': { check_shoot = false; } break;		// 공격
-										case 'R': case 'r': { check_reload = false; } break;	// 재장전
+										case VK_DOWN: { check_dw = false;} break;
+										case VK_SPACE: { check_blink = false; }	 break; // 특능
+										case 'A': case 'a': { check_shoot = false; } break; // 공격
+										case 'R': case 'r': { check_reload = false; } break; // 재장전
 										default: break;
 									}
 								}
@@ -160,7 +144,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						}
 
 						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-						if (pchar && !pchar->dead) {
+						if (pchar && !pchar->dead) { // 게임 상태
 							int check_horz = check_rt - check_lt; // 좌우 이동
 							int check_vert = check_dw - check_up; // 상하 이동
 
@@ -172,27 +156,30 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
 							}
 
-							if (check_blink) {
-								// 기존 이동한 거리의 3배의 거리로 순간이동(배수는 변경 가능)
-								// 좌우 방향 순간이동
-								if (0 != check_horz) {
-									pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
-								}
+              // 湲곗〈 대 嫄곕━ 3諛곗 嫄곕━濡 媛대(諛곗 蹂寃 媛)
+              // 醫 諛⑺ 媛대
+              if (0 != check_horz) {
+                pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz * 3;
+              }
 
-								// 상하 방향 순간이동
-								if (0 != check_vert) {
-									pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
-								}
+              //  諛⑺ 媛대
+              if (0 != check_vert) {
+                pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert * 3;
+              }
+
+              if (check_blink) {
+                //TODO
 							}
 
 							if (check_shoot) {
-
+								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
+								//TODO
 							}
-
+              
 							if (check_reload) {
 
 							}
-						} else if (pchar && pchar->dead) {
+						} else if (pchar && pchar->dead) { // 관전 상태
 
 						}
 					} // 다른 메시지는 버린다.
@@ -200,9 +187,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.CastProcessingGame();
 
 					framework.AwaitSendRendersEvent(); // event_send_renders
-					framework.SendRenderings();
+					framework.SendRenderingInfos(client_socket);
 
-					framework.CastSendRenders(false);
+					framework.CastSendingRenderingInfos(false);
 
 					SleepEx(FRAME_TIME, TRUE);
 					framework.CastStartReceive(true);
@@ -212,7 +199,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME_OVER:
 			{
-				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
+				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) { //TODO
 
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
 
@@ -222,13 +209,13 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME_RESTART:
 			{
-
+				//TODO
 			}
 			break;
 
 			case EXIT:
 			{
-
+				//TODO
 			}
 			break;
 
@@ -245,18 +232,8 @@ DWORD WINAPI GameInitializeProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitStartGameEvent();
 
-		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
-
-		auto sz = framework.players.size();
-		for (int i = 0; i < sz; ++i) {
-			auto player = framework.players.at(i);
-			auto places = framework.PLAYER_SPAWN_PLACES[i];
-			auto character = framework.Instantiate<CCharacter>(places[0], places[1]);
-
-			player->player_character = character;
-			character->owner = player->index;
-			SendData(player->client_socket, PACKETS::SERVER_GAME_START);
-		}
+		framework.GameReady();
+		framework.CreatePlayerCharacters<CCharacter>();
 
 		framework.CastStartReceive(true);
 		framework.SetStatus(GAME);
@@ -278,7 +255,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		framework.CastStartReceive(false);
 		Sleep(LERP_MIN); // 이 함수를 SleepEx로
 
-		if (1 < framework.GetClientCount()) {
+		if (framework.CheckClientNumber()) {
 			// 게임 처리
 			framework.ProceedContinuation();
 		} else {
@@ -315,12 +292,16 @@ void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
 	if (collide_bullet) {
-		GetHurt(1);
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+
+		GetHurt(1);
 	}
 
-	direction = point_direction(0, 0, hspeed, vspeed);
+	if (hspeed != 0.0 || vspeed != 0.0)
+		direction = point_direction(0, 0, hspeed, vspeed);
+
+	AssignRenderingInfo(direction);
 
 	GameInstance::OnUpdate(frame_advance);
 }
@@ -336,6 +317,8 @@ void CCharacter::GetHurt(int dmg) {
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
+	} else {
+		inv_time -= FRAME_TIME;
 	}
 }
 
@@ -358,6 +341,8 @@ void CBullet::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
+	AssignRenderingInfo(image_angle);
+
 	GameInstance::OnUpdate(frame_advance);
 }
 

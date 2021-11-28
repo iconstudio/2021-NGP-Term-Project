@@ -3,11 +3,11 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework(int rw, int rh)
-	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4)
+	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
-	, thread_game_starter(NULL), thread_game_process(NULL)
-	, player_number_last(0), player_captain(-1) {
+	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
+	, player_number_last(0), player_captain(-1), player_winner(-1) {
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 
@@ -44,20 +44,20 @@ ServerFramework::~ServerFramework() {
 bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return false;
 	}
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
 		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return false;
 	}
 
@@ -75,13 +75,13 @@ bool ServerFramework::Initialize() {
 		ErrorAbort("listen()");
 		return false;
 	}
-	cout << "º≠πˆ Ω√¿€" << endl;
+	cout << "ÏÑúÎ≤Ñ ÏãúÏûë" << endl;
 
 	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // ÏàòÎèô Î¶¨ÏÖã Ïù¥Î≤§Ìä∏ Í∞ùÏ≤¥
 
 	// event_player_accept
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
@@ -112,7 +112,12 @@ void ServerFramework::Startup() {
 				if (!status_begin) {
 					cout << "S: Lobby" << endl;
 
-					CastClientAccept(true);
+
+					if (client_number < PLAYERS_NUMBER_MAX) {
+						CastClientAccept(true);
+					} else {
+						CastClientAccept(false);
+					}
 					status_begin = true;
 				}
 			}
@@ -151,7 +156,7 @@ void ServerFramework::Startup() {
 
 			case EXIT:
 			{
-				// ¡æ∑·
+				// Ï¢ÖÎ£å
 			}
 			return;
 
@@ -159,6 +164,13 @@ void ServerFramework::Startup() {
 				break;
 		}
 	}
+}
+
+void ServerFramework::GameReady() {
+	shuffle(players.begin(), players.end(), randomizer);
+
+	my_process_index = 0;
+	player_winner = -1;
 }
 
 void ServerFramework::GameUpdate() {
@@ -170,11 +182,9 @@ void ServerFramework::GameUpdate() {
 void ServerFramework::Clean() {
 	players.clear();
 	instances.clear();
-	io_queue.clear();
 
 	players.shrink_to_fit();
 	instances.shrink_to_fit();
-	io_queue.shrink_to_fit();
 
 	players.reserve(PLAYERS_NUMBER_MAX);
 	SetCaptain(nullptr);
@@ -186,29 +196,22 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
 	if (INVALID_SOCKET == new_socket) {
-		// ø¿∑˘
+		// Ïò§Î•ò
 		return new_socket;
 	}
 
 	switch (GetStatus()) {
 		case LISTEN:
 		{
-			// √ππ¯¬∞ «√∑π¿ÃæÓ ¡¢º”
+			// Ï≤´Î≤àÏß∏ ÌîåÎ†àÏù¥Ïñ¥ Ï†ëÏÜç
 			SetStatus(LOBBY);
-
-			if (client_number < PLAYERS_NUMBER_MAX) {
-				CastClientAccept(true);
-			} else {
-				return 0;
-			}
 		}
 		break;
 
 		case LOBBY:
 		{
-			if (client_number < PLAYERS_NUMBER_MAX) {
-				CastClientAccept(true);
-			} else {
+			if (PLAYERS_NUMBER_MAX <= client_number) {
+				closesocket(new_socket);
 				return 0;
 			}
 		}
@@ -224,7 +227,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_handle = new_thread;
 
-	// √ππ¯¬∞ «√∑π¿ÃæÓ
+	// Ï≤´Î≤àÏß∏ ÌîåÎ†àÏù¥Ïñ¥
 	if (client_number == 0) {
 		SetCaptain(client_info);
 
@@ -232,8 +235,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	}
 
 	client_number++;
-	cout << "ªı «√∑π¿ÃæÓ ¡¢º”: " << new_socket << endl;
-	cout << "«ˆ¿Á «√∑π¿ÃæÓ ºˆ: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+	cout << "ÏÉà ÌîåÎ†àÏù¥Ïñ¥ Ï†ëÏÜç: " << new_socket << endl;
+	cout << "ÌòÑÏû¨ ÌîåÎ†àÏù¥Ïñ¥ Ïàò: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
 
@@ -257,12 +260,12 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 			Kill(static_cast<GameInstance*>(character));
 		client_number--;
 
-		cout << "«√∑π¿ÃæÓ ¡æ∑·: " << player->client_socket << endl;
-		cout << "«ˆ¿Á «√∑π¿ÃæÓ ºˆ: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
+		cout << "ÌîåÎ†àÏù¥Ïñ¥ Ï¢ÖÎ£å: " << player->client_socket << endl;
+		cout << "ÌòÑÏû¨ ÌîåÎ†àÏù¥Ïñ¥ Ïàò: " << client_number << " / " << PLAYERS_NUMBER_MAX << endl;
 
 		players.erase(dit);
 
-		// «√∑π¿ÃæÓ 0∏Ì »§¿∫ 1∏Ì
+		// ÌîåÎ†àÏù¥Ïñ¥ 0Î™Ö ÌòπÏùÄ 1Î™Ö
 		if (client_number < 2) {
 			switch (status) {
 				case LISTEN:
@@ -282,15 +285,15 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				}
 				break;
 
-				case GAME: { /* ø©±‚º≠ √≥∏Æ æ»«‘ */ } break;
-				case GAME_OVER: { /* ø©±‚º≠ √≥∏Æ æ»«‘ */ } break;
-				case GAME_RESTART: { /* ø©±‚º≠ √≥∏Æ æ»«‘ */ } break;
-				case EXIT: { /* ø©±‚º≠ √≥∏Æ æ»«‘ */ } break;
+				case GAME: { /* Ïó¨Í∏∞ÏÑú Ï≤òÎ¶¨ ÏïàÌï® */ } break;
+				case GAME_OVER: { /* Ïó¨Í∏∞ÏÑú Ï≤òÎ¶¨ ÏïàÌï® */ } break;
+				case GAME_RESTART: { /* Ïó¨Í∏∞ÏÑú Ï≤òÎ¶¨ ÏïàÌï® */ } break;
+				case EXIT: { /* Ïó¨Í∏∞ÏÑú Ï≤òÎ¶¨ ÏïàÌï® */ } break;
 				default: break;
 			}
 		}
 
-		// πÊ¿Â¿Ã ≥™∞®
+		// Î∞©Ïû•Ïù¥ ÎÇòÍ∞ê
 		if (player_captain == id) {
 			if (0 < client_number) {
 				auto new_captain = players.at(0);
@@ -300,6 +303,20 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		}
 
 	}
+}
+
+bool ServerFramework::CheckClientNumber() const {
+	return (CLIENT_NUMBER_MIN <= client_number);
+}
+
+bool ServerFramework::ValidateSocketMessage(int socket_state) {
+	if (SOCKET_ERROR == socket_state) {
+		return false;
+	} else if (0 == socket_state) {
+		return false;
+	}
+
+	return true;
 }
 
 void ServerFramework::SetCaptain(PlayerInfo* player) {
@@ -312,7 +329,7 @@ void ServerFramework::SetCaptain(PlayerInfo* player) {
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		cout << "º≠πˆ ªÛ≈¬ ∫Ø∞Ê: " << status << " -> " << state << endl;
+		cout << "ÏÑúÎ≤Ñ ÏÉÅÌÉú Î≥ÄÍ≤Ω: " << status << " -> " << state << endl;
 
 		status = state;
 		status_begin = false;
@@ -323,44 +340,61 @@ SERVER_STATES ServerFramework::GetStatus() const {
 	return status;
 }
 
-int ServerFramework::GetClientCount() const {
+int ServerFramework::GetClientNumber() const {
 	return client_number;
 }
 
 void ServerFramework::ProceedContinuation() {
-	InterpretPlayerAction();
-
 	if (my_process_index < client_number) {
 		my_process_index++;
 	} else {
 		my_process_index = 0;
 
+		// Í≤åÏûÑ ÏÉÅÌÉú Í∞±Ïã†
 		GameUpdate();
-		BuildRenderings();
+		BakeRenderingInfos();
 
-		CastSendRenders(true);
+		// Í≤åÏûÑ ÏäπÌå® ÌåêÏ†ï
+
+
+		CastSendingRenderingInfos(true);
 	}
-
-	ClearPlayerActions();
 }
 
-void ServerFramework::BuildRenderings() {
-	ForeachInstances([&](GameInstance*& inst) {
-		inst->SetRenderInstance();
-	});
-}
-
-void ServerFramework::SendRenderings() {
-	for (auto player = players.begin(); player != players.end(); ++player) {
-		for (auto instance = instances.begin(); instance != instances.end(); ++instance) {
-			auto render = (*instance)->GetRenderInstance();
-
-			// ¿ŒΩ∫≈œΩ∫∞° ªÏæ∆¿÷¥¬ ∞ÊøÏø°∏∏ ∑ª¥ı∏µ ∏ﬁºº¡ˆ ¿¸º€
-			if (!(*instance)->dead) {
-				SendData((*player)->client_socket, SERVER_RENDER_INFO
-					, reinterpret_cast<char*>(&render), sizeof(render));
-			}
+void ServerFramework::BakeRenderingInfos() {
+	if (!instances.empty()) {
+		if (rendering_infos_last) {
+			delete[] rendering_infos_last;
 		}
+		rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
+
+		auto CopyList = vector<GameInstance*>(instances);
+
+		// ÌîåÎ†àÏù¥Ïñ¥ Í∞úÏ≤¥Î•º Îß® ÏúÑÎ°ú
+		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
+			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+		});
+
+		int index = 0;
+		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
+			auto& render_infos = (*it)->GetRenderInstance();
+
+      // Ïù∏Ïä§ÌÑ¥Ïä§Í∞Ä ÏÇ¥ÏïÑÏûàÎäî Í≤ΩÏö∞ÏóêÎßå Î†åÎçîÎßÅ Î©îÏÑ∏ÏßÄ Ï†ÑÏÜ°
+      if (!(*it)->dead)
+			  rendering_infos_last[index++] = render_infos;
+		}
+	} else if (rendering_infos_last) {
+		delete[] rendering_infos_last;
+		rendering_infos_last = nullptr;
+	}
+}
+
+void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
+	if (rendering_infos_last) {
+		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
+		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
+
+		SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
 	}
 }
 
@@ -392,58 +426,12 @@ void ServerFramework::CastProcessingGame() {
 	SetEvent(event_game_process);
 }
 
-void ServerFramework::CastSendRenders(bool flag) {
+void ServerFramework::CastSendingRenderingInfos(bool flag) {
 	if (flag) {
 		SetEvent(event_send_renders);
 	} else {
 		ResetEvent(event_send_renders);
 	}
-}
-
-ServerFramework::IO_MSG* ServerFramework::QueingPlayerAction(PlayerInfo* player
-															 , ACTION_TYPES type
-															 , int data) {
-	auto* result = new IO_MSG{ type, player->index, data };
-	io_queue.push_back(std::move(result));
-	return result;
-}
-
-void ServerFramework::InterpretPlayerAction() {
-	if (0 < io_queue.size()) {
-		for (auto& output : io_queue) {
-			auto player = static_cast<GameInstance*>(GetPlayer(output->player_index)->player_character);
-
-			switch (output->type) {
-				case ACTION_TYPES::SET_HSPEED:
-				{
-					player->hspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SET_VSPEED:
-				{
-					player->vspeed = output->data;
-				}
-				break;
-
-				case ACTION_TYPES::SHOOT:
-				{
-					player->image_angle = output->data;
-				}
-				break;
-
-				default:
-				{
-
-				}
-				break;
-			}
-		}
-	}
-}
-
-void ServerFramework::ClearPlayerActions() {
-	io_queue.clear();
 }
 
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {
@@ -464,9 +452,94 @@ PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 }
 
 PlayerInfo::~PlayerInfo() {
-	key_storage.clear();
-	delete& key_storage;
 	delete player_character;
+}
+
+GameInstance::GameInstance()
+	: owner(-1)
+	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
+	, my_renders{}
+	, box{}, dead(false)
+	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {
+	ZeroMemory(&my_renders, sizeof(my_renders));
+}
+
+GameInstance::~GameInstance() {
+	delete& my_renders;
+}
+
+void GameInstance::OnCreate() {}
+
+void GameInstance::OnDestroy() {}
+
+void GameInstance::OnUpdate(double frame_advance) {
+	if (hspeed != 0.0 || vspeed != 0.0) {
+		x += hspeed * frame_advance;
+		y += vspeed * frame_advance;
+	}
+
+	if (image_speed != 0.0 && 1.0 < image_number) {
+		image_index += image_speed;
+
+		if (image_index < 0) {
+			image_index += image_number;
+		} else if (image_number <= image_index) {
+			image_index -= image_number;
+		}
+	}
+}
+
+void GameInstance::SetRenderType(RENDER_TYPES sprite) {
+	my_renders.instance_type = sprite;
+}
+
+void GameInstance::SetImageNumber(int number) {
+	image_number = static_cast<double>(number);
+}
+
+RenderInstance& GameInstance::GetRenderInstance() {
+	return my_renders;
+}
+
+void GameInstance::SetBoundBox(const RECT& mask) {
+	CopyRect(&box, &mask);
+}
+
+int GameInstance::GetBoundLT() const {
+	return x + box.left;
+}
+
+int GameInstance::GetBoundTP() const {
+	return y + box.top;
+}
+
+int GameInstance::GetBoundRT() const {
+	return x + box.right;
+}
+
+int GameInstance::GetBoundBT() const {
+	return y + box.bottom;
+}
+
+const char* GameInstance::GetIdentifier() const {
+	return "Instance";
+}
+
+bool GameInstance::IsCollideWith(GameInstance* other) {
+	return !(other->GetBoundRT() <= GetBoundLT()
+		|| other->GetBoundBT() <= GetBoundTP()
+		|| GetBoundRT() < other->GetBoundLT()
+		|| GetBoundBT() < other->GetBoundTP());
+}
+
+RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
+	my_renders.x = x;
+	my_renders.y = y;
+
+	my_renders.image_index = image_index;
+	my_renders.angle = angle;
+
+	return my_renders;
 }
 
 void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
@@ -504,99 +577,4 @@ void ErrorDisplay(const char* msg) {
 	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
 
 	LocalFree(lpMsgBuf);
-}
-
-GameInstance::GameInstance()
-	: owner(-1)
-	, image_angle(0.0), image_index(0.0), image_speed(0.0), image_number(0.0)
-	, my_renders{}
-	, box{}, dead(false)
-	, x(0), y(0), hspeed(0.0), vspeed(0.0), direction(0.0) {}
-
-GameInstance::~GameInstance() {
-	delete& my_renders;
-}
-
-void GameInstance::OnCreate() {}
-
-void GameInstance::OnDestroy() {}
-
-void GameInstance::OnUpdate(double frame_advance) {
-	if (hspeed != 0.0 || vspeed != 0.0) {
-		x += hspeed * frame_advance;
-		y += vspeed * frame_advance;
-	}
-
-	if (image_speed != 0.0 && 1.0 < image_number) {
-		image_index += image_speed;
-
-		if (image_index < 0) {
-			image_index += image_number;
-		} else if (image_number <= image_index) {
-			image_index -= image_number;
-		}
-	}
-}
-
-void GameInstance::SetRenderType(RENDER_TYPES sprite) {
-	my_renders.instance_type = sprite;
-}
-
-void GameInstance::SetImageNumber(int number) {
-	image_number = static_cast<double>(number);
-}
-
-void GameInstance::SetRenderInstance()
-{
-	my_renders.x = x;
-	my_renders.y = y;
-
-	my_renders.image_index = image_index;
-	my_renders.angle = image_angle;
-}
-
-RenderInstance GameInstance::GetRenderInstance() const
-{
-	return my_renders;
-}
-
-void GameInstance::SetBoundBox(const RECT& mask) {
-	CopyRect(&box, &mask);
-}
-
-int GameInstance::GetBoundLT() const {
-	return x + box.left;
-}
-
-int GameInstance::GetBoundTP() const {
-	return y + box.top;
-}
-
-int GameInstance::GetBoundRT() const {
-	return x + box.right;
-}
-
-int GameInstance::GetBoundBT() const {
-	return y + box.bottom;
-}
-
-const char* GameInstance::GetIdentifier() const {
-	return "Instance";
-}
-
-bool GameInstance::IsCollideWith(GameInstance* other) {
-	return !(other->GetBoundRT() <= GetBoundLT()
-		|| other->GetBoundBT() <= GetBoundTP()
-		|| GetBoundRT() < other->GetBoundLT()
-		|| GetBoundBT() < other->GetBoundTP());
-}
-
-RenderInstance* GameInstance::MakeRenderInfos() {
-	ZeroMemory(&my_renders, sizeof(my_renders));
-
-	my_renders.x = x;
-	my_renders.y = y;
-	my_renders.angle = image_angle;
-
-	return &my_renders;
 }
