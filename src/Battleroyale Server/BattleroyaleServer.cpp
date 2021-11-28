@@ -166,7 +166,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
-								//TODO
+								bullet->SetVelocity(SNOWBALL_SPEED, pchar->direction);
 							}
 
 							if (check_reload) {
