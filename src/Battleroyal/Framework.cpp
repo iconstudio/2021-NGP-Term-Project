@@ -4,7 +4,7 @@
 
 GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
 GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
-GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
+//GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
 
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
@@ -76,7 +76,7 @@ void ClientFramework::Initialize() {
 
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
-	SetSprite(&buttonsprite);
+	//SetSprite(&buttonsprite);
 
 }
 
@@ -104,18 +104,19 @@ void ClientFramework::Update() {
 	{
 		background_color = COLOR_YELLOW;
 		
+
+		auto address_size = sizeof(server_address);
 		if (title_duration < 200)	//로비까지 시간 100 = 1초 
 		{
 			title_duration++;
 			break;
 		}
-
-		auto address_size = sizeof(server_address);
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 		if (SOCKET_ERROR == result) {
 			// 오류
 			return;
 		}
+
 		status = LOBBY;
 		RecvTitleMessage(my_socket);
 
@@ -126,14 +127,15 @@ void ClientFramework::Update() {
 	{
 		background_color = COLOR_RED;
 
+		PACKETS packet = CLIENT_GAME_START;
+		SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+
 		if (player_captain == true)
 		{
-			PACKETS packet = CLIENT_GAME_START;
-			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
-			if (RecvPacket(my_socket) == SERVER_GAME_START)
-			{
-				status = GAME;
-			}
+		}
+		if (RecvPacket(my_socket) == SERVER_GAME_START)
+		{
+			status = GAME;
 		}
 	}
 	break;
@@ -350,10 +352,10 @@ int ClientFramework::RecvGameMessage(SOCKET sock) {
 
 	return retval;
 }
-PACKETS RecvPacket(SOCKET sock) {
+PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 
-	PACKETS packet;
-	int retval = recv(sock, (char*)packet, sizeof(int), 0);
+	PACKETS packet = CLIENT_PING;
+	int retval = recv(sock, (char*)&packet, sizeof(int), 0);
 	if (retval == SOCKET_ERROR) {
 		ErrorAbort("recv packet failed");
 	}

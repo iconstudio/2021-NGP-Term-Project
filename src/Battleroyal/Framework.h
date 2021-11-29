@@ -3,7 +3,7 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-//#define SERVER_IP "192.168.122.191"
+//#define SERVER_IP "192.168.120.35"
 #define SERVER_IP "127.0.0.1"
 
 enum CLIENT_STATES : int {
