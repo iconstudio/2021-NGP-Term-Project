@@ -4,7 +4,7 @@
 
 GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
 GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
-//GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
+GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
 
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
@@ -76,7 +76,7 @@ void ClientFramework::Initialize() {
 
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
-	//SetSprite(&buttonsprite);
+	SetSprite(&buttonsprite);
 
 }
 
@@ -135,7 +135,7 @@ void ClientFramework::Update() {
 		}
 		if (RecvPacket(my_socket) == SERVER_GAME_START)
 		{
-			status = GAME;
+			//status = GAME;
 		}
 	}
 	break;
@@ -188,7 +188,8 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
-	if (status == LOBBY && player_captain == true)
+	//&& player_captain == true
+	if (status == LOBBY )
 		sprites[2]->draw(surface_double, 120, 80, 0.0, 0.0,1.0, 1.0, 0.0);
 
 	// 파이프라인
