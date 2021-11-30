@@ -48,6 +48,7 @@ public:
 	virtual void OnUpdate(double frame_advance);
 	virtual const char* GetIdentifier() const;
 
+	void SetOwner(int player_index);
 	void SetRenderType(RENDER_TYPES sprite);
 	void SetImageNumber(int number);
 	void SetDirection(double dir);

@@ -167,6 +167,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 							if (check_shoot) {
 								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
 								bullet->SetVelocity(SNOWBALL_SPEED, pchar->direction);
+								bullet->SetOwner(player_index);
 							}
 
 							if (check_reload) {

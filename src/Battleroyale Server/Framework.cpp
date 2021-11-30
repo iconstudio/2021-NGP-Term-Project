@@ -522,6 +522,10 @@ void GameInstance::OnUpdate(double frame_advance) {
 	}
 }
 
+void GameInstance::SetOwner(int player_index) {
+	owner = player_index;
+}
+
 void GameInstance::SetRenderType(RENDER_TYPES sprite) {
 	my_renders.instance_type = sprite;
 }
