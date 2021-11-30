@@ -171,6 +171,7 @@ void ServerFramework::ProcessConnect() {
 
 void ServerFramework::ProcessReady() {
 	AwaitStartGameEvent();
+	cout << "AwaitStartGameEvent()" << endl;
 
 	shuffle(players.begin(), players.end(), randomizer);
 
@@ -183,11 +184,12 @@ void ServerFramework::ProcessReady() {
 
 void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
+	cout << "AwaitProcessingGameEvent()" << endl;
 
 	CastStartReceive(false);
 	Sleep(LERP_MIN);
 
-	if (CheckClientNumber()) { // 게임 처리	
+	if (CheckClientNumber()) { // 게임 처리
 		ProceedContinuation();
 	} else { // 게임 판정승 혹은 게임 강제 종료
 		auto numb = GetClientNumber();
@@ -373,10 +375,13 @@ int ServerFramework::GetClientNumber() const {
 }
 
 void ServerFramework::ProceedContinuation() {
+	cout << "ProceedContinuation()" << endl;
 	if (my_process_index < client_number) {
 		my_process_index++;
+		cout << "하나의 클라이언트 스레드 처리: " << my_process_index << endl;
 	} else {
 		my_process_index = 0;
+		cout << "게임 인스턴스 처리" << endl;
 
 		// 게임 상태 갱신
 		ForeachInstances([&](GameInstance*& inst) {
@@ -394,6 +399,7 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BakeRenderingInfos() {
 	if (!instances.empty()) {
+		cout << "렌더링 정보 생성\n크기: " << instances.size() << endl;
 		if (rendering_infos_last) {
 			delete[] rendering_infos_last;
 		}
@@ -422,6 +428,7 @@ void ServerFramework::BakeRenderingInfos() {
 
 void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	if (rendering_infos_last) {
+		cout << "SendRenderingInfos()" << endl;
 		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
@@ -438,6 +445,7 @@ void ServerFramework::CastClientAccept(bool flag) {
 }
 
 void ServerFramework::CastStartGame(bool flag) {
+	cout << "CastStartGame: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_game_start);
 	} else {
@@ -446,6 +454,7 @@ void ServerFramework::CastStartGame(bool flag) {
 }
 
 void ServerFramework::CastStartReceive(bool flag) {
+	cout << "CastStartReceive: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_receives);
 	} else {
@@ -454,10 +463,12 @@ void ServerFramework::CastStartReceive(bool flag) {
 }
 
 void ServerFramework::CastProcessingGame() {
+	cout << "CastProcessingGame"<< endl;
 	SetEvent(event_game_process);
 }
 
 void ServerFramework::CastSendingRenderingInfos(bool flag) {
+	cout << "CastSendingRenderingInfos: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_send_renders);
 	} else {
