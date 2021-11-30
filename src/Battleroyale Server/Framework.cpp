@@ -236,6 +236,7 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
+	EnterCriticalSection(&player_infos_permission);
 	switch (GetStatus()) {
 		case LISTEN:
 		{
@@ -278,11 +279,14 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
+	
+	LeaveCriticalSection(&player_infos_permission);
 
 	return new_socket;
 }
 
 void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
+	EnterCriticalSection(&player_infos_permission);
 	auto dit = find(players.begin(), players.end(), player);
 
 	if (dit != players.end()) {
@@ -337,8 +341,8 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				SendData(new_captain->client_socket, PACKETS::SERVER_SET_CAPATIN);
 			}
 		}
-
 	}
+	LeaveCriticalSection(&player_infos_permission);
 }
 
 bool ServerFramework::CheckClientNumber() const {
