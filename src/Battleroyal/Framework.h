@@ -64,6 +64,9 @@ private:
 	bool player_captain = false;
 	int title_duration = 0;
 
+	int mouse_x;
+	int mouse_y;
+	
 	int player_count = 0;
 
 	InputStream keys[6];
