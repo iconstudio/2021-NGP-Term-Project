@@ -64,7 +64,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					}
 				} // 다른 메시지는 버린다.
 
-				Sleep(5000);
+				Sleep(100);
 				framework.CastStartGame(true);
 				break;
 			} break;
