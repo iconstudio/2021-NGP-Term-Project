@@ -3,7 +3,7 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-//#define SERVER_IP "192.168.122.191"
+//#define SERVER_IP "192.168.120.35"
 #define SERVER_IP "127.0.0.1"
 
 enum CLIENT_STATES : int {
@@ -63,6 +63,8 @@ private:
 	int player_num = 1;
 	bool player_captain = false;
 	int title_duration = 0;
+
+	int player_count = 0;
 
 	InputStream keys[6];
 
