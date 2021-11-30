@@ -64,6 +64,8 @@ private:
 	bool player_captain = false;
 	int title_duration = 0;
 
+	int player_count = 0;
+
 	InputStream keys[6];
 
 	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d

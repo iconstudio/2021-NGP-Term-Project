@@ -133,9 +133,14 @@ void ClientFramework::Update() {
 		if (player_captain == true)
 		{
 		}
+
+		if (RecvPacket(my_socket) == SERVER_PLAYER_COUNT)
+		{
+			recv(my_socket, (char*)player_count, sizeof(int), 0);
+		}
 		if (RecvPacket(my_socket) == SERVER_GAME_START)
 		{
-			//status = GAME;
+			status = GAME;
 		}
 	}
 	break;
@@ -190,7 +195,7 @@ void ClientFramework::Render(HWND window) {
 
 	//&& player_captain == true
 	if (status == LOBBY )
-		sprites[2]->draw(surface_double, 120, 80, 0.0, 0.0,1.0, 1.0, 0.0);
+		sprites[2]->draw(surface_double, 120, 80, 0.0, 0.0,1.0, 1.0, 1.0);
 
 	// 파이프라인
 	if (status == GAME) {
