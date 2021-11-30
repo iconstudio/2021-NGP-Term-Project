@@ -2,12 +2,16 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
+
+CRITICAL_SECTION player_infos_permission;
+
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), status_begin(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
+	InitializeCriticalSection(&player_infos_permission);
 
 	players.reserve(CLIENT_NUMBER_MAX);
 
@@ -24,6 +28,8 @@ ServerFramework::ServerFramework(int rw, int rh)
 }
 
 ServerFramework::~ServerFramework() {
+	DeleteCriticalSection(&player_infos_permission);
+
 	closesocket(my_socket);
 
 	for (auto player : players) {
