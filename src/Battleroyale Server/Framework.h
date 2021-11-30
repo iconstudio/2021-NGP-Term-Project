@@ -150,11 +150,15 @@ private:
 	WSAOVERLAPPED io_behavior;
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
+
 	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
 	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
 	HANDLE event_game_process; // 충돌 처리를 하는 이벤트 객체
 	HANDLE event_send_renders; // 렌더링 정보를 보내는 이벤트 객체
+	HANDLE event_over_restart; // 재시작을 담당하는 이벤트 객체
+	HANDLE event_over_quit; // 렌더링 정보를 보내는 이벤트 객체
+
 	int my_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
 
 	/* 플레이어 관련 속성 */
