@@ -25,6 +25,21 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
 	}
+
+	event_status = CreateEvent(NULL, FALSE, TRUE, NULL);
+	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
+
+	// event_player_accept
+	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
+	// event_game_start
+	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
+	// event_game_process
+	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
+
 }
 
 ServerFramework::~ServerFramework() {
@@ -83,20 +98,6 @@ bool ServerFramework::Initialize() {
 		return false;
 	}
 	cout << "서버 시작" << endl;
-
-	event_status = CreateEvent(NULL, FALSE, TRUE, NULL);
-	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
-
-	// event_player_accept
-	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
-	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
-	// event_game_process
-	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
 
 	return true;
 }
