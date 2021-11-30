@@ -59,13 +59,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
+						Sleep(100);
 						framework.CastStartGame(true);
 						break;
 					}
 				} // 다른 메시지는 버린다.
-
-				Sleep(100);
-				framework.CastStartGame(true);
 				break;
 			} break;
 
