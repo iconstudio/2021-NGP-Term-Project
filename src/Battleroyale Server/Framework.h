@@ -121,6 +121,7 @@ public:
 	void CastProcessingGame();
 	void CastSendingRenderingInfos(bool flag);
 
+	inline DWORD WINAPI AwaitStatusBeginEvent();
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
 	inline DWORD WINAPI AwaitStartGameEvent();
@@ -140,7 +141,6 @@ private:
 	void ForeachInstances(Predicate predicate);
 
 	SERVER_STATES status;
-	bool status_begin;
 
 	/* 통신 관련 속성 */
 	SOCKET my_socket;
@@ -151,6 +151,7 @@ private:
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
 
+	HANDLE event_status; // 서버의 상태 변화 루틴을 담당하는 이벤트 객체
 	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
 	HANDLE event_game_start; // 게임 시작을 하는 이벤트 객체
 	HANDLE event_receives; // 플레이어의 입력을 받는 이벤트 객체
@@ -253,6 +254,10 @@ inline void ServerFramework::ForeachInstances(Predicate predicate) {
 
 		std::for_each(CopyList.begin(), CopyList.end(), predicate);
 	}
+}
+
+inline DWORD WINAPI ServerFramework::AwaitStatusBeginEvent() {
+	return WaitForSingleObject(event_status, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {

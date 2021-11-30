@@ -7,7 +7,7 @@ CRITICAL_SECTION player_infos_permission;
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
-	, status(SERVER_STATES::LISTEN), status_begin(false)
+	, status(SERVER_STATES::LISTEN)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
@@ -40,6 +40,7 @@ ServerFramework::~ServerFramework() {
 	CloseHandle(thread_game_starter);
 	CloseHandle(thread_game_process);
 
+	CloseHandle(event_status);
 	CloseHandle(event_player_accept);
 	CloseHandle(event_game_start);
 	CloseHandle(event_receives);
@@ -83,6 +84,7 @@ bool ServerFramework::Initialize() {
 	}
 	cout << "서버 시작" << endl;
 
+	event_status = CreateEvent(NULL, FALSE, TRUE, NULL);
 	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -101,62 +103,47 @@ bool ServerFramework::Initialize() {
 
 void ServerFramework::Startup() {
 	while (true) {
+		AwaitStatusBeginEvent();
+
 		switch (status) {
 			case LISTEN:
 			{
-				if (!status_begin) {
-					cout << "S: Listening" << endl;
+				cout << "S: Listening" << endl;
 
-					CastClientAccept(true);
-					status_begin = true;
-				}
+				CastClientAccept(true);
 			}
 			break;
 
 			case LOBBY:
 			{
-				if (!status_begin) {
-					cout << "S: Lobby" << endl;
+				cout << "S: Lobby" << endl;
 
 
-					if (client_number < CLIENT_NUMBER_MAX) {
-						CastClientAccept(true);
-					} else {
-						CastClientAccept(false);
-					}
-					status_begin = true;
+				if (client_number < CLIENT_NUMBER_MAX) {
+					CastClientAccept(true);
+				} else {
+					CastClientAccept(false);
 				}
 			}
 			break;
 
 			case GAME:
 			{
-				if (!status_begin) {
-					cout << "S: Starting the game" << endl;
+				cout << "S: Starting the game" << endl;
 
-					CastClientAccept(false);
-					status_begin = true;
-				}
+				CastClientAccept(false);
 			}
 			break;
 
 			case GAME_OVER:
 			{
-				if (!status_begin) {
-					cout << "S: The game is over." << endl;
-
-					status_begin = true;
-				}
+				cout << "S: The game is over." << endl;
 			}
 			break;
 
 			case GAME_RESTART:
 			{
-				if (!status_begin) {
-					cout << "S: Restarting the game" << endl;
-
-					status_begin = true;
-				}
+				cout << "S: Restarting the game" << endl;
 			}
 			break;
 
@@ -372,7 +359,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 		cout << "서버 상태 변경: " << status << " -> " << state << endl;
 
 		status = state;
-		status_begin = false;
+		SetEvent(event_status);
 	}
 }
 
