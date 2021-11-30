@@ -184,7 +184,6 @@ void ServerFramework::ProcessReady() {
 
 void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
-	cout << "AwaitProcessingGameEvent()" << endl;
 
 	CastStartReceive(false);
 	Sleep(LERP_MIN);
@@ -437,6 +436,7 @@ void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
+	cout << "CastClientAccept: " << boolalpha << flag << endl;
 	if (flag && client_number < CLIENT_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {

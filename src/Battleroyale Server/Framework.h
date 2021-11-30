@@ -257,25 +257,31 @@ inline void ServerFramework::ForeachInstances(Predicate predicate) {
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStatusBeginEvent() {
+	cout << "AwaitStatusBeginEvent()" << endl;
 	return WaitForSingleObject(event_status, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
+	cout << "AwaitClientAcceptEvent()" << endl;
 	return WaitForSingleObject(event_player_accept, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
+	cout << "AwaitReceiveEvent()" << endl;
 	return WaitForSingleObject(event_receives, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
+	cout << "AwaitStartGameEvent()" << endl;
 	return WaitForSingleObject(event_game_start, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
+	cout << "AwaitProcessingGameEvent()" << endl;
 	return WaitForSingleObject(event_game_process, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
+	cout << "AwaitSendRendersEvent()" << endl;
 	return WaitForSingleObject(event_send_renders, INFINITE);
 }
