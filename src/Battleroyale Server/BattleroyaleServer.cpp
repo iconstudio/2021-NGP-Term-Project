@@ -29,7 +29,7 @@ int main() {
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
-	int player_index = client_info->index;
+	int player_index = client_info->player_index;
 
 	bool thread_done = false;
 	while (!thread_done) {
@@ -74,7 +74,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 꾸준한 통신
 				while (true) {
-					framework.AwaitReceiveEvent(); // event_recieves
+					auto input_state = framework.AwaitReceiveEvent(); // event_recieves
+					if (WAIT_TIMEOUT == input_state) {
+						break;
+					}
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {
@@ -224,6 +227,14 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+	while (true) {
+		framework.ProcessConnect();
+	}
+
+	return 0;
+}
+
 DWORD WINAPI GameReadyProcess(LPVOID arg) {
 	while (true) {
 		framework.ProcessReady();
@@ -236,14 +247,6 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.ProcessGame();
-	}
-
-	return 0;
-}
-
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-	while (true) {
-		framework.ProcessConnect();
 	}
 
 	return 0;

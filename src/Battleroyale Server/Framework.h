@@ -3,9 +3,6 @@
 #include "CommonDatas.h"
 
 
-const int LERP_MIN = 50;
-const int LERP_MAX = 200;
-
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameReadyProcess(LPVOID arg);
@@ -13,9 +10,9 @@ DWORD WINAPI GameProcess(LPVOID arg);
 
 struct PlayerInfo {
 	SOCKET client_socket;
-	HANDLE client_handle;
+	HANDLE client_thread;
 
-	int index; // 플레이어 번호
+	int player_index; // 플레이어 번호
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
@@ -115,6 +112,7 @@ public:
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
+	void CastStatusChanged();
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastStartGame(bool flag);
@@ -145,6 +143,7 @@ private:
 	/* 통신 관련 속성 */
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
 
 	/* 다중 스레드 관련 속성 */
 	WSAOVERLAPPED io_behavior;
@@ -176,9 +175,7 @@ private:
 
 	const int WORLD_W, WORLD_H;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
-	const int SPAWN_DISTANCE;
-
-	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
+	const int SPAWN_DISTANCE; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 };
 
 template<class _GamePlayerClass>
@@ -190,7 +187,7 @@ void ServerFramework::CreatePlayerCharacters() {
 		auto character = Instantiate<_GamePlayerClass>(places[0], places[1]);
 
 		player->player_character = character;
-		character->owner = player->index;
+		character->owner = player->player_index;
 		SendData(player->client_socket, PACKETS::SERVER_GAME_START);
 	}
 }
@@ -268,7 +265,7 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
 	cout << "AwaitReceiveEvent()" << endl;
-	return WaitForSingleObject(event_receives, INFINITE);
+	return WaitForSingleObject(event_receives, WAIT_FOR_INPUTS_PERIOD);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
