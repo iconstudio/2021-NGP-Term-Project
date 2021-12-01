@@ -224,6 +224,14 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+	while (true) {
+		framework.ProcessConnect();
+	}
+
+	return 0;
+}
+
 DWORD WINAPI GameReadyProcess(LPVOID arg) {
 	while (true) {
 		framework.ProcessReady();
@@ -236,14 +244,6 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.ProcessGame();
-	}
-
-	return 0;
-}
-
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-	while (true) {
-		framework.ProcessConnect();
 	}
 
 	return 0;
