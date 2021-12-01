@@ -119,7 +119,6 @@ void ServerFramework::Startup() {
 			{
 				cout << "S: Lobby" << endl;
 
-
 				if (client_number < CLIENT_NUMBER_MAX) {
 					CastClientAccept(true);
 				} else {
@@ -166,6 +165,10 @@ void ServerFramework::ProcessConnect() {
 	SOCKET new_client = PlayerConnect();
 	if (INVALID_SOCKET == new_client) {
 		ErrorDisplay("PlayerConnect()");
+	}
+
+	if (status == LISTEN || status == LOBBY) {
+		CastClientAccept(true);
 	}
 }
 
