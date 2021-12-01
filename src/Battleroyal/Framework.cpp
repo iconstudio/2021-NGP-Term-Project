@@ -299,27 +299,6 @@ void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites[0]->get_height();
 }
 
-int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 1;
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
-
-	if (0 == temp)
-		player_captain = true;					//0이면 방장 아니면 쩌리
-	else
-		player_captain = false;
-
-	return retval;
-}
-
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
-
-	return retval;
-}
 
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;

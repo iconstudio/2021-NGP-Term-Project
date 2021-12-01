@@ -56,8 +56,6 @@ public:
 	void SetSprite(GameSprite* sprite);
 
 	PACKETS RecvPacket(SOCKET sock);
-	int RecvTitleMessage(SOCKET sock);
-	int RecvLobbyMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, InputStream keys[]);
 	int RecvGameMessage(SOCKET sock);
 
