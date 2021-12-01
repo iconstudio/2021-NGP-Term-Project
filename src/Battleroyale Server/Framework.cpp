@@ -185,7 +185,6 @@ void ServerFramework::ProcessReady() {
 void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
 
-	CastStartReceive(false);
 	Sleep(LERP_MIN);
 
 	if (CheckClientNumber()) { // 게임 처리
