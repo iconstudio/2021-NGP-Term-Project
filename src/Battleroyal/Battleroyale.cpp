@@ -132,15 +132,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-	SockInfo* client_info = reinterpret_cast<SockInfo*>(arg);
-	SOCKET my_socket = client_info->client_socket;
+	SOCKET my_socket = (SOCKET)arg;
 	PACKETS packet = CLIENT_PING;
 
 	bool thread_done = false;
 
 
 	while (!thread_done) {
-		int data_size = 0;
+		int data_size = 0;	
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (result == CLIENT_PING || result == SOCKET_ERROR) {
@@ -168,10 +167,60 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			framework.player_captain = true;
 
 		switch (framework.GetStatus()) {
+
+		case TITLE:
+		{
+			//framework.background_color = COLOR_YELLOW;
+			//auto address_size = sizeof(SOCKADDR_IN);
+
+			//if (framework.title_duration < 200)	//로비까지 시간 100 = 1초 
+			//{
+			//	framework.title_duration++;
+			//	break;
+			//}
+			//int result = connect(my_socket, reinterpret_cast<sockaddr*>(&framework.server_address), address_size);
+			//if (SOCKET_ERROR == result) {
+			//	// 오류
+			//	return 0;
+			//}
+			//framework.status = LOBBY;
+
+		}
+		break;
+
 		case LOBBY:
 		{
+			PACKETS packet;
+			recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 
-		} break;
+			if (packet == SERVER_SET_CAPATIN)
+				framework.player_captain = true;
+
+			framework.background_color = COLOR_RED;
+
+			if (framework.player_captain == true &&
+				mouse_x > VIEW_W / 2 - framework.sprites[2]->get_width() / 2 &&
+				mouse_x < VIEW_W / 2 + framework.sprites[2]->get_width() / 2 &&
+				mouse_y > VIEW_H / 2 - framework.sprites[2]->get_height() / 2 &&
+				mouse_y < VIEW_H / 2 + framework.sprites[2]->get_height() / 2)
+			{
+				PACKETS packet = CLIENT_GAME_START;
+				SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+			}
+
+			if (packet == SERVER_PLAYER_COUNT)
+			{
+				result = recv(my_socket, (char*)framework.player_count, sizeof(int), 0);
+				if (result == SOCKET_ERROR)
+				{
+				}
+			}
+			if (packet == SERVER_GAME_START)
+			{
+				framework.status = GAME;
+			}
+		} 
+		break;
 
 		case GAME:
 		{ 

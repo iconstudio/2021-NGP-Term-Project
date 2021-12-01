@@ -71,6 +71,7 @@ void ClientFramework::Initialize() {
 	keys[4].code = 'a';
 	keys[5].code = 's';
 	
+
 	InputRegister(VK_ESCAPE);
 
 	SetSprite(&playersprite);
@@ -81,10 +82,7 @@ void ClientFramework::Initialize() {
 
 void ClientFramework::Update() {
 	int retval;
-	PACKETS packet = RecvPacket(my_socket);
 
-	if (packet == SERVER_SET_CAPATIN)
-		player_captain = true;
 
 	switch (status) {
 	case TITLE:
@@ -108,13 +106,19 @@ void ClientFramework::Update() {
 
 	case LOBBY:
 	{
-		packet = RecvPacket(my_socket);
-		background_color = COLOR_RED;
+		CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
+		/*background_color = COLOR_RED;
+		PACKETS packet = RecvPacket(my_socket);
+		if (packet == SERVER_SET_CAPATIN)
+			player_captain = true;
+
+		recv(my_socket, (char*)(&packet), sizeof(PACKETS), MSG_WAITALL);
+
 		if (player_captain == true &&
 			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
 			mouse_x < VIEW_W / 2 + sprites[2]->get_width() / 2 &&
-			mouse_y > VIEW_H / 3 * 2 - sprites[2]->get_height() / 2 &&
-			mouse_y < VIEW_H / 3 * 2 + sprites[2]->get_height() / 2)
+			mouse_y > VIEW_H / 2 - sprites[2]->get_height() / 2 &&
+			mouse_y < VIEW_H / 2 + sprites[2]->get_height() / 2)
 		{
 			PACKETS packet = CLIENT_GAME_START;
 			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
@@ -129,7 +133,7 @@ void ClientFramework::Update() {
 		if (packet == SERVER_GAME_START)
 		{
 			status = GAME;
-		}
+		}*/
 	}
 	break;
 
@@ -312,7 +316,7 @@ int ClientFramework::RecvGameMessage(SOCKET sock) {
 PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 
 	PACKETS packet = CLIENT_PING;
-	int retval = recv(sock, (char*)&packet, sizeof(int), 0);
+	int retval = recv(sock, (char*)&packet, sizeof(int), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
 	}
 
