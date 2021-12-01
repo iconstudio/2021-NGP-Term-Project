@@ -198,14 +198,15 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			framework.background_color = COLOR_RED;
 
+			packet = CLIENT_GAME_START;
+			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+
 			if (framework.player_captain == true &&
 				mouse_x > VIEW_W / 2 - framework.sprites[2]->get_width() / 2 &&
 				mouse_x < VIEW_W / 2 + framework.sprites[2]->get_width() / 2 &&
 				mouse_y > VIEW_H / 2 - framework.sprites[2]->get_height() / 2 &&
 				mouse_y < VIEW_H / 2 + framework.sprites[2]->get_height() / 2)
 			{
-				PACKETS packet = CLIENT_GAME_START;
-				SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
 			}
 
 			if (packet == SERVER_PLAYER_COUNT)
@@ -217,8 +218,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			}
 			if (packet == SERVER_GAME_START)
 			{
-				framework.status = GAME;
 			}
+			framework.status = GAME;
 		} 
 		break;
 
@@ -226,17 +227,19 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		{ 
 			framework.background_color = COLOR_GREEN;
 
-			//int itercount = 0;
-			//PACKETS gamemessage = CLIENT_KEY_INPUT;
+			int itercount = 0;
+			PACKETS gamemessage = CLIENT_KEY_INPUT;
 
-			//SendData(my_socket, CLIENT_GAME_START, (char*)keys, sizeof(InputStream) * 6);
-			//RecvGameMessage(my_socket);
+			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
+			int retval;
 
-			//if (view_track_enabled) {
-			//	if (view_target_player != -1) {
-			//		//ViewSetPosition(view_target->x, view_target->y);
-			//	}
-			//}
+			retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+
+			if (framework.view_track_enabled) {
+				if (framework.view_target_player != -1) {
+					framework.ViewSetPosition(framework.last_render_info[framework.view_target_player].x, framework.last_render_info[framework.view_target_player].y);
+				}
+			}
 		}
 		break;
 
