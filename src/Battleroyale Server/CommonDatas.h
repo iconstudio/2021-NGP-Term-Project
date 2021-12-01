@@ -46,7 +46,6 @@ const int RENDER_INST_COUNT = 40;
 constexpr int LERP_MIN = 50;
 constexpr int LERP_MAX = 200;
 
-
 /* 다중 스레드 설정 */
 constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
 

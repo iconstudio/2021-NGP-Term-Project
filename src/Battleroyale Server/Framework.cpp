@@ -188,8 +188,6 @@ void ServerFramework::ProcessReady() {
 void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
 
-	Sleep(LERP_MIN);
-
 	if (CheckClientNumber()) { // 게임 처리
 		ProceedContinuation();
 	} else { // 게임 판정승 혹은 게임 강제 종료
