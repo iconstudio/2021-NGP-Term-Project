@@ -127,3 +127,77 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 	return 0;
 }
+
+
+DWORD WINAPI CommunicateProcess(LPVOID arg) {
+	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
+	SOCKET my_socket = client_info->client_socket;
+
+	bool thread_done = false;
+	while (!thread_done) {
+		PACKETS packet;
+		int data_size = 0;
+
+		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+		if (result) {
+			break;
+		}
+
+		switch (framework.GetStatus()) {
+		case LOBBY:
+		{
+		} break;
+
+		case GAME:
+		{
+			//background_color = COLOR_GREEN;
+
+			//int itercount = 0;
+			//PACKETS gamemessage = CLIENT_KEY_INPUT;
+
+			//SendData(my_socket, CLIENT_GAME_START, (char*)keys, sizeof(InputStream) * 6);
+			//RecvGameMessage(my_socket);
+
+			//if (view_track_enabled) {
+			//	if (view_target_player != -1) {
+			//		//ViewSetPosition(view_target->x, view_target->y);
+			//	}
+			//}
+		}
+		break;
+
+		case GAME_OVER:
+		{
+		}
+		break;
+
+		case SPECTATOR:
+		{
+			//if (view_track_enabled) {
+			//	if (view_target_player != -1) {
+			//		//ViewSetPosition(view_target->x, view_target->y);
+			//	}
+			//}
+		}
+		break;
+
+		case GAME_RESTART:
+		{
+			//TODO
+		}
+		break;
+
+		case EXIT:
+		{
+			thread_done = true;
+		}
+		break;
+
+		default:
+			break;
+		}
+	}
+
+	closesocket(my_socket);
+	return 0;
+}

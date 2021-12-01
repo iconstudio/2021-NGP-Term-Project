@@ -6,6 +6,16 @@
 //#define SERVER_IP "192.168.120.35"
 #define SERVER_IP "127.0.0.1"
 
+DWORD WINAPI CommunicateProcess(LPVOID arg);
+
+struct PlayerInfo {
+	SOCKET client_socket;
+	HANDLE client_handle;
+
+	PlayerInfo(SOCKET sk, HANDLE hd);
+	~PlayerInfo();
+};
+
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
 	, LOBBY			// 로비
@@ -49,6 +59,11 @@ public:
 	int SendGameMessage(SOCKET sock, PACKETS type, InputStream keys[]);
 	int RecvGameMessage(SOCKET sock);
 
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
+	friend DWORD WINAPI GameProcess(LPVOID arg);
+
+	CLIENT_STATES GetStatus() { return status; };
+
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;
@@ -57,6 +72,8 @@ public:
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
+
+	HANDLE thread_game_starter;
 
 	int	player_index = 0;
 	int player_num = 1;
@@ -121,3 +138,11 @@ public:
 //		std::for_each(instances.begin(), instances.end(), predicate);
 //	}
 //}
+
+PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd) {
+	client_socket = sk;
+	client_handle = hd;
+}
+
+PlayerInfo::~PlayerInfo() {
+}

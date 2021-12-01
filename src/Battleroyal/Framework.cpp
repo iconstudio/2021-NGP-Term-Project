@@ -155,36 +155,21 @@ void ClientFramework::Update() {
 
 	case GAME:
 	{
-		background_color = COLOR_GREEN;
-
-		int itercount = 0;
-		PACKETS gamemessage = CLIENT_KEY_INPUT;
-
-		SendData(my_socket, CLIENT_GAME_START, (char*)keys, sizeof(InputStream) * 6);
-		RecvGameMessage(my_socket);
-
-		if (view_track_enabled) {
-			if (view_target_player != -1) {
-				//ViewSetPosition(view_target->x, view_target->y);
-			}
-		}
 	}
 	break;
 
 
 	case SPECTATOR:
 	{
-		if (view_track_enabled) {
-			if (view_target_player != -1) {
-				//ViewSetPosition(view_target->x, view_target->y);
-			}
-		}
 	}
 	break;
 
 	default:
 		break;
 	}
+	auto client_info = new PlayerInfo(my_socket, 0);
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, client_info, 0, NULL);
+	client_info->client_handle = new_thread;
 }
 
 void ClientFramework::Render(HWND window) {
