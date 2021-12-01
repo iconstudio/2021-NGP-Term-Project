@@ -268,7 +268,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
-	
+
 	LeaveCriticalSection(&player_infos_permission);
 
 	return new_socket;
@@ -415,9 +415,9 @@ void ServerFramework::BakeRenderingInfos() {
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
 			auto& render_infos = (*it)->GetRenderInstance();
 
-      // 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
-      if (!(*it)->dead)
-			  rendering_infos_last[index++] = render_infos;
+			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
+			if (!(*it)->dead)
+				rendering_infos_last[index++] = render_infos;
 		}
 	} else if (rendering_infos_last) {
 		delete[] rendering_infos_last;
@@ -463,7 +463,7 @@ void ServerFramework::CastStartReceive(bool flag) {
 }
 
 void ServerFramework::CastProcessingGame() {
-	cout << "CastProcessingGame"<< endl;
+	cout << "CastProcessingGame" << endl;
 	SetEvent(event_game_process);
 }
 

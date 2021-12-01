@@ -74,7 +74,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			{
 				// 꾸준한 통신
 				while (true) {
-					framework.AwaitReceiveEvent(); // event_recieves
+					auto input_state = framework.AwaitReceiveEvent(); // event_recieves
+					if (WAIT_TIMEOUT == input_state) {
+						break;
+					}
 
 					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 					if (packet == PACKETS::CLIENT_KEY_INPUT) {

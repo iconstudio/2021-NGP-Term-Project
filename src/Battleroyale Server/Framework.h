@@ -3,9 +3,6 @@
 #include "CommonDatas.h"
 
 
-const int LERP_MIN = 50;
-const int LERP_MAX = 200;
-
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameReadyProcess(LPVOID arg);
@@ -267,7 +264,7 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
 	cout << "AwaitReceiveEvent()" << endl;
-	return WaitForSingleObject(event_receives, INFINITE);
+	return WaitForSingleObject(event_receives, WAIT_FOR_INPUTS_PERIOD);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
