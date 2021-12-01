@@ -68,6 +68,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// 마우스 왼쪽 누름
 		case WM_LBUTTONDOWN:
 		{
+			mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
+			mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
 			framework.OnMouseDown(MK_LBUTTON, lParam);
 		}
 		break;
@@ -130,27 +132,51 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
+	SockInfo* client_info = reinterpret_cast<SockInfo*>(arg);
 	SOCKET my_socket = client_info->client_socket;
 
 	bool thread_done = false;
 	while (!thread_done) {
-		PACKETS packet;
+		PACKETS packet = CLIENT_PING;
 		int data_size = 0;
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (result) {
-			break;
+		if (result == SOCKET_ERROR) {
 		}
+
+		if (packet == SERVER_SET_CAPATIN)
+			framework.player_captain = true;
 
 		switch (framework.GetStatus()) {
 		case LOBBY:
 		{
+			framework.background_color = COLOR_RED;
+			if (framework.player_captain == true &&
+				mouse_x > VIEW_W / 2 - framework.sprites[2]->get_width() / 2 &&
+				mouse_x < VIEW_W / 2 + framework.sprites[2]->get_width() / 2 &&
+				mouse_y > VIEW_H / 3 * 2 - framework.sprites[2]->get_height() / 2 &&
+				mouse_y < VIEW_H / 3 * 2 + framework.sprites[2]->get_height() / 2)
+			{
+				SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+			}		
+
+			if (packet == SERVER_PLAYER_COUNT)
+			{
+				framework.player_count = 1;
+
+				recv(my_socket, (char*)framework.player_count, sizeof(int), 0);
+			}
+
+			if (packet == SERVER_GAME_START)
+			{
+				framework.status = GAME;
+			}
+
 		} break;
 
 		case GAME:
-		{
-			//background_color = COLOR_GREEN;
+		{ 
+			framework.background_color = COLOR_GREEN;
 
 			//int itercount = 0;
 			//PACKETS gamemessage = CLIENT_KEY_INPUT;

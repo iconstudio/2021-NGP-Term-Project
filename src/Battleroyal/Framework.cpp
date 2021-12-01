@@ -100,8 +100,6 @@ void ClientFramework::Update() {
 
 	PACKETS packet = RecvPacket(my_socket);
 
-	if (packet == SERVER_SET_CAPATIN)
-		player_captain = true;
 
 	switch (status) {
 	case TITLE:
@@ -113,7 +111,7 @@ void ClientFramework::Update() {
 		if (title_duration < 200)	//로비까지 시간 100 = 1초 
 		{
 			title_duration++;
-			break;
+			return;
 		}
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 		if (SOCKET_ERROR == result) {
@@ -129,27 +127,7 @@ void ClientFramework::Update() {
 
 	case LOBBY:
 	{
-		background_color = COLOR_RED;
 
-
-		if (player_captain == true &&
-			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
-			mouse_x < VIEW_W / 2 + sprites[2]->get_width() / 2 &&
-			mouse_y > VIEW_H / 3 * 2 - sprites[2]->get_height() / 2 &&
-			mouse_y < VIEW_H / 3 * 2 + sprites[2]->get_height() / 2)
-		{
-			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
-		}
-
-		if (packet == SERVER_PLAYER_COUNT)
-		{
-			recv(my_socket, (char*)player_count, sizeof(int), 0);
-		}
-
-		if (packet == SERVER_GAME_START)
-		{
-			status = GAME;
-		}
 	}
 	break;
 
@@ -167,7 +145,8 @@ void ClientFramework::Update() {
 	default:
 		break;
 	}
-	auto client_info = new PlayerInfo(my_socket, 0);
+
+	auto client_info = new SockInfo(my_socket, 0);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, client_info, 0, NULL);
 	client_info->client_handle = new_thread;
 }
@@ -175,7 +154,7 @@ void ClientFramework::Update() {
 void ClientFramework::Render(HWND window) {
 	HDC surface_app = BeginPaint(window, &painter);
 
-	HDC surface_double = CreateCompatibleDC(surface_app);
+	surface_double = CreateCompatibleDC(surface_app);
 	HBITMAP m_hBit = CreateCompatibleBitmap(surface_app, WORLD_W, WORLD_H);
 	HBITMAP m_oldhBit = static_cast<HBITMAP>(SelectObject(surface_double, m_hBit));
 
@@ -186,9 +165,10 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
+
 	//&& player_captain == true
 	if (status == LOBBY)
-		sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height())/3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
+		sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	// 파이프라인
 	if (status == GAME) {
@@ -357,4 +337,12 @@ void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
 			ErrorAbort("send 2");
 		}
 	}
+}
+
+SockInfo::SockInfo(SOCKET sk, HANDLE hd) {
+	client_socket = sk;
+	client_handle = hd;
+}
+
+SockInfo::~SockInfo() {
 }

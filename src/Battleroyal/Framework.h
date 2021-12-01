@@ -8,12 +8,12 @@
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 
-struct PlayerInfo {
+struct SockInfo {
 	SOCKET client_socket;
 	HANDLE client_handle;
 
-	PlayerInfo(SOCKET sk, HANDLE hd);
-	~PlayerInfo();
+	SockInfo(SOCKET sk, HANDLE hd);
+	~SockInfo();
 };
 
 enum CLIENT_STATES : int {
@@ -69,21 +69,23 @@ public:
 	COLORREF background_color = COLOR_WHITE;
 	const int WORLD_W, WORLD_H;
 
+	bool player_captain = false;
+	int player_count = 0;
+
 private:
 	SOCKET my_socket;
-	SOCKADDR_IN	server_address;
+	SOCKADDR_IN	server_address; 
+	HDC surface_double;
 
 	HANDLE thread_game_starter;
 
 	int	player_index = 0;
 	int player_num = 1;
-	bool player_captain = false;
 	int title_duration = 0;
 
 	int mouse_x;
 	int mouse_y;
 	
-	int player_count = 0;
 
 	InputStream keys[6];
 
@@ -138,11 +140,3 @@ public:
 //		std::for_each(instances.begin(), instances.end(), predicate);
 //	}
 //}
-
-PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd) {
-	client_socket = sk;
-	client_handle = hd;
-}
-
-PlayerInfo::~PlayerInfo() {
-}
