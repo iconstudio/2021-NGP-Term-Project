@@ -98,6 +98,10 @@ void ClientFramework::Update() {
 	}
 
 
+	PACKETS packet = RecvPacket(my_socket);
+
+	if (packet == SERVER_SET_CAPATIN)
+		player_captain = true;
 
 	switch (status) {
 	case TITLE:
@@ -118,8 +122,9 @@ void ClientFramework::Update() {
 		}
 
 		status = LOBBY;
-		RecvTitleMessage(my_socket);
 
+		mouse_x = 0;
+		mouse_y = 0;
 	}
 	break;
 
@@ -139,6 +144,22 @@ void ClientFramework::Update() {
 			recv(my_socket, (char*)player_count, sizeof(int), 0);
 		}
 		if (RecvPacket(my_socket) == SERVER_GAME_START)
+
+		if (player_captain == true &&
+			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
+			mouse_x < VIEW_W / 2 + sprites[2]->get_width() / 2 &&
+			mouse_y > VIEW_H / 3 * 2 - sprites[2]->get_height() / 2 &&
+			mouse_y < VIEW_H / 3 * 2 + sprites[2]->get_height() / 2)
+		{
+			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+		}
+
+		if (packet == SERVER_PLAYER_COUNT)
+		{
+			recv(my_socket, (char*)player_count, sizeof(int), 0);
+		}
+
+		if (packet == SERVER_GAME_START)
 		{
 			status = GAME;
 		}
@@ -194,8 +215,9 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
 	//&& player_captain == true
-	if (status == LOBBY )
-		sprites[2]->draw(surface_double, 120, 80, 0.0, 0.0,1.0, 1.0, 1.0);
+
+	if (status == LOBBY)
+		sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height())/3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	// 파이프라인
 	if (status == GAME) {
@@ -232,8 +254,8 @@ void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
 	vk_status.on_press();
 
-	//mouse_x = LOWORD(cursor);
-	//mouse_y = HIWORD(cursor);
+	mouse_x = LOWORD(cursor) * ((float)VIEW_W / (float)CLIENT_W) ;
+	mouse_y = HIWORD(cursor) * ((float)VIEW_H / (float)CLIENT_H);
 }
 
 void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
@@ -325,22 +347,6 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.push_back(sprite);
-	
-	sprites[0]->get_height();
-}
-
-int ClientFramework::RecvTitleMessage(SOCKET sock) {
-	int temp = 1;
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
-
-	if (0 == temp)
-		player_captain = true;					//0이면 방장 아니면 쩌리
-	else
-		player_captain = false;
-
-	return retval;
 }
 
 int ClientFramework::RecvLobbyMessage(SOCKET sock) {
@@ -363,7 +369,6 @@ PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 	PACKETS packet = CLIENT_PING;
 	int retval = recv(sock, (char*)&packet, sizeof(int), 0);
 	if (retval == SOCKET_ERROR) {
-		ErrorAbort("recv packet failed");
 	}
 
 	return packet;
