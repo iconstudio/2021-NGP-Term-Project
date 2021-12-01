@@ -6,6 +6,7 @@
 //#define SERVER_IP "192.168.120.35"
 #define SERVER_IP "127.0.0.1"
 
+DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 
 struct SockInfo {
@@ -64,11 +65,15 @@ public:
 
 	CLIENT_STATES GetStatus() { return status; };
 
+	int PlayerConnect();
+	int ProcessConnect();
+
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;
 	const int WORLD_W, WORLD_H;
 
+	InputStream keys[6];
 	bool player_captain = false;
 	int player_count = 0;
 
@@ -87,7 +92,6 @@ private:
 	int mouse_y;
 	
 
-	InputStream keys[6];
 
 	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
 

@@ -134,13 +134,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	SockInfo* client_info = reinterpret_cast<SockInfo*>(arg);
 	SOCKET my_socket = client_info->client_socket;
+	PACKETS packet = CLIENT_PING;
 
 	bool thread_done = false;
+
+
 	while (!thread_done) {
-		PACKETS packet = CLIENT_PING;
 		int data_size = 0;
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+		if (result == CLIENT_PING || result == SOCKET_ERROR) {
+		}
+
+		for (int i = 0; i < 6; i++) {
+			short check = GetAsyncKeyState(framework.keys[i].code);
+
+			if (check & 0x0000) { // released
+				framework.keys[i].type = NONE;
+			}
+			else if (check & 0x8000) {
+				framework.keys[i].type = PRESS;
+			}
+			else if (check & 0x0001) {
+				framework.keys[i].type = RELEASE;
+			}
+		}
+
 		if (result == SOCKET_ERROR) {
 		}
 
@@ -225,5 +244,14 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	}
 
 	closesocket(my_socket);
+	return 0;
+}
+
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+
+	while (framework.ProcessConnect() == SOCKET_ERROR) {
+
+	}
+
 	return 0;
 }

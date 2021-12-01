@@ -73,6 +73,7 @@ void ClientFramework::Initialize() {
 	
 	InputRegister(VK_ESCAPE);
 
+	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
@@ -83,19 +84,7 @@ void ClientFramework::Initialize() {
 void ClientFramework::Update() {
 	int retval;
 
-	for (int i = 0; i < 6; i++) {
-		short check = GetAsyncKeyState(keys[i].code);
 
-		if (check & 0x0000) { // released
-			keys[i].type = NONE;
-		}
-		else if (check & 0x8000) {
-			keys[i].type = PRESS;
-		}
-		else if (check & 0x0001) {
-			keys[i].type = RELEASE;
-		}
-	}
 
 
 	PACKETS packet = RecvPacket(my_socket);
@@ -104,24 +93,7 @@ void ClientFramework::Update() {
 	switch (status) {
 	case TITLE:
 	{
-		background_color = COLOR_YELLOW;
 		
-
-		auto address_size = sizeof(server_address);
-		if (title_duration < 200)	//로비까지 시간 100 = 1초 
-		{
-			title_duration++;
-			return;
-		}
-		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
-		if (SOCKET_ERROR == result) {
-			// 오류
-			return;
-		}
-		status = LOBBY;
-
-		mouse_x = 0;
-		mouse_y = 0;
 	}
 	break;
 
@@ -146,9 +118,6 @@ void ClientFramework::Update() {
 		break;
 	}
 
-	auto client_info = new SockInfo(my_socket, 0);
-	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, client_info, 0, NULL);
-	client_info->client_handle = new_thread;
 }
 
 void ClientFramework::Render(HWND window) {
@@ -199,6 +168,50 @@ void ClientFramework::Render(HWND window) {
 	DeleteDC(surface_double);
 	ReleaseDC(window, surface_app);
 	EndPaint(window, &painter);
+}
+
+int ClientFramework::PlayerConnect() {
+	SOCKADDR_IN address;
+	int address_length = sizeof(address);
+	int result;
+
+	switch (GetStatus()) {
+	case TITLE:
+	{
+		background_color = COLOR_YELLOW;
+
+		auto address_size = sizeof(server_address);
+
+		if (title_duration < 200)	//로비까지 시간 100 = 1초 
+		{
+			title_duration++;
+			return -1;
+		}
+		result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+		if (SOCKET_ERROR == result) {
+			// 오류
+			return result;
+		}
+		status = LOBBY;
+	}
+	break;
+
+	case LOBBY:
+	{
+	}
+	break;
+
+	default:
+	{
+		return 0;
+	}
+	}
+
+	auto client_info = new SockInfo(my_socket, 0);
+	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, client_info, 0, NULL);
+	client_info->client_handle = new_thread;
+
+	return result;
 }
 
 void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
@@ -345,4 +358,13 @@ SockInfo::SockInfo(SOCKET sk, HANDLE hd) {
 }
 
 SockInfo::~SockInfo() {
+}
+
+int ClientFramework::ProcessConnect() {
+
+	int new_client = PlayerConnect();
+	if (SOCKET_ERROR == new_client) {
+		ErrorDisplay("PlayerConnect()");
+	}
+	return new_client;
 }
