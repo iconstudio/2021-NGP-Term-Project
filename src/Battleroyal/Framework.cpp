@@ -108,6 +108,7 @@ void ClientFramework::Update() {
 
 	case LOBBY:
 	{
+		packet = RecvPacket(my_socket);
 		background_color = COLOR_RED;
 		if (player_captain == true &&
 			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
@@ -118,10 +119,12 @@ void ClientFramework::Update() {
 			PACKETS packet = CLIENT_GAME_START;
 			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
 		}
-
 		if (packet == SERVER_PLAYER_COUNT)
 		{
-			recv(my_socket, (char*)player_count, sizeof(int), 0);
+			retval = recv(my_socket, (char*)player_count, sizeof(int), 0);
+			if (retval == SOCKET_ERROR)
+			{
+			}
 		}
 		if (packet == SERVER_GAME_START)
 		{
@@ -202,8 +205,8 @@ void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
 	vk_status.on_press();
 
-	mouse_x = LOWORD(cursor);
-	mouse_y = HIWORD(cursor);
+	mouse_x = LOWORD(cursor) * ((float)VIEW_W / (float)CLIENT_W);
+	mouse_y = HIWORD(cursor) * ((float)VIEW_H / (float)CLIENT_H);
 }
 
 void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
@@ -295,7 +298,6 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.push_back(sprite);
-	
 	sprites[0]->get_height();
 }
 

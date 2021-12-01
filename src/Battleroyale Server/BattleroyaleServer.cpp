@@ -49,7 +49,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (!framework.ValidateSocketMessage(result)) {
-			framework.PlayerDisconnect(client_info);
+			cout << endl << packet << endl;
+			//framework.PlayerDisconnect(client_info);
 			break;
 		}
 
