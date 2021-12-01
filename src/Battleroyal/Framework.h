@@ -82,7 +82,7 @@ private:
 	SOCKADDR_IN	server_address; 
 	HDC surface_double;
 
-	HANDLE thread_game_starter;
+	HANDLE thread_game_proceed;
 
 	int	player_index = 0;
 	int player_num = 1;

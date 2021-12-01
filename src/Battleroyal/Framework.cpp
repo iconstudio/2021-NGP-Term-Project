@@ -74,6 +74,7 @@ void ClientFramework::Initialize() {
 	InputRegister(VK_ESCAPE);
 
 	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
+	thread_game_proceed = CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
@@ -173,7 +174,7 @@ void ClientFramework::Render(HWND window) {
 int ClientFramework::PlayerConnect() {
 	SOCKADDR_IN address;
 	int address_length = sizeof(address);
-	int result;
+	int result = 0;
 
 	switch (GetStatus()) {
 	case TITLE:

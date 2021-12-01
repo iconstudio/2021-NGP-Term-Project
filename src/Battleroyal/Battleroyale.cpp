@@ -144,6 +144,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (result == CLIENT_PING || result == SOCKET_ERROR) {
+			break;
 		}
 
 		for (int i = 0; i < 6; i++) {
