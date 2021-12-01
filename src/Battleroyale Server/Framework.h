@@ -145,6 +145,7 @@ private:
 	/* 통신 관련 속성 */
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
+	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
 
 	/* 다중 스레드 관련 속성 */
 	WSAOVERLAPPED io_behavior;
@@ -176,9 +177,7 @@ private:
 
 	const int WORLD_W, WORLD_H;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
-	const int SPAWN_DISTANCE;
-
-	RenderInstance* rendering_infos_last; // 전송할 렌더링 정보
+	const int SPAWN_DISTANCE; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 };
 
 template<class _GamePlayerClass>
