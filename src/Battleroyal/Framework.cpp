@@ -73,9 +73,6 @@ void ClientFramework::Initialize() {
 	
 	InputRegister(VK_ESCAPE);
 
-	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
-	thread_game_proceed = CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
-
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
 	SetSprite(&buttonsprite);
@@ -84,23 +81,52 @@ void ClientFramework::Initialize() {
 
 void ClientFramework::Update() {
 	int retval;
-
-
-
-
 	PACKETS packet = RecvPacket(my_socket);
 
+	if (packet == SERVER_SET_CAPATIN)
+		player_captain = true;
 
 	switch (status) {
 	case TITLE:
 	{
-		
+		background_color = COLOR_YELLOW;
+		auto address_size = sizeof(server_address);
+		if (title_duration < 200)	//로비까지 시간 100 = 1초 
+		{
+			title_duration++;
+			break;
+		}
+		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+		if (SOCKET_ERROR == result) {
+			// 오류
+			return;
+		}
+		status = LOBBY;
+
 	}
 	break;
 
 	case LOBBY:
 	{
+		background_color = COLOR_RED;
+		if (player_captain == true &&
+			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
+			mouse_x < VIEW_W / 2 + sprites[2]->get_width() / 2 &&
+			mouse_y > VIEW_H / 3 * 2 - sprites[2]->get_height() / 2 &&
+			mouse_y < VIEW_H / 3 * 2 + sprites[2]->get_height() / 2)
+		{
+			PACKETS packet = CLIENT_GAME_START;
+			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+		}
 
+		if (packet == SERVER_PLAYER_COUNT)
+		{
+			recv(my_socket, (char*)player_count, sizeof(int), 0);
+		}
+		if (packet == SERVER_GAME_START)
+		{
+			status = GAME;
+		}
 	}
 	break;
 
@@ -171,56 +197,13 @@ void ClientFramework::Render(HWND window) {
 	EndPaint(window, &painter);
 }
 
-int ClientFramework::PlayerConnect() {
-	SOCKADDR_IN address;
-	int address_length = sizeof(address);
-	int result = 0;
-
-	switch (GetStatus()) {
-	case TITLE:
-	{
-		background_color = COLOR_YELLOW;
-
-		auto address_size = sizeof(server_address);
-
-		if (title_duration < 200)	//로비까지 시간 100 = 1초 
-		{
-			title_duration++;
-			return -1;
-		}
-		result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
-		if (SOCKET_ERROR == result) {
-			// 오류
-			return result;
-		}
-		status = LOBBY;
-	}
-	break;
-
-	case LOBBY:
-	{
-	}
-	break;
-
-	default:
-	{
-		return 0;
-	}
-	}
-
-	auto client_info = new SockInfo(my_socket, 0);
-	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, client_info, 0, NULL);
-	client_info->client_handle = new_thread;
-
-	return result;
-}
 
 void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
 	vk_status.on_press();
 
-	mouse_x = LOWORD(cursor) * ((float)VIEW_W / (float)CLIENT_W) ;
-	mouse_y = HIWORD(cursor) * ((float)VIEW_H / (float)CLIENT_H);
+	mouse_x = LOWORD(cursor);
+	mouse_y = HIWORD(cursor);
 }
 
 void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
@@ -312,6 +295,22 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.push_back(sprite);
+	
+	sprites[0]->get_height();
+}
+
+int ClientFramework::RecvTitleMessage(SOCKET sock) {
+	int temp = 1;
+	int retval;
+
+	retval = recv(sock, reinterpret_cast<char*>(temp), sizeof(int), MSG_WAITALL);
+
+	if (0 == temp)
+		player_captain = true;					//0이면 방장 아니면 쩌리
+	else
+		player_captain = false;
+
+	return retval;
 }
 
 int ClientFramework::RecvLobbyMessage(SOCKET sock) {
@@ -359,13 +358,4 @@ SockInfo::SockInfo(SOCKET sk, HANDLE hd) {
 }
 
 SockInfo::~SockInfo() {
-}
-
-int ClientFramework::ProcessConnect() {
-
-	int new_client = PlayerConnect();
-	if (SOCKET_ERROR == new_client) {
-		ErrorDisplay("PlayerConnect()");
-	}
-	return new_client;
 }

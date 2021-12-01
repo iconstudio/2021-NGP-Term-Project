@@ -170,27 +170,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 		case LOBBY:
 		{
-			framework.background_color = COLOR_RED;
-			if (framework.player_captain == true &&
-				mouse_x > VIEW_W / 2 - framework.sprites[2]->get_width() / 2 &&
-				mouse_x < VIEW_W / 2 + framework.sprites[2]->get_width() / 2 &&
-				mouse_y > VIEW_H / 3 * 2 - framework.sprites[2]->get_height() / 2 &&
-				mouse_y < VIEW_H / 3 * 2 + framework.sprites[2]->get_height() / 2)
-			{
-				SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
-			}		
-
-			if (packet == SERVER_PLAYER_COUNT)
-			{
-				framework.player_count = 1;
-
-				recv(my_socket, (char*)framework.player_count, sizeof(int), 0);
-			}
-
-			if (packet == SERVER_GAME_START)
-			{
-				framework.status = GAME;
-			}
 
 		} break;
 
@@ -242,16 +221,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		default:
 			break;
 		}
-	}
-
-	closesocket(my_socket);
-	return 0;
-}
-
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-
-	while (framework.ProcessConnect() == SOCKET_ERROR) {
-
 	}
 
 	return 0;
