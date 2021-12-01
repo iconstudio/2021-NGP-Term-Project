@@ -112,6 +112,7 @@ public:
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
+	void CastStatusChanged();
 	void CastClientAccept(bool flag);
 	void CastStartReceive(bool flag);
 	void CastStartGame(bool flag);

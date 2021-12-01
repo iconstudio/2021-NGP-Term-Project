@@ -361,7 +361,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 		cout << "서버 상태 변경: " << status << " -> " << state << endl;
 
 		status = state;
-		SetEvent(event_status);
+		CastStatusChanged();
 	}
 }
 
@@ -433,6 +433,10 @@ void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 
 		SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
 	}
+}
+
+void ServerFramework::CastStatusChanged() {
+	SetEvent(event_status);
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
