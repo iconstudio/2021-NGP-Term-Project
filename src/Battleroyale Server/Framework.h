@@ -10,9 +10,9 @@ DWORD WINAPI GameProcess(LPVOID arg);
 
 struct PlayerInfo {
 	SOCKET client_socket;
-	HANDLE client_handle;
+	HANDLE client_thread;
 
-	int index; // 플레이어 번호
+	int player_index; // 플레이어 번호
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
@@ -187,7 +187,7 @@ void ServerFramework::CreatePlayerCharacters() {
 		auto character = Instantiate<_GamePlayerClass>(places[0], places[1]);
 
 		player->player_character = character;
-		character->owner = player->index;
+		character->owner = player->player_index;
 		SendData(player->client_socket, PACKETS::SERVER_GAME_START);
 	}
 }

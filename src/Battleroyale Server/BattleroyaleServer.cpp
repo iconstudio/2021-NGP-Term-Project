@@ -29,7 +29,7 @@ int main() {
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
-	int player_index = client_info->index;
+	int player_index = client_info->player_index;
 
 	bool thread_done = false;
 	while (!thread_done) {

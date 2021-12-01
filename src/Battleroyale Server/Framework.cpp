@@ -48,7 +48,7 @@ ServerFramework::~ServerFramework() {
 	closesocket(my_socket);
 
 	for (auto player : players) {
-		CloseHandle(player->client_handle);
+		CloseHandle(player->client_thread);
 	}
 	Clean();
 
@@ -251,7 +251,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
-	client_info->client_handle = new_thread;
+	client_info->client_thread = new_thread;
 
 	// 첫번째 플레이어
 	if (client_number == 0) {
@@ -281,9 +281,9 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 	if (dit != players.end()) {
 		auto player = (*dit);
 
-		CloseHandle(player->client_handle);
+		CloseHandle(player->client_thread);
 
-		auto id = player->index;
+		auto id = player->player_index;
 		auto character = player->player_character;
 		if (character)
 			Kill(static_cast<GameInstance*>(character));
@@ -350,7 +350,7 @@ bool ServerFramework::ValidateSocketMessage(int socket_state) {
 
 void ServerFramework::SetCaptain(PlayerInfo* player) {
 	if (player) {
-		player_captain = player->index;
+		player_captain = player->player_index;
 	} else {
 		player_captain = -1;
 	}
@@ -482,7 +482,7 @@ void ServerFramework::CastSendingRenderingInfos(bool flag) {
 
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {
 	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
-		return (lhs->index == player_index);
+		return (lhs->player_index == player_index);
 	});
 
 	if (loc != players.end()) {
@@ -493,8 +493,8 @@ PlayerInfo* ServerFramework::GetPlayer(int player_index) {
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
-	client_handle = hd;
-	index = id;
+	client_thread = hd;
+	player_index = id;
 }
 
 PlayerInfo::~PlayerInfo() {
