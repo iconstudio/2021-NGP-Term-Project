@@ -224,16 +224,26 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		break;
 
 		case GAME:
-		{ 
+		{
+			PACKETS packet;
+			recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+
 			framework.background_color = COLOR_GREEN;
 
 			int itercount = 0;
 			PACKETS gamemessage = CLIENT_KEY_INPUT;
 
-			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
 			int retval;
+			if (packet == SERVER_RENDER_INFO)
+			{
+				retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+				if (retval == SOCKET_ERROR)
+				{
+				}
+			}
 
-			retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
+
 
 			if (framework.view_track_enabled) {
 				if (framework.view_target_player != -1) {
