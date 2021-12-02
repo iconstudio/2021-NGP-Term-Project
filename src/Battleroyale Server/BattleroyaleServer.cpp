@@ -15,6 +15,9 @@ ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 int main() {
 	framework.AtomicPrintLn("Hello World!\n");
 
+	framework.Instantiate<CCharacter>(80, 80);
+	framework.Instantiate<CCharacter>(180, 80);
+	framework.Instantiate<CCharacter>(280, 80);
 	if (!framework.Initialize()) {
 		WSACleanup();
 		return 0;
@@ -22,7 +25,6 @@ int main() {
 
 	framework.Startup();
 
-	framework.Instantiate<CCharacter>(80, 80);
 
 	WSACleanup();
 	return 0;
@@ -46,8 +48,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					break;
 
 				auto client_number = framework.GetClientNumber();
-				SendData(client_socket, SERVER_PLAYER_COUNT
-						 , reinterpret_cast<char*>(&client_number), sizeof(int));
+				//SendData(client_socket, SERVER_PLAYER_COUNT, reinterpret_cast<char*>(&client_number), sizeof(int));
 
 				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 				if (!framework.ValidateSocketMessage(result)) {

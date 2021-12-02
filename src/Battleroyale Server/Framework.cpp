@@ -33,7 +33,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// event_player_accept
-	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
+	//CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 	// event_send_renders
 	//CreateThread(NULL, 0, ::SendRenderingsProcess, nullptr, 0, NULL);
 	// event_game_start
@@ -95,6 +95,23 @@ bool ServerFramework::Initialize() {
 	}
 	AtomicPrintLn("서버 시작");
 
+	SOCKET new_client = PlayerConnect();
+	if (INVALID_SOCKET == new_client) {
+		ErrorDisplay("PlayerConnect()");
+	}
+
+	while (true) {
+		ProcessGame();
+		BakeRenderingInfos();
+		for (auto player : players) {
+			auto client_socket = player->client_socket;
+			SendRenderingInfos(client_socket);
+		}
+
+		Sleep(600);
+	}
+
+
 	return true;
 }
 
@@ -127,16 +144,6 @@ void ServerFramework::Startup() {
 			{
 				AtomicPrintLn("S: Game");
 
-				while (true) {
-					ProcessGame();
-					BakeRenderingInfos();
-					for (auto player : players) {
-						auto client_socket = player->client_socket;
-						SendRenderingInfos(client_socket);
-					}
-
-					Sleep(600);
-				}
 
 				CastClientAccept(false);
 			}
@@ -266,8 +273,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_thread = new_thread;
 
-	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
+	//SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
 	// 첫번째 플레이어
 	if (client_number == 0) {
@@ -455,7 +461,7 @@ void ServerFramework::BakeRenderingInfos() {
 void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	if (rendering_infos_last) {
 		AtomicPrintLn("SendRenderingInfos()");
-		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
+		const char* my_render_info = reinterpret_cast<char*>(rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
 		SendData(my_socket, SERVER_RENDER_INFO, my_render_info, my_render_size);
