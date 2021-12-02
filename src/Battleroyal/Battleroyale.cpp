@@ -225,9 +225,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		case GAME:
 		{
-			PACKETS packet;
-			recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-
 			framework.background_color = COLOR_GREEN;
 
 			int itercount = 0;
