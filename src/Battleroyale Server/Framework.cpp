@@ -7,7 +7,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), game_started(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
-	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
+	, rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
 	InitializeCriticalSection(&player_infos_permission);
 	InitializeCriticalSection(&print_permission);
@@ -36,11 +36,8 @@ ServerFramework::ServerFramework(int rw, int rh)
 	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 	// event_send_renders
 	CreateThread(NULL, 0, ::SendRenderingsProcess, nullptr, 0, NULL);
-
 	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
-	// event_game_process
-	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
+	CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
 }
 
 ServerFramework::~ServerFramework() {
@@ -53,9 +50,6 @@ ServerFramework::~ServerFramework() {
 		CloseHandle(player->client_thread);
 	}
 	Clean();
-
-	CloseHandle(thread_game_starter);
-	CloseHandle(thread_game_process);
 
 	CloseHandle(event_status);
 	CloseHandle(event_player_accept);
@@ -209,7 +203,6 @@ void ServerFramework::ProcessSync() {
 	}
 
 	Sleep(LERP_MIN);
-	CastStartReceive(true);
 }
 
 void ServerFramework::Clean() {
@@ -221,6 +214,8 @@ void ServerFramework::Clean() {
 
 	players.reserve(CLIENT_NUMBER_MAX);
 	SetCaptain(nullptr);
+	CastStartGame(false);
+	CastStartReceive(false);
 }
 
 SOCKET ServerFramework::PlayerConnect() {

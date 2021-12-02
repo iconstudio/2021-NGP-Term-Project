@@ -4,7 +4,9 @@
 
 GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
 GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite sprite_bullet("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
+
 
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;
@@ -77,7 +79,7 @@ void ClientFramework::Initialize() {
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
 	SetSprite(&buttonsprite);
-
+	SetSprite(&sprite_bullet);
 }
 
 void ClientFramework::Update() {
@@ -198,9 +200,24 @@ void ClientFramework::Render(HWND window) {
 			//	inst->draw(surface_double);
 			//else {
 			//}
-			if (inst != NULL)
+			if (inst)
 			{
-				sprites[inst->instance_type]->draw(surface_double, inst->x, inst->y, inst->image_index, inst->angle, 1.0, 1.0, 1.0);
+				switch (inst->instance_type) {
+					case CHARACTER:
+					{
+						playersprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+					}
+					break;
+
+					case BULLET:
+					{
+						sprite_bullet.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+					}
+					break;
+
+					default:
+						break;
+				}
 			}
 		}
 	}

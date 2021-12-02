@@ -22,6 +22,8 @@ int main() {
 
 	framework.Startup();
 
+	framework.Instantiate<CCharacter>(80, 80);
+
 	WSACleanup();
 	return 0;
 }
@@ -33,7 +35,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 	bool thread_done = false;
 	while (!thread_done) {
-		PACKETS packet;
+		PACKETS packet = CLIENT_PING;
 		int data_size = 0;
 		int result = 0;
 
@@ -66,125 +68,125 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			case GAME:
 			{
+				if (!framework.CheckClientNumber()) {
+					framework.Clean();
+					framework.SetStatus(LISTEN);
+					break;
+				}
+				
 				// 꾸준한 통신
-				auto input_state = framework.AwaitReceiveEvent();
+				framework.AwaitReceiveEvent();
 
-				while (true) {
-					if (WAIT_TIMEOUT == input_state) {
-						break;
-					}
+				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+				if (!framework.ValidateSocketMessage(result)) {
+					framework.PlayerDisconnect(client_info);
+					break;
+				}
 
-					result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+				// 만약 핑 메시지가 오면 데이터를 받지 않는다.
+				if (packet == PACKETS::CLIENT_KEY_INPUT) {
+					auto key_storage = new InputStream[SEND_INPUT_COUNT];
+					data_size = SEND_INPUT_COUNT * sizeof(InputStream);
+
+					result = recv(client_socket, reinterpret_cast<char*>(key_storage)
+								  , data_size, MSG_WAITALL);
 					if (!framework.ValidateSocketMessage(result)) {
 						framework.PlayerDisconnect(client_info);
 						break;
 					}
 
-					// 만약 핑 메시지가 오면 데이터를 받지 않는다.
-					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						auto key_storage = new InputStream[SEND_INPUT_COUNT];
-						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
+					bool check_lt = false;
+					bool check_rt = false;
+					bool check_up = false;
+					bool check_dw = false;
+					bool check_shoot = false;
+					bool check_blink = false;
+					bool check_reload = false;
+					for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
+						auto button = key_storage[i];
+						auto keycode = button.code;
+						auto keystat = button.type;
 
-						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
-									  , data_size, MSG_WAITALL);
-						if (!framework.ValidateSocketMessage(result)) {
-							framework.PlayerDisconnect(client_info);
+						switch (keystat) {
+							case NONE:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = false; } break;
+									case VK_RIGHT: { check_rt = false; } break;
+									case VK_UP: { check_up = false; } break;
+									case VK_DOWN: { check_dw = false; } break;
+									case VK_SPACE: { check_blink = false; }	 break; // 특능
+									case 'A': case 'a': { check_shoot = false; } break; // 공격
+									case 'R': case 'r': { check_reload = false; } break; // 재장전
+									default: break;
+								}
+							}
+							break;
+
+							case PRESS:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = true; } break;
+									case VK_RIGHT: { check_rt = true; } break;
+									case VK_UP: { check_up = true; } break;
+									case VK_DOWN: { check_dw = true; } break;
+									case VK_SPACE: { check_blink = true; }	 break; // 특능
+									case 'A': case 'a': { check_shoot = true; } break; // 공격
+									case 'R': case 'r': { check_reload = true; } break; // 재장전
+									default: break;
+								}
+							}
+							break;
+
+							case RELEASE:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = false; } break;
+									case VK_RIGHT: { check_rt = false; } break;
+									case VK_UP: { check_up = false; } break;
+									case VK_DOWN: { check_dw = false; } break;
+									case VK_SPACE: { check_blink = false; }	 break; // 특능
+									case 'A': case 'a': { check_shoot = false; } break; // 공격
+									case 'R': case 'r': { check_reload = false; } break; // 재장전
+									default: break;
+								}
+							}
 							break;
 						}
+					}
 
-						bool check_lt = false;
-						bool check_rt = false;
-						bool check_up = false;
-						bool check_dw = false;
-						bool check_shoot = false;
-						bool check_blink = false;
-						bool check_reload = false;
-						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
-							auto button = key_storage[i];
-							auto keycode = button.code;
-							auto keystat = button.type;
+					auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
+					if (pchar && !pchar->dead) { // 게임 상태
+						int check_horz = check_rt - check_lt; // 좌우 이동
+						int check_vert = check_dw - check_up; // 상하 이동
 
-							switch (keystat) {
-								case NONE:
-								{
-									switch (keycode) {
-										case VK_LEFT: { check_lt = false; } break;
-										case VK_RIGHT: { check_rt = false; } break;
-										case VK_UP: { check_up = false; } break;
-										case VK_DOWN: { check_dw = false; } break;
-										case VK_SPACE: { check_blink = false; }	 break; // 특능
-										case 'A': case 'a': { check_shoot = false; } break; // 공격
-										case 'R': case 'r': { check_reload = false; } break; // 재장전
-										default: break;
-									}
-								}
-								break;
-
-								case PRESS:
-								{
-									switch (keycode) {
-										case VK_LEFT: { check_lt = true; } break;
-										case VK_RIGHT: { check_rt = true; } break;
-										case VK_UP: { check_up = true; } break;
-										case VK_DOWN: { check_dw = true; } break;
-										case VK_SPACE: { check_blink = true; }	 break; // 특능
-										case 'A': case 'a': { check_shoot = true; } break; // 공격
-										case 'R': case 'r': { check_reload = true; } break; // 재장전
-										default: break;
-									}
-								}
-								break;
-
-								case RELEASE:
-								{
-									switch (keycode) {
-										case VK_LEFT: { check_lt = false; } break;
-										case VK_RIGHT: { check_rt = false; } break;
-										case VK_UP: { check_up = false; } break;
-										case VK_DOWN: { check_dw = false; } break;
-										case VK_SPACE: { check_blink = false; }	 break; // 특능
-										case 'A': case 'a': { check_shoot = false; } break; // 공격
-										case 'R': case 'r': { check_reload = false; } break; // 재장전
-										default: break;
-									}
-								}
-								break;
-							}
+						if (0 != check_horz) {
+							pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
 						}
 
-						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-						if (pchar && !pchar->dead) { // 게임 상태
-							int check_horz = check_rt - check_lt; // 좌우 이동
-							int check_vert = check_dw - check_up; // 상하 이동
+						if (0 != check_vert) {
+							pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
+						}
 
-							if (0 != check_horz) {
-								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
-							}
+						if (check_blink) {
+							//TODO
+						}
 
-							if (0 != check_vert) {
-								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
-							}
+						if (check_shoot) {
+							auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
+							bullet->SetVelocity(SNOWBALL_SPEED, pchar->direction);
+							bullet->SetOwner(player_index);
+						}
 
-							if (check_blink) {
-								//TODO
-							}
-
-							if (check_shoot) {
-								auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
-								bullet->SetVelocity(SNOWBALL_SPEED, pchar->direction);
-								bullet->SetOwner(player_index);
-							}
-
-							if (check_reload) {
-
-							}
-						} else if (pchar && pchar->dead) { // 관전 상태
+						if (check_reload) {
 
 						}
+					} else if (pchar && pchar->dead) { // 관전 상태
+
 					}
 				} // 다른 메시지는 버린다.
 
-				framework.CastProcessingGame();
+				framework.ProcessGame();
 			}
 			break;
 
@@ -234,15 +236,6 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 		framework.AwaitStartGameEvent();
 		framework.ProcessReady();
 		framework.CreatePlayerCharacters<CCharacter>();
-	}
-
-	return 0;
-}
-
-DWORD WINAPI GameProcess(LPVOID arg) {
-	while (true) {
-		framework.AwaitProcessingGameEvent();
-		framework.ProcessGame();
 	}
 
 	return 0;

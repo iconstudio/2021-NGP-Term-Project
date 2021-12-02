@@ -243,9 +243,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 
 			if (framework.view_track_enabled) {
-				if (framework.view_target_player != -1) {
-					framework.ViewSetPosition(framework.last_render_info[framework.view_target_player].x, framework.last_render_info[framework.view_target_player].y);
-				}
 			}
 		}
 		break;

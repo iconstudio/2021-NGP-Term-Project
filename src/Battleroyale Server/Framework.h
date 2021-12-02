@@ -6,7 +6,7 @@
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameReadyProcess(LPVOID arg);
-DWORD WINAPI GameProcess(LPVOID arg);
+//DWORD WINAPI GameProcess(LPVOID arg);
 DWORD WINAPI SendRenderingsProcess(LPVOID arg);
 
 
@@ -170,8 +170,6 @@ private:
 
 	/* 다중 스레드 관련 속성 */
 	WSAOVERLAPPED io_behavior;
-	HANDLE thread_game_starter;
-	HANDLE thread_game_process;
 	CRITICAL_SECTION player_infos_permission, print_permission;
 
 	HANDLE event_status; // 서버의 상태 변화 루틴을 담당하는 이벤트 객체
