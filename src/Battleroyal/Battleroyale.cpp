@@ -133,7 +133,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	SOCKET my_socket = (SOCKET)arg;
-	PACKETS packet = CLIENT_PING;
+	PACKETS packet;
 
 	bool thread_done = false;
 
@@ -142,7 +142,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		int data_size = 0;	
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (result == CLIENT_PING || result == SOCKET_ERROR) {
+		if (result == 0 || result == SOCKET_ERROR) {
 			break;
 		}
 

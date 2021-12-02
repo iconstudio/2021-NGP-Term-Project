@@ -86,10 +86,9 @@ enum RENDER_TYPES : int {
 };
 
 enum INPUT_TYPES : int {
-	RELEASED = 0		// 0000(2)
-	, RELEASED_NOW = 2	// 0010(2)
-	, PRESSED = 4		// 0100(2)
-	, PRESSED_NOW = 12	// 1100(2)
+	NONE = 0
+	, PRESS = 1
+	, RELEASE = 2
 };
 
 struct InputStream {

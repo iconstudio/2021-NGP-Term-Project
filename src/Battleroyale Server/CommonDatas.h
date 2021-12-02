@@ -40,7 +40,7 @@ constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 /* 송수신 설정 */
 const int SEND_INPUT_COUNT = 6;
 const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
-const int CLIENT_NUMBER_MIN = 2;
+const int CLIENT_NUMBER_MIN = 1;
 const int RENDER_INST_COUNT = 40;
 
 constexpr int LERP_MIN = 50;

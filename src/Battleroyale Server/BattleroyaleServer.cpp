@@ -13,7 +13,7 @@
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
 int main() {
-	cout << "Hello World!\n";
+	AtomicPrintLn("Hello World!\n");
 
 	if (!framework.Initialize()) {
 		WSACleanup();
@@ -36,17 +36,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		PACKETS packet;
 		int data_size = 0;
 
-		/*
-		LPDWORD my_size = nullptr;
-		WSABUF my_data;
-		ZeroMemory(&my_data, sizeof(my_data));
-		my_data.len = sizeof(PACKETS);
-		my_data.buf = new CHAR[sizeof(PACKETS)];
-		DWORD my_flags = MSG_WAITALL;
-
-		int rr = WSARecv(client_socket, &my_data, 1, my_size, &my_flags, NULL, NULL);
-		*/
-
 		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (!framework.ValidateSocketMessage(result)) {
 			framework.PlayerDisconnect(client_info);
@@ -56,25 +45,26 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
+				auto client_number = framework.GetClientNumber();
+				SendData(client_socket, SERVER_PLAYER_COUNT
+						 , reinterpret_cast<char*>(&client_number), sizeof(int));
+
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
-						//Sleep(100);
 						framework.CastStartGame(true);
 						break;
 					}
 				} // 다른 메시지는 버린다.
-
-				Sleep(3000);
-				//framework.CastStartGame(true);
 				break;
 			} break;
 
 			case GAME:
 			{
 				// 꾸준한 통신
+				auto input_state = framework.AwaitReceiveEvent();
+
 				while (true) {
-					auto input_state = framework.AwaitReceiveEvent(); // event_recieves
 					if (WAIT_TIMEOUT == input_state) {
 						break;
 					}
@@ -184,14 +174,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				} // 다른 메시지는 버린다.
 
 				framework.CastProcessingGame();
-
-				framework.AwaitSendRendersEvent(); // event_send_renders
-				framework.SendRenderingInfos(client_socket);
-
-				framework.CastSendingRenderingInfos(false);
-
-				SleepEx(FRAME_TIME, TRUE);
-				framework.CastStartReceive(true);
 			}
 			break;
 
@@ -247,6 +229,14 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.ProcessGame();
+	}
+
+	return 0;
+}
+
+DWORD WINAPI SendRenderingsProcess(LPVOID arg) {
+	while (true) {
+		framework.ProcessSync();
 	}
 
 	return 0;

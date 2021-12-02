@@ -3,7 +3,7 @@
 #include "Framework.h"
 
 
-CRITICAL_SECTION player_infos_permission;
+CRITICAL_SECTION player_infos_permission, print_permission;
 
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
@@ -12,6 +12,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
 	InitializeCriticalSection(&player_infos_permission);
+	InitializeCriticalSection(&print_permission);
 
 	players.reserve(CLIENT_NUMBER_MAX);
 
@@ -31,7 +32,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
+	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// event_player_accept
 	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
@@ -44,6 +45,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 ServerFramework::~ServerFramework() {
 	DeleteCriticalSection(&player_infos_permission);
+	DeleteCriticalSection(&print_permission);
 
 	closesocket(my_socket);
 
@@ -97,7 +99,7 @@ bool ServerFramework::Initialize() {
 		ErrorDisplay("listen()");
 		return false;
 	}
-	cout << "서버 시작" << endl;
+	AtomicPrintLn("서버 시작");
 
 	return true;
 }
@@ -109,7 +111,7 @@ void ServerFramework::Startup() {
 		switch (status) {
 			case LISTEN:
 			{
-				cout << "S: Listening" << endl;
+				AtomicPrintLn("S: Listening");
 
 				CastClientAccept(true);
 			}
@@ -117,7 +119,7 @@ void ServerFramework::Startup() {
 
 			case LOBBY:
 			{
-				cout << "S: Lobby" << endl;
+				AtomicPrintLn("S: Lobby");
 
 				if (client_number < CLIENT_NUMBER_MAX) {
 					CastClientAccept(true);
@@ -129,7 +131,7 @@ void ServerFramework::Startup() {
 
 			case GAME:
 			{
-				cout << "S: Starting the game" << endl;
+				AtomicPrintLn("S: Game");
 
 				CastClientAccept(false);
 			}
@@ -137,13 +139,13 @@ void ServerFramework::Startup() {
 
 			case GAME_OVER:
 			{
-				cout << "S: The game is over." << endl;
+				AtomicPrintLn("S: Game Over");
 			}
 			break;
 
 			case GAME_RESTART:
 			{
-				cout << "S: Restarting the game" << endl;
+				AtomicPrintLn("S: Restart Game");
 			}
 			break;
 
@@ -174,7 +176,7 @@ void ServerFramework::ProcessConnect() {
 
 void ServerFramework::ProcessReady() {
 	AwaitStartGameEvent();
-	cout << "AwaitStartGameEvent()" << endl;
+	AtomicPrintLn("ProcessReady()");
 
 	shuffle(players.begin(), players.end(), randomizer);
 
@@ -202,6 +204,18 @@ void ServerFramework::ProcessGame() {
 			//TODO
 		}
 	}
+}
+
+void ServerFramework::ProcessSync() {
+	AwaitSendRendersEvent(); // event_send_renders
+
+	for (auto player : players) {
+		auto client_socket = player->client_socket;
+		SendRenderingInfos(client_socket);
+	}
+
+	Sleep(LERP_MIN);
+	CastStartReceive(true);
 }
 
 void ServerFramework::Clean() {
@@ -358,7 +372,7 @@ void ServerFramework::SetCaptain(PlayerInfo* player) {
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		cout << "서버 상태 변경: " << status << " -> " << state << endl;
+		AtomicPrintLn("서버 상태 변경: ", status, " -> ", state);
 
 		status = state;
 		CastStatusChanged();
@@ -376,8 +390,10 @@ int ServerFramework::GetClientNumber() const {
 void ServerFramework::ProceedContinuation() {
 	cout << "ProceedContinuation()" << endl;
 	if (my_process_index < client_number) {
-		my_process_index++;
 		cout << "하나의 클라이언트 스레드 처리: " << my_process_index << endl;
+		my_process_index++;
+
+		CastStartReceive(true);
 	} else {
 		my_process_index = 0;
 		cout << "게임 인스턴스 처리" << endl;
@@ -398,7 +414,7 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BakeRenderingInfos() {
 	if (!instances.empty()) {
-		cout << "렌더링 정보 생성\n크기: " << instances.size() << endl;
+		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (rendering_infos_last) {
 			delete[] rendering_infos_last;
 		}
@@ -427,7 +443,7 @@ void ServerFramework::BakeRenderingInfos() {
 
 void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	if (rendering_infos_last) {
-		cout << "SendRenderingInfos()" << endl;
+		AtomicPrintLn("SendRenderingInfos()");
 		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
@@ -440,7 +456,7 @@ void ServerFramework::CastStatusChanged() {
 }
 
 void ServerFramework::CastClientAccept(bool flag) {
-	cout << "CastClientAccept: " << boolalpha << flag << endl;
+	AtomicPrintLn("CastClientAccept: ", boolalpha, flag);
 	if (flag && client_number < CLIENT_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
@@ -449,7 +465,7 @@ void ServerFramework::CastClientAccept(bool flag) {
 }
 
 void ServerFramework::CastStartGame(bool flag) {
-	cout << "CastStartGame: " << boolalpha << flag << endl;
+	AtomicPrintLn("CastStartGame: ", boolalpha, flag);
 	if (flag) {
 		SetEvent(event_game_start);
 	} else {
@@ -458,7 +474,7 @@ void ServerFramework::CastStartGame(bool flag) {
 }
 
 void ServerFramework::CastStartReceive(bool flag) {
-	cout << "CastStartReceive: " << boolalpha << flag << endl;
+	AtomicPrintLn("CastStartReceive: ", boolalpha, flag);
 	if (flag) {
 		SetEvent(event_receives);
 	} else {
@@ -467,12 +483,12 @@ void ServerFramework::CastStartReceive(bool flag) {
 }
 
 void ServerFramework::CastProcessingGame() {
-	cout << "CastProcessingGame" << endl;
+	AtomicPrintLn("CastProcessingGame");
 	SetEvent(event_game_process);
 }
 
 void ServerFramework::CastSendingRenderingInfos(bool flag) {
-	cout << "CastSendingRenderingInfos: " << boolalpha << flag << endl;
+	AtomicPrintLn("CastSendingRenderingInfos: ", boolalpha, flag);
 	if (flag) {
 		SetEvent(event_send_renders);
 	} else {

@@ -7,6 +7,23 @@ DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI CommunicateProcess(LPVOID arg);
 DWORD WINAPI GameReadyProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
+DWORD WINAPI SendRenderingsProcess(LPVOID arg);
+
+template<typename Ty>
+void AtomicPrint(Ty caption) {
+	cout << caption;
+}
+
+template<typename Ty1, typename... Ty2>
+void AtomicPrint(Ty1 caption, Ty2... args) {
+	cout << caption;
+	AtomicPrint(args...);
+}
+
+template<typename... Ty>
+void AtomicPrintLn(Ty... args) {
+	AtomicPrint(args..., "\n");
+}
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -84,6 +101,7 @@ public:
 	void ProcessConnect();
 	void ProcessReady();
 	void ProcessGame();
+	void ProcessSync();
 	void Clean();
 
 	void SetStatus(SERVER_STATES state);
@@ -254,31 +272,31 @@ inline void ServerFramework::ForeachInstances(Predicate predicate) {
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStatusBeginEvent() {
-	cout << "AwaitStatusBeginEvent()" << endl;
+	AtomicPrintLn("AwaitStatusBeginEvent()");
 	return WaitForSingleObject(event_status, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
-	cout << "AwaitClientAcceptEvent()" << endl;
+	AtomicPrintLn("AwaitClientAcceptEvent()");
 	return WaitForSingleObject(event_player_accept, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
-	cout << "AwaitReceiveEvent()" << endl;
+	AtomicPrintLn("AwaitReceiveEvent()");
 	return WaitForSingleObject(event_receives, WAIT_FOR_INPUTS_PERIOD);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
-	cout << "AwaitStartGameEvent()" << endl;
+	AtomicPrintLn("AwaitStartGameEvent()");
 	return WaitForSingleObject(event_game_start, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
-	cout << "AwaitProcessingGameEvent()" << endl;
+	AtomicPrintLn("AwaitProcessingGameEvent()");
 	return WaitForSingleObject(event_game_process, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {
-	cout << "AwaitSendRendersEvent()" << endl;
+	AtomicPrintLn("AwaitSendRendersEvent()");
 	return WaitForSingleObject(event_send_renders, INFINITE);
 }
