@@ -9,21 +9,6 @@ DWORD WINAPI GameReadyProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 DWORD WINAPI SendRenderingsProcess(LPVOID arg);
 
-template<typename Ty>
-void AtomicPrint(Ty caption) {
-	cout << caption;
-}
-
-template<typename Ty1, typename... Ty2>
-void AtomicPrint(Ty1 caption, Ty2... args) {
-	cout << caption;
-	AtomicPrint(args...);
-}
-
-template<typename... Ty>
-void AtomicPrintLn(Ty... args) {
-	AtomicPrint(args..., "\n");
-}
 
 struct PlayerInfo {
 	SOCKET client_socket;
@@ -147,6 +132,26 @@ public:
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
 	friend DWORD WINAPI GameProcess(LPVOID arg);
 
+	template<typename Ty>
+	void AtomicPrint(Ty caption) {
+		EnterCriticalSection(&print_permission);
+		cout << caption;
+		LeaveCriticalSection(&print_permission);
+	}
+
+	template<typename Ty1, typename... Ty2>
+	void AtomicPrint(Ty1 caption, Ty2... args) {
+		EnterCriticalSection(&print_permission);
+		cout << caption;
+		LeaveCriticalSection(&print_permission);
+		AtomicPrint(args...);
+	}
+
+	template<typename... Ty>
+	void AtomicPrintLn(Ty... args) {
+		AtomicPrint(args..., "\n");
+	}
+
 private:
 	PlayerInfo* GetPlayer(int player_index);
 
@@ -167,6 +172,7 @@ private:
 	WSAOVERLAPPED io_behavior;
 	HANDLE thread_game_starter;
 	HANDLE thread_game_process;
+	CRITICAL_SECTION player_infos_permission, print_permission;
 
 	HANDLE event_status; // 서버의 상태 변화 루틴을 담당하는 이벤트 객체
 	HANDLE event_player_accept; // 플레이어 접속을 받는 이벤트 객체
@@ -190,7 +196,8 @@ private:
 	vector<GameInstance*> instances; // 인스턴스 목록
 	normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 	default_random_engine randomizer;
-
+	
+	bool game_started;
 	const int WORLD_W, WORLD_H;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE; // 플레이어 생성 위치를 정할 때 사용하는 거리 값

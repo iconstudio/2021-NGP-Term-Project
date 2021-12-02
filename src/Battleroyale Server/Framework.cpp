@@ -3,11 +3,9 @@
 #include "Framework.h"
 
 
-CRITICAL_SECTION player_infos_permission, print_permission;
-
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
-	, status(SERVER_STATES::LISTEN)
+	, status(SERVER_STATES::LISTEN), game_started(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
@@ -36,11 +34,13 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 	// event_player_accept
 	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
+	// event_send_renders
+	CreateThread(NULL, 0, ::SendRenderingsProcess, nullptr, 0, NULL);
+
 	// event_game_start
 	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
 	// event_game_process
 	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
-
 }
 
 ServerFramework::~ServerFramework() {
@@ -146,6 +146,7 @@ void ServerFramework::Startup() {
 			case GAME_RESTART:
 			{
 				AtomicPrintLn("S: Restart Game");
+				game_started = false;
 			}
 			break;
 
@@ -162,8 +163,6 @@ void ServerFramework::Startup() {
 }
 
 void ServerFramework::ProcessConnect() {
-	AwaitClientAcceptEvent();
-
 	SOCKET new_client = PlayerConnect();
 	if (INVALID_SOCKET == new_client) {
 		ErrorDisplay("PlayerConnect()");
@@ -175,7 +174,6 @@ void ServerFramework::ProcessConnect() {
 }
 
 void ServerFramework::ProcessReady() {
-	AwaitStartGameEvent();
 	AtomicPrintLn("ProcessReady()");
 
 	shuffle(players.begin(), players.end(), randomizer);
@@ -188,8 +186,6 @@ void ServerFramework::ProcessReady() {
 }
 
 void ServerFramework::ProcessGame() {
-	AwaitProcessingGameEvent();
-
 	if (CheckClientNumber()) { // 게임 처리
 		ProceedContinuation();
 	} else { // 게임 판정승 혹은 게임 강제 종료
@@ -207,8 +203,6 @@ void ServerFramework::ProcessGame() {
 }
 
 void ServerFramework::ProcessSync() {
-	AwaitSendRendersEvent(); // event_send_renders
-
 	for (auto player : players) {
 		auto client_socket = player->client_socket;
 		SendRenderingInfos(client_socket);

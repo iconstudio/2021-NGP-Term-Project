@@ -13,7 +13,7 @@
 ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
 
 int main() {
-	AtomicPrintLn("Hello World!\n");
+	framework.AtomicPrintLn("Hello World!\n");
 
 	if (!framework.Initialize()) {
 		WSACleanup();
@@ -35,24 +35,29 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	while (!thread_done) {
 		PACKETS packet;
 		int data_size = 0;
-
-		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (!framework.ValidateSocketMessage(result)) {
-			framework.PlayerDisconnect(client_info);
-			break;
-		}
+		int result = 0;
 
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
+				if (framework.game_started)
+					break;
+
 				auto client_number = framework.GetClientNumber();
 				SendData(client_socket, SERVER_PLAYER_COUNT
 						 , reinterpret_cast<char*>(&client_number), sizeof(int));
 
+				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+				if (!framework.ValidateSocketMessage(result)) {
+					framework.PlayerDisconnect(client_info);
+					break;
+				}
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
+						framework.game_started = true;
+						Sleep(500);
 						break;
 					}
 				} // 다른 메시지는 버린다.
@@ -66,6 +71,12 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 				while (true) {
 					if (WAIT_TIMEOUT == input_state) {
+						break;
+					}
+
+					result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+					if (!framework.ValidateSocketMessage(result)) {
+						framework.PlayerDisconnect(client_info);
 						break;
 					}
 
@@ -211,6 +222,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
+		framework.AwaitClientAcceptEvent();
 		framework.ProcessConnect();
 	}
 
@@ -219,6 +231,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 
 DWORD WINAPI GameReadyProcess(LPVOID arg) {
 	while (true) {
+		framework.AwaitStartGameEvent();
 		framework.ProcessReady();
 		framework.CreatePlayerCharacters<CCharacter>();
 	}
@@ -228,6 +241,7 @@ DWORD WINAPI GameReadyProcess(LPVOID arg) {
 
 DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
+		framework.AwaitProcessingGameEvent();
 		framework.ProcessGame();
 	}
 
@@ -236,6 +250,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 DWORD WINAPI SendRenderingsProcess(LPVOID arg) {
 	while (true) {
+		framework.AwaitSendRendersEvent(); // event_send_renders
 		framework.ProcessSync();
 	}
 
