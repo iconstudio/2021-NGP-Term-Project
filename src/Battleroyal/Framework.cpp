@@ -71,8 +71,8 @@ void ClientFramework::Initialize() {
 	keys[4].code = 'a';
 	keys[5].code = 's';
 	
-	InputRegister(VK_ESCAPE);
 
+	InputRegister(VK_ESCAPE);
 
 	SetSprite(&playersprite);
 	SetSprite(&player2sprite);
@@ -83,32 +83,11 @@ void ClientFramework::Initialize() {
 void ClientFramework::Update() {
 	int retval;
 
-	for (int i = 0; i < 6; i++) {
-		short check = GetAsyncKeyState(keys[i].code);
-
-		if (check & 0x0000) { // released
-			keys[i].type = NONE;
-		}
-		else if (check & 0x8000) {
-			keys[i].type = PRESS;
-		}
-		else if (check & 0x0001) {
-			keys[i].type = RELEASE;
-		}
-	}
-
-
-	PACKETS packet = RecvPacket(my_socket);
-
-	if (packet == SERVER_SET_CAPATIN)
-		player_captain = true;
 
 	switch (status) {
 	case TITLE:
 	{
 		background_color = COLOR_YELLOW;
-		
-
 		auto address_size = sizeof(server_address);
 		if (title_duration < 200)	//로비까지 시간 100 = 1초 
 		{
@@ -130,12 +109,19 @@ void ClientFramework::Update() {
 
 	case LOBBY:
 	{
-		background_color = COLOR_RED;
+		CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
+		/*background_color = COLOR_RED;
+		PACKETS packet = RecvPacket(my_socket);
+		if (packet == SERVER_SET_CAPATIN)
+			player_captain = true;
 
-		PACKETS packet = CLIENT_GAME_START;
-		SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
+		recv(my_socket, (char*)(&packet), sizeof(PACKETS), MSG_WAITALL);
 
-		if (player_captain == true)
+		if (player_captain == true &&
+			mouse_x > VIEW_W / 2 - sprites[2]->get_width() / 2 &&
+			mouse_x < VIEW_W / 2 + sprites[2]->get_width() / 2 &&
+			mouse_y > VIEW_H / 2 - sprites[2]->get_height() / 2 &&
+			mouse_y < VIEW_H / 2 + sprites[2]->get_height() / 2)
 		{
 		}
 
@@ -153,57 +139,41 @@ void ClientFramework::Update() {
 		{
 			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
 		}
-
 		if (packet == SERVER_PLAYER_COUNT)
 		{
-			recv(my_socket, (char*)player_count, sizeof(int), 0);
+			retval = recv(my_socket, (char*)player_count, sizeof(int), 0);
+			if (retval == SOCKET_ERROR)
+			{
+			}
 		}
-
 		if (packet == SERVER_GAME_START)
 		{
 			status = GAME;
-		}
+		}*/
 	}
 	break;
 
 	case GAME:
 	{
-		background_color = COLOR_GREEN;
-
-		int itercount = 0;
-		PACKETS gamemessage = CLIENT_KEY_INPUT;
-
-		SendData(my_socket, CLIENT_GAME_START, (char*)keys, sizeof(InputStream) * 6);
-		RecvGameMessage(my_socket);
-
-		if (view_track_enabled) {
-			if (view_target_player != -1) {
-				//ViewSetPosition(view_target->x, view_target->y);
-			}
-		}
 	}
 	break;
 
 
 	case SPECTATOR:
 	{
-		if (view_track_enabled) {
-			if (view_target_player != -1) {
-				//ViewSetPosition(view_target->x, view_target->y);
-			}
-		}
 	}
 	break;
 
 	default:
 		break;
 	}
+
 }
 
 void ClientFramework::Render(HWND window) {
 	HDC surface_app = BeginPaint(window, &painter);
 
-	HDC surface_double = CreateCompatibleDC(surface_app);
+	surface_double = CreateCompatibleDC(surface_app);
 	HBITMAP m_hBit = CreateCompatibleBitmap(surface_app, WORLD_W, WORLD_H);
 	HBITMAP m_oldhBit = static_cast<HBITMAP>(SelectObject(surface_double, m_hBit));
 
@@ -214,10 +184,10 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
-	//&& player_captain == true
 
+	//&& player_captain == true
 	if (status == LOBBY)
-		sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height())/3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
+		sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	// 파이프라인
 	if (status == GAME) {
@@ -250,11 +220,12 @@ void ClientFramework::Render(HWND window) {
 	EndPaint(window, &painter);
 }
 
+
 void ClientFramework::OnMouseDown(const WPARAM button, const LPARAM cursor) {
 	auto vk_status = key_checkers[button];
 	vk_status.on_press();
 
-	mouse_x = LOWORD(cursor) * ((float)VIEW_W / (float)CLIENT_W) ;
+	mouse_x = LOWORD(cursor) * ((float)VIEW_W / (float)CLIENT_W);
 	mouse_y = HIWORD(cursor) * ((float)VIEW_H / (float)CLIENT_H);
 }
 
@@ -347,15 +318,9 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 void ClientFramework::SetSprite(GameSprite* sprite) {
 	sprites.push_back(sprite);
+	sprites[0]->get_height();
 }
 
-int ClientFramework::RecvLobbyMessage(SOCKET sock) {
-	int retval;
-
-	retval = recv(sock, reinterpret_cast<char*>(player_num), sizeof(int), MSG_WAITALL);
-
-	return retval;
-}
 
 int ClientFramework::RecvGameMessage(SOCKET sock) {
 	int retval;
@@ -367,7 +332,7 @@ int ClientFramework::RecvGameMessage(SOCKET sock) {
 PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 
 	PACKETS packet = CLIENT_PING;
-	int retval = recv(sock, (char*)&packet, sizeof(int), 0);
+	int retval = recv(sock, (char*)&packet, sizeof(int), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
 	}
 
@@ -386,4 +351,12 @@ void SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
 			ErrorAbort("send 2");
 		}
 	}
+}
+
+SockInfo::SockInfo(SOCKET sk, HANDLE hd) {
+	client_socket = sk;
+	client_handle = hd;
+}
+
+SockInfo::~SockInfo() {
 }

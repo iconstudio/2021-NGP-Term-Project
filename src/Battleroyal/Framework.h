@@ -6,6 +6,17 @@
 //#define SERVER_IP "192.168.120.35"
 #define SERVER_IP "127.0.0.1"
 
+DWORD WINAPI ConnectProcess(LPVOID arg);
+DWORD WINAPI CommunicateProcess(LPVOID arg);
+
+struct SockInfo {
+	SOCKET client_socket;
+	HANDLE client_handle;
+
+	SockInfo(SOCKET sk, HANDLE hd);
+	~SockInfo();
+};
+
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
 	, LOBBY			// 로비
@@ -45,30 +56,40 @@ public:
 	void SetSprite(GameSprite* sprite);
 
 	PACKETS RecvPacket(SOCKET sock);
-	int RecvLobbyMessage(SOCKET sock);
 	int SendGameMessage(SOCKET sock, PACKETS type, InputStream keys[]);
 	int RecvGameMessage(SOCKET sock);
+
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);
+	friend DWORD WINAPI GameProcess(LPVOID arg);
+
+	CLIENT_STATES GetStatus() { return status; };
+
+	int PlayerConnect();
+	int ProcessConnect();
 
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;
 	const int WORLD_W, WORLD_H;
 
+	InputStream keys[6];
+	bool player_captain = false;
+	int player_count = 0;
+
 private:
 	SOCKET my_socket;
-	SOCKADDR_IN	server_address;
+	SOCKADDR_IN	server_address; 
+	HDC surface_double;
+
+	HANDLE thread_game_proceed;
 
 	int	player_index = 0;
 	int player_num = 1;
-	bool player_captain = false;
 	int title_duration = 0;
 
 	int mouse_x;
 	int mouse_y;
 	
-	int player_count = 0;
-
-	InputStream keys[6];
 
 	bool buttonsets[SEND_INPUT_COUNT];		//0 = w, 1 = s, 2 = a, 3 = d
 
