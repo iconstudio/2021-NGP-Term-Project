@@ -2,12 +2,16 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
+
+CRITICAL_SECTION player_infos_permission;
+
 ServerFramework::ServerFramework(int rw, int rh)
 	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
-	, status(SERVER_STATES::LISTEN), status_begin(false)
+	, status(SERVER_STATES::LISTEN)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, thread_game_starter(NULL), thread_game_process(NULL), rendering_infos_last(nullptr)
 	, player_number_last(0), player_captain(-1), player_winner(-1) {
+	InitializeCriticalSection(&player_infos_permission);
 
 	players.reserve(CLIENT_NUMBER_MAX);
 
@@ -21,19 +25,37 @@ ServerFramework::ServerFramework(int rw, int rh)
 
 		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
 	}
+
+	event_status = CreateEvent(NULL, FALSE, TRUE, NULL);
+	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
+
+	// event_player_accept
+	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
+	// event_game_start
+	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
+	// event_game_process
+	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
+
 }
 
 ServerFramework::~ServerFramework() {
+	DeleteCriticalSection(&player_infos_permission);
+
 	closesocket(my_socket);
 
 	for (auto player : players) {
-		CloseHandle(player->client_handle);
+		CloseHandle(player->client_thread);
 	}
 	Clean();
 
 	CloseHandle(thread_game_starter);
 	CloseHandle(thread_game_process);
 
+	CloseHandle(event_status);
 	CloseHandle(event_player_accept);
 	CloseHandle(event_game_start);
 	CloseHandle(event_receives);
@@ -77,80 +99,51 @@ bool ServerFramework::Initialize() {
 	}
 	cout << "서버 시작" << endl;
 
-	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_send_renders = CreateEvent(NULL, TRUE, FALSE, NULL); // 수동 리셋 이벤트 객체
-
-	// event_player_accept
-	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
-	// event_game_start
-	thread_game_starter = CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
-	// event_game_process
-	thread_game_process = CreateThread(NULL, 0, ::GameProcess, nullptr, 0, NULL);
-
 	return true;
 }
 
 void ServerFramework::Startup() {
 	while (true) {
+		AwaitStatusBeginEvent();
+
 		switch (status) {
 			case LISTEN:
 			{
-				if (!status_begin) {
-					cout << "S: Listening" << endl;
+				cout << "S: Listening" << endl;
 
-					CastClientAccept(true);
-					status_begin = true;
-				}
+				CastClientAccept(true);
 			}
 			break;
 
 			case LOBBY:
 			{
-				if (!status_begin) {
-					cout << "S: Lobby" << endl;
+				cout << "S: Lobby" << endl;
 
-
-					if (client_number < CLIENT_NUMBER_MAX) {
-						CastClientAccept(true);
-					} else {
-						CastClientAccept(false);
-					}
-					status_begin = true;
+				if (client_number < CLIENT_NUMBER_MAX) {
+					CastClientAccept(true);
+				} else {
+					CastClientAccept(false);
 				}
 			}
 			break;
 
 			case GAME:
 			{
-				if (!status_begin) {
-					cout << "S: Starting the game" << endl;
+				cout << "S: Starting the game" << endl;
 
-					CastClientAccept(false);
-					status_begin = true;
-				}
+				CastClientAccept(false);
 			}
 			break;
 
 			case GAME_OVER:
 			{
-				if (!status_begin) {
-					cout << "S: The game is over." << endl;
-
-					status_begin = true;
-				}
+				cout << "S: The game is over." << endl;
 			}
 			break;
 
 			case GAME_RESTART:
 			{
-				if (!status_begin) {
-					cout << "S: Restarting the game" << endl;
-
-					status_begin = true;
-				}
+				cout << "S: Restarting the game" << endl;
 			}
 			break;
 
@@ -173,10 +166,15 @@ void ServerFramework::ProcessConnect() {
 	if (INVALID_SOCKET == new_client) {
 		ErrorDisplay("PlayerConnect()");
 	}
+
+	if (status == LISTEN || status == LOBBY) {
+		CastClientAccept(true);
+	}
 }
 
 void ServerFramework::ProcessReady() {
 	AwaitStartGameEvent();
+	cout << "AwaitStartGameEvent()" << endl;
 
 	shuffle(players.begin(), players.end(), randomizer);
 
@@ -190,10 +188,7 @@ void ServerFramework::ProcessReady() {
 void ServerFramework::ProcessGame() {
 	AwaitProcessingGameEvent();
 
-	CastStartReceive(false);
-	Sleep(LERP_MIN);
-
-	if (CheckClientNumber()) { // 게임 처리	
+	if (CheckClientNumber()) { // 게임 처리
 		ProceedContinuation();
 	} else { // 게임 판정승 혹은 게임 강제 종료
 		auto numb = GetClientNumber();
@@ -230,6 +225,7 @@ SOCKET ServerFramework::PlayerConnect() {
 		return new_socket;
 	}
 
+	EnterCriticalSection(&player_infos_permission);
 	switch (GetStatus()) {
 		case LISTEN:
 		{
@@ -255,7 +251,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	auto client_info = new PlayerInfo(new_socket, 0, player_number_last++);
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
-	client_info->client_handle = new_thread;
+	client_info->client_thread = new_thread;
 
 	// 첫번째 플레이어
 	if (client_number == 0) {
@@ -273,18 +269,21 @@ SOCKET ServerFramework::PlayerConnect() {
 	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
+	LeaveCriticalSection(&player_infos_permission);
+
 	return new_socket;
 }
 
 void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
+	EnterCriticalSection(&player_infos_permission);
 	auto dit = find(players.begin(), players.end(), player);
 
 	if (dit != players.end()) {
 		auto player = (*dit);
 
-		CloseHandle(player->client_handle);
+		CloseHandle(player->client_thread);
 
-		auto id = player->index;
+		auto id = player->player_index;
 		auto character = player->player_character;
 		if (character)
 			Kill(static_cast<GameInstance*>(character));
@@ -331,8 +330,8 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				SendData(new_captain->client_socket, PACKETS::SERVER_SET_CAPATIN);
 			}
 		}
-
 	}
+	LeaveCriticalSection(&player_infos_permission);
 }
 
 bool ServerFramework::CheckClientNumber() const {
@@ -351,7 +350,7 @@ bool ServerFramework::ValidateSocketMessage(int socket_state) {
 
 void ServerFramework::SetCaptain(PlayerInfo* player) {
 	if (player) {
-		player_captain = player->index;
+		player_captain = player->player_index;
 	} else {
 		player_captain = -1;
 	}
@@ -362,7 +361,7 @@ void ServerFramework::SetStatus(SERVER_STATES state) {
 		cout << "서버 상태 변경: " << status << " -> " << state << endl;
 
 		status = state;
-		status_begin = false;
+		CastStatusChanged();
 	}
 }
 
@@ -375,10 +374,13 @@ int ServerFramework::GetClientNumber() const {
 }
 
 void ServerFramework::ProceedContinuation() {
+	cout << "ProceedContinuation()" << endl;
 	if (my_process_index < client_number) {
 		my_process_index++;
+		cout << "하나의 클라이언트 스레드 처리: " << my_process_index << endl;
 	} else {
 		my_process_index = 0;
+		cout << "게임 인스턴스 처리" << endl;
 
 		// 게임 상태 갱신
 		ForeachInstances([&](GameInstance*& inst) {
@@ -396,6 +398,7 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BakeRenderingInfos() {
 	if (!instances.empty()) {
+		cout << "렌더링 정보 생성\n크기: " << instances.size() << endl;
 		if (rendering_infos_last) {
 			delete[] rendering_infos_last;
 		}
@@ -412,9 +415,9 @@ void ServerFramework::BakeRenderingInfos() {
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
 			auto& render_infos = (*it)->GetRenderInstance();
 
-      // 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
-      if (!(*it)->dead)
-			  rendering_infos_last[index++] = render_infos;
+			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
+			if (!(*it)->dead)
+				rendering_infos_last[index++] = render_infos;
 		}
 	} else if (rendering_infos_last) {
 		delete[] rendering_infos_last;
@@ -424,6 +427,7 @@ void ServerFramework::BakeRenderingInfos() {
 
 void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	if (rendering_infos_last) {
+		cout << "SendRenderingInfos()" << endl;
 		const char* my_render_info = reinterpret_cast<char*>(&rendering_infos_last);
 		const size_t my_render_size = RENDER_INST_COUNT * sizeof(RenderInstance);
 
@@ -431,7 +435,12 @@ void ServerFramework::SendRenderingInfos(SOCKET my_socket) {
 	}
 }
 
+void ServerFramework::CastStatusChanged() {
+	SetEvent(event_status);
+}
+
 void ServerFramework::CastClientAccept(bool flag) {
+	cout << "CastClientAccept: " << boolalpha << flag << endl;
 	if (flag && client_number < CLIENT_NUMBER_MAX) {
 		SetEvent(event_player_accept);
 	} else {
@@ -440,6 +449,7 @@ void ServerFramework::CastClientAccept(bool flag) {
 }
 
 void ServerFramework::CastStartGame(bool flag) {
+	cout << "CastStartGame: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_game_start);
 	} else {
@@ -448,6 +458,7 @@ void ServerFramework::CastStartGame(bool flag) {
 }
 
 void ServerFramework::CastStartReceive(bool flag) {
+	cout << "CastStartReceive: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_receives);
 	} else {
@@ -456,10 +467,12 @@ void ServerFramework::CastStartReceive(bool flag) {
 }
 
 void ServerFramework::CastProcessingGame() {
+	cout << "CastProcessingGame" << endl;
 	SetEvent(event_game_process);
 }
 
 void ServerFramework::CastSendingRenderingInfos(bool flag) {
+	cout << "CastSendingRenderingInfos: " << boolalpha << flag << endl;
 	if (flag) {
 		SetEvent(event_send_renders);
 	} else {
@@ -469,7 +482,7 @@ void ServerFramework::CastSendingRenderingInfos(bool flag) {
 
 PlayerInfo* ServerFramework::GetPlayer(int player_index) {
 	auto loc = find_if(players.begin(), players.end(), [player_index](PlayerInfo*& lhs) {
-		return (lhs->index == player_index);
+		return (lhs->player_index == player_index);
 	});
 
 	if (loc != players.end()) {
@@ -480,8 +493,8 @@ PlayerInfo* ServerFramework::GetPlayer(int player_index) {
 
 PlayerInfo::PlayerInfo(SOCKET sk, HANDLE hd, int id) {
 	client_socket = sk;
-	client_handle = hd;
-	index = id;
+	client_thread = hd;
+	player_index = id;
 }
 
 PlayerInfo::~PlayerInfo() {
@@ -520,6 +533,10 @@ void GameInstance::OnUpdate(double frame_advance) {
 			image_index -= image_number;
 		}
 	}
+}
+
+void GameInstance::SetOwner(int player_index) {
+	owner = player_index;
 }
 
 void GameInstance::SetRenderType(RENDER_TYPES sprite) {
