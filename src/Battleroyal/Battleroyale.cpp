@@ -62,7 +62,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case WM_TIMER:
 		{
 			framework.Update();
-			InvalidateRect(hwnd, NULL, FALSE);
+			//InvalidateRect(hwnd, NULL, FALSE);
 		}
 		break;
 

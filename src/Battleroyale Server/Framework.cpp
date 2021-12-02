@@ -35,9 +35,9 @@ ServerFramework::ServerFramework(int rw, int rh)
 	// event_player_accept
 	CreateThread(NULL, 0, ::ConnectProcess, nullptr, 0, NULL);
 	// event_send_renders
-	CreateThread(NULL, 0, ::SendRenderingsProcess, nullptr, 0, NULL);
+	//CreateThread(NULL, 0, ::SendRenderingsProcess, nullptr, 0, NULL);
 	// event_game_start
-	CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
+	//CreateThread(NULL, 0, ::GameReadyProcess, nullptr, 0, NULL);
 }
 
 ServerFramework::~ServerFramework() {
@@ -126,6 +126,17 @@ void ServerFramework::Startup() {
 			case GAME:
 			{
 				AtomicPrintLn("S: Game");
+
+				while (true) {
+					ProcessGame();
+					BakeRenderingInfos();
+					for (auto player : players) {
+						auto client_socket = player->client_socket;
+						SendRenderingInfos(client_socket);
+					}
+
+					Sleep(600);
+				}
 
 				CastClientAccept(false);
 			}
