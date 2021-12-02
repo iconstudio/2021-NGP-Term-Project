@@ -30,6 +30,7 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	}
 
 	framework.Initialize();
+	//framework.Update();
 
 	// 코드
 	framework.background_color = COLOR_NAVY;
@@ -227,6 +228,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		{
 			framework.background_color = COLOR_GREEN;
 
+			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
+
 			int itercount = 0;
 			PACKETS gamemessage = CLIENT_KEY_INPUT;
 
@@ -238,8 +241,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				{
 				}
 			}
-
-			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
 
 
 			if (framework.view_track_enabled) {

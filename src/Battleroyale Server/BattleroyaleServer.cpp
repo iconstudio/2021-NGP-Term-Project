@@ -83,6 +83,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					break;
 				}
 
+				framework.AtomicPrintLn("받은 패킷 정보: ", packet, "크기: ", result);
+
 				// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 				if (packet == PACKETS::CLIENT_KEY_INPUT) {
 					auto key_storage = new InputStream[SEND_INPUT_COUNT];
