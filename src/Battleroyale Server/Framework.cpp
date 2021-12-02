@@ -191,7 +191,6 @@ void ServerFramework::ProcessGame() {
 		} else if (1 == numb) {
 			Clean();
 			SetStatus(LOBBY);
-			//TODO
 		}
 	}
 }
@@ -298,7 +297,7 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 		players.erase(dit);
 
 		// 플레이어 0명 혹은 1명
-		if (client_number < 2) {
+		if (!CheckClientNumber()) {
 			switch (status) {
 				case LISTEN:
 				{
@@ -317,8 +316,20 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				}
 				break;
 
-				case GAME: { /* 여기서 처리 안함 */ } break;
-				case GAME_OVER: { /* 여기서 처리 안함 */ } break;
+				case GAME:
+				{
+					Clean();
+					SetStatus(LISTEN);
+				}
+				break;
+
+				case GAME_OVER:
+				{
+					Clean();
+					SetStatus(LISTEN);
+				}
+				break;
+
 				case GAME_RESTART: { /* 여기서 처리 안함 */ } break;
 				case EXIT: { /* 여기서 처리 안함 */ } break;
 				default: break;

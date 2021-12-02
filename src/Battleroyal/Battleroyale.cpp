@@ -211,7 +211,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			if (packet == SERVER_PLAYER_COUNT)
 			{
-				result = recv(my_socket, (char*)framework.player_count, sizeof(int), 0);
+				result = recv(my_socket, (char*)(&framework.player_count), sizeof(int), 0);
 				if (result == SOCKET_ERROR)
 				{
 				}
