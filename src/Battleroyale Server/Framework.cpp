@@ -201,7 +201,7 @@ void ServerFramework::ProcessSync() {
 		SendRenderingInfos(client_socket);
 	}
 
-	Sleep(LERP_MIN);
+	Sleep(FRAME_TIME);
 }
 
 void ServerFramework::Clean() {
@@ -255,11 +255,14 @@ SOCKET ServerFramework::PlayerConnect() {
 	HANDLE new_thread = CreateThread(NULL, 0, CommunicateProcess, (client_info), 0, NULL);
 	client_info->client_thread = new_thread;
 
+	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
+			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
+
 	// 첫번째 플레이어
 	if (client_number == 0) {
 		SetCaptain(client_info);
 
-		SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
+		//SendData(new_socket, PACKETS::SERVER_SET_CAPATIN);
 	}
 
 	client_number++;
@@ -267,9 +270,6 @@ SOCKET ServerFramework::PlayerConnect() {
 	cout << "현재 플레이어 수: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
-
-	SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT
-			 , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
 	LeaveCriticalSection(&player_infos_permission);
 

@@ -54,6 +54,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.PlayerDisconnect(client_info);
 					break;
 				}
+
 				// 방장의 게임 시작 메시지
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
@@ -83,7 +84,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					break;
 				}
 
-				framework.AtomicPrintLn("받은 패킷 정보: ", packet, "크기: ", result);
+				framework.AtomicPrintLn("받은 패킷 정보: ", packet, ", 크기: ", result);
 
 				// 만약 핑 메시지가 오면 데이터를 받지 않는다.
 				if (packet == PACKETS::CLIENT_KEY_INPUT) {
