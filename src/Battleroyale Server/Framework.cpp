@@ -62,20 +62,20 @@ ServerFramework::~ServerFramework() {
 bool ServerFramework::Initialize() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		ErrorDisplay("WSAStartup()");
+		ErrorAbort("WSAStartup()");
 		return false;
 	}
 
 	my_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (INVALID_SOCKET == my_socket) {
-		ErrorDisplay("socket()");
+		ErrorAbort("socket()");
 		return false;
 	}
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
 		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		ErrorDisplay("setsockopt()");
+		ErrorAbort("setsockopt()");
 		return false;
 	}
 
@@ -85,19 +85,19 @@ bool ServerFramework::Initialize() {
 	my_address.sin_port = htons(COMMON_PORT);
 
 	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<sockaddr*>(&my_address), sizeof(my_address))) {
-		ErrorDisplay("bind()");
+		ErrorAbort("bind()");
 		return false;
 	}
 
 	if (SOCKET_ERROR == listen(my_socket, CLIENT_NUMBER_MAX + 1)) {
-		ErrorDisplay("listen()");
+		ErrorAbort("listen()");
 		return false;
 	}
 	AtomicPrintLn("서버 시작");
 
 	SOCKET new_client = PlayerConnect();
 	if (INVALID_SOCKET == new_client) {
-		ErrorDisplay("PlayerConnect()");
+		ErrorAbort("PlayerConnect()");
 	}
 
 	while (true) {
@@ -258,6 +258,7 @@ SOCKET ServerFramework::PlayerConnect() {
 		{
 			if (CLIENT_NUMBER_MAX <= client_number) {
 				closesocket(new_socket);
+				LeaveCriticalSection(&player_infos_permission);
 				return 0;
 			}
 		}
