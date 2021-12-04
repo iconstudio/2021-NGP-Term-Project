@@ -2,7 +2,9 @@
 #include "Main.h"
 #include "Framework.h"
 #include "CommonDatas.h"
+#include "ServerFramework.h"
 
+ServerFramework framework{};
 
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
@@ -178,3 +180,23 @@ ClientSession::~ClientSession() {
 		delete player_character;
 	}
 }
+/*
+int main() {
+        if (framework.Initialize() == -1)
+        {
+                return 0;
+        }
+
+        while (true)
+        {
+                if (!framework.Connect())
+                {
+                        break;
+                }
+
+
+        }
+
+        framework.Close();
+}
+*/
