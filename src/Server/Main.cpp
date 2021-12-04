@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "Main.h"
 #include "CommonDatas.h"
 
@@ -10,7 +10,7 @@ SOCKET my_socket;
 RenderInstance* rendering_infos_last;
 
 int main() {
-	cout << "¼­¹ö ½ÃÀÛ" << endl;
+	cout << "ì„œë²„ ì‹œìž‘" << endl;
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 	return 0;
@@ -48,4 +48,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 	}
 
 	return 0;
+}
+
+void ProceedContinuation() {
 }
