@@ -7,15 +7,19 @@
 
 //ServerFramework framework{};
 
+// 스레드 프로세스
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
+// 소켓 정보
 SOCKET my_socket;
 SOCKADDR_IN my_address;
-auto my_address_size = sizeof(my_address);
+int my_address_size = sizeof(my_address);
 
+// 이벤트 핸들
 HANDLE event_accept;
 
+// 렌더링 정보
 RenderInstance* rendering_infos_last;
 
 int main() {
@@ -52,14 +56,43 @@ int main() {
 		ErrorAbort("listen()");
 		return false;
 	}
+
 	AtomicPrintLn("서버 시작");
 
 	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 
+	// 클라이언트 연결
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
 	while (true) {
 		// 서버 대기
+	}
+
+	return 0;
+}
+
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+	SOCKET client_socket;
+	SOCKADDR_IN client_address;
+	int my_addr_size = sizeof(my_address);
+
+	while (true) {
+		client_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
+		if (INVALID_SOCKET == client_socket) {
+			ErrorDisplay("connect()");
+			continue;
+		}
+
+		HANDLE th = CreateThread(NULL, 0, GameProcess, (&client_socket), 0, NULL);
+		if (!th) {
+			ErrorDisplay("CreateThread()");
+			continue;
+		}
+		else {
+			CloseHandle(th);
+		}
+
+		WaitForSingleObject(event_accept, INFINITE);
 	}
 
 	return 0;
@@ -101,8 +134,9 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 			default: break;
 		}
-		if (client_data)
+		if (client_data) {
 			cout << client_data;
+		}
 
 		// 2. 게임 진행
 
@@ -114,32 +148,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 5. 렌더링 정보 전송
 		SendRenderingInfos(client_socket);
 	}
-	return 0;
-}
-
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-	SOCKET client_socket;
-	SOCKADDR_IN client_address;
-	int my_addr_size = sizeof(my_address);
-
-	while (true) {
-		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
-		if (INVALID_SOCKET == client_socket) {
-			ErrorDisplay("connect()");
-			continue;
-		}
-
-		auto th = CreateThread(NULL, 0, GameProcess, (&client_socket), 0, NULL);
-		if (!th) {
-			ErrorDisplay("CreateThread()");
-			continue;
-		} else {
-			CloseHandle(th);
-		}
-
-		WaitForSingleObject(event_accept, INFINITE);
-	}
-
 	return 0;
 }
 
