@@ -7,7 +7,8 @@ public:
 	ServerFramework() : s_port(15000), cl_addr_len(sizeof(cl_addr)) {}
 public:
 	int Initialize();			 // 서버 초기화
-	bool Connect();
+	bool Connect();				 // 클라이언트 연결
+	void Disconnect();			 // 클라이언트 연결 해제
 	void Close();				 // 서버 종료
 public:
 	SOCKET GetServerSocket() { return s_socket; }
