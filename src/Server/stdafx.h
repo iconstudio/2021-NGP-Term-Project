@@ -1,26 +1,26 @@
-#pragma once
+ï»¿#pragma once
 #pragma comment(lib, "msimg32.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma warning(disable: 4244)
 
-/// Windows Çì´õ ÆÄÀÏ:
-#define WIN32_LEAN_AND_MEAN // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀº Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
+/// Windows í—¤ë” íŒŒì¼:
+#define WIN32_LEAN_AND_MEAN // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì€ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
 #include <windows.h>
 #include <winperf.h>
 
-/// C ·±Å¸ÀÓ Çì´õ ÆÄÀÏÀÔ´Ï´Ù.
+/// C ëŸ°íƒ€ì„ í—¤ë” íŒŒì¼ì…ë‹ˆë‹¤.
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
 #include <time.h>
 
-/// ATL / MFC Çì´õ ÆÄÀÏ:
-#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS // ÀÏºÎ CString »ı¼ºÀÚ´Â ¸í½ÃÀûÀ¸·Î ¼±¾ğµË´Ï´Ù.
+/// ATL / MFC í—¤ë” íŒŒì¼:
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS // ì¼ë¶€ CString ìƒì„±ìëŠ” ëª…ì‹œì ìœ¼ë¡œ ì„ ì–¸ë©ë‹ˆë‹¤.
 #include <atlbase.h>
 #include <atlimage.h>
 #include <atlstr.h>
 
-// Ç¥ÁØ ¶óÀÌºê·¯¸®
+// í‘œì¤€ ë¼ì´ë¸ŒëŸ¬ë¦¬
 #include <memory>
 #include <vector>
 #include <map>
@@ -34,26 +34,29 @@
 
 using namespace std;
 
-inline double radtodeg(double value) {
-	return value / M_PI * 180.0;
-}
+//inline double radtodeg(double value) {
+//	return value / M_PI * 180.0;
+//}
+//
+//inline double degtorad(double value) {
+//	return value * M_PI / 180.0;
+//}
 
-inline double degtorad(double value) {
-	return value * M_PI / 180.0;
-}
+//inline double lengthdir_x(double length, double direction) {
+//	return cos(degtorad(direction)) * length;
+//}
+//
+//inline double lengthdir_y(double length, double direction) {
+//	return -sin(degtorad(direction)) * length;
+//}
+//
+//inline double point_distance(double x1, double y1, double x2, double y2) {
+//	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+//}
+//
+//inline double point_direction(double x1, double y1, double x2, double y2) {
+//	return radtodeg(atan2(y1 - y2, x2 - x1));
+//}
 
-inline double lengthdir_x(double length, double direction) {
-	return cos(degtorad(direction)) * length;
-}
-
-inline double lengthdir_y(double length, double direction) {
-	return -sin(degtorad(direction)) * length;
-}
-
-inline double point_distance(double x1, double y1, double x2, double y2) {
-	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
-}
-
-inline double point_direction(double x1, double y1, double x2, double y2) {
-	return radtodeg(atan2(y1 - y2, x2 - x1));
-}
+void ErrorAbort(const char* msg);
+void ErrorDisplay(const char* msg);
