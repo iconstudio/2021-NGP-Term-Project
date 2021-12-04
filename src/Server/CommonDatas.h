@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "stdafx.h"
 
 #define COMMON_PORT 15000
@@ -20,52 +20,52 @@ constexpr double km_per_hr(const double velocity) {
 	return velocity * KPH_TO_PPS;
 }
 
-const double EWALL_BEGIN_TIME = 30.0;				// ÀÚ±âÀå ½ÃÀÛ ½Ã°£
-const double EWALL_CLOSE_PERIOD = 300.0;			// ÀÚ±âÀå ¿Ï·á ½Ã°£
+const double EWALL_BEGIN_TIME = 30.0;				// ìžê¸°ìž¥ ì‹œìž‘ ì‹œê°„
+const double EWALL_CLOSE_PERIOD = 300.0;			// ìžê¸°ìž¥ ì™„ë£Œ ì‹œê°„
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
-const double PLAYER_HEALTH = 100.0;					// ÇÃ·¹ÀÌ¾î ÃÖ´ë Ã¼·Â
-const double PLAYER_MOVE_SPEED = km_per_hr(20);		// ÇÃ·¹ÀÌ¾î ÀÌµ¿ ¼Óµµ
-const double PLAYER_ATTACK_COOLDOWN = 0.2;			// °ø°Ý Äð Å¸ÀÓ
-const double PLAYER_INVINCIBLE_DURATION = 2.5;		// ¹«Àû ½Ã°£
-const double PLAYER_BLINK_DISTANCE = 64.0;			// ÇÃ·¹ÀÌ¾î Á¡¸ê °Å¸®
+const double PLAYER_HEALTH = 100.0;					// í”Œë ˆì´ì–´ ìµœëŒ€ ì²´ë ¥
+const double PLAYER_MOVE_SPEED = km_per_hr(20);		// í”Œë ˆì´ì–´ ì´ë™ ì†ë„
+const double PLAYER_ATTACK_COOLDOWN = 0.2;			// ê³µê²© ì¿¨ íƒ€ìž„
+const double PLAYER_INVINCIBLE_DURATION = 2.5;		// ë¬´ì  ì‹œê°„
+const double PLAYER_BLINK_DISTANCE = 64.0;			// í”Œë ˆì´ì–´ ì ë©¸ ê±°ë¦¬
 
-const double SNOWBALL_DURATION = 0.6;				// Åõ»çÃ¼ Áö¼Ó ½Ã°£
-const double SNOWBALL_SPEED = km_per_hr(50);		// Åõ»çÃ¼ ÀÌµ¿ ¼Óµµ
+const double SNOWBALL_DURATION = 0.6;				// íˆ¬ì‚¬ì²´ ì§€ì† ì‹œê°„
+const double SNOWBALL_SPEED = km_per_hr(50);		// íˆ¬ì‚¬ì²´ ì´ë™ ì†ë„
 
-// ÇÁ·¹ÀÓ ¼ö
+// í”„ë ˆìž„ ìˆ˜
 constexpr int FRAMERATE = 20;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
-/* ¼Û¼ö½Å ¼³Á¤ */
+/* ì†¡ìˆ˜ì‹  ì„¤ì • */
 const int SEND_INPUT_COUNT = 6;
-const int CLIENT_NUMBER_MAX = 10; // ÃÖ´ë ÇÃ·¹ÀÌ¾î ¼ö
+const int CLIENT_NUMBER_MAX = 10; // ìµœëŒ€ í”Œë ˆì´ì–´ ìˆ˜
 const int CLIENT_NUMBER_MIN = 1;
 const int RENDER_INST_COUNT = 40;
 
 constexpr int LERP_MIN = 50;
 constexpr int LERP_MAX = 200;
 
-/* ´ÙÁß ½º·¹µå ¼³Á¤ */
+/* ë‹¤ì¤‘ ìŠ¤ë ˆë“œ ì„¤ì • */
 constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
 
 
 enum PACKETS : int {
-	// Å¬¶óÀÌ¾ðÆ® -> ¼­¹ö
-	CLIENT_PING = 0				// ºó ÆÐÅ¶À» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_KEY_INPUT			// ÀÔ·ÂÀ» º¸³¾ ¶§ »ç¿ëÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_GAME_START			// ¼­¹ö¿¡°Ô °ÔÀÓ ½ÃÀÛÀ» ¿äÃ»ÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_PLAY_CONTINUE		// °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÏ±â À§ÇØ ÀçÁ¢¼ÓÀ» ¿äÃ»ÇÏ´Â ¸Þ½ÃÁö
-	, CLIENT_PLAY_DENY			// °ÔÀÓÀ» ´Ù½ÃÇÏÁö ¾Ê´Â´Ù°í ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
+	// í´ë¼ì´ì–¸íŠ¸ -> ì„œë²„
+	CLIENT_PING = 0				// ë¹ˆ íŒ¨í‚·ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_KEY_INPUT			// ìž…ë ¥ì„ ë³´ë‚¼ ë•Œ ì‚¬ìš©í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_GAME_START			// ì„œë²„ì—ê²Œ ê²Œìž„ ì‹œìž‘ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_PLAY_CONTINUE		// ê²Œìž„ì„ ë‹¤ì‹œ ì‹œìž‘í•˜ê¸° ìœ„í•´ ìž¬ì ‘ì†ì„ ìš”ì²­í•˜ëŠ” ë©”ì‹œì§€
+	, CLIENT_PLAY_DENY			// ê²Œìž„ì„ ë‹¤ì‹œí•˜ì§€ ì•ŠëŠ”ë‹¤ê³  ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
 
-	// ¼­¹ö -> Å¬¶óÀÌ¾ðÆ®
-	, SERVER_SET_CAPATIN		// ¹æÀåÀÓÀ» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_START			// °ÔÀÓÀÌ ½ÃÀÛµÇ¾úÀ½À» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_PLAYER_COUNT		// ÇÃ·¹ÀÌ¾î°¡ ¸î ¸íÀÎÁö ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_STATUS		// °ÔÀÓ »óÅÂ¸¦ ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_RENDER_INFO		// ·»´õ¸µ Á¤º¸¸¦ º¸³»ÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_GAME_DONE			// °ÔÀÓÀÌ ³¡³µÀ½À» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
-	, SERVER_REPLAY				// °ÔÀÓÀ» ´Ù½Ã ½ÃÀÛÇÔÀ» ¾Ë·ÁÁÖ´Â ¸Þ½ÃÁö
+	// ì„œë²„ -> í´ë¼ì´ì–¸íŠ¸
+	, SERVER_SET_CAPATIN		// ë°©ìž¥ìž„ì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_START			// ê²Œìž„ì´ ì‹œìž‘ë˜ì—ˆìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_PLAYER_COUNT		// í”Œë ˆì´ì–´ê°€ ëª‡ ëª…ì¸ì§€ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_STATUS		// ê²Œìž„ ìƒíƒœë¥¼ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_RENDER_INFO		// ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_GAME_DONE			// ê²Œìž„ì´ ëë‚¬ìŒì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
+	, SERVER_REPLAY				// ê²Œìž„ì„ ë‹¤ì‹œ ì‹œìž‘í•¨ì„ ì•Œë ¤ì£¼ëŠ” ë©”ì‹œì§€
 };
 
 struct GameUpdateMessage {
@@ -95,8 +95,8 @@ struct InputStream {
 struct RenderInstance {
 	RENDER_TYPES instance_type;
 
-	int image_index;		// ¸î ¹øÂ° ÀÌ¹ÌÁö¸¦ ½ºÇÁ¶óÀÌÆ®¿¡¼­ »ç¿ëÇÒÁö
-	double x, y, angle;		// ÀÌ¹ÌÁö È¸Àü °¢µµ/¹æÇâ
+	int image_index;		// ëª‡ ë²ˆì§¸ ì´ë¯¸ì§€ë¥¼ ìŠ¤í”„ë¼ì´íŠ¸ì—ì„œ ì‚¬ìš©í• ì§€
+	double x, y, angle;		// ì´ë¯¸ì§€ íšŒì „ ê°ë„/ë°©í–¥
 };
 
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
