@@ -3,16 +3,20 @@
 #include "Framework.h"
 #include "CommonDatas.h"
 #include "ServerFramework.h"
+#include "CommonDatas.h"
 
 //ServerFramework framework{};
 
+// 스레드 프로세스
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
 
+// 소켓 정보
 SOCKET my_socket;
 SOCKADDR_IN my_address;
-auto my_address_size = sizeof(my_address);
+int my_address_size = sizeof(my_address);
 
+// 이벤트 핸들
 HANDLE event_accept;
 
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
@@ -51,10 +55,12 @@ int main() {
 		ErrorAbort("listen()");
 		return false;
 	}
+
 	AtomicPrintLn("서버 시작");
 
 	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 
+	// 클라이언트 연결
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
 	auto aa = Instantiate<CCharacter>(50, 50);
@@ -70,6 +76,42 @@ int main() {
 
 	CloseHandle(event_accept);
 	closesocket(my_socket);
+
+	return 0;
+}
+
+DWORD WINAPI ConnectProcess(LPVOID arg) {
+	while (true) {
+		SOCKET client_socket;
+		SOCKADDR_IN client_address;
+		int my_addr_size = sizeof(client_address);
+
+		SetEvent(event_accept);
+
+		client_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
+		if (INVALID_SOCKET == client_socket) {
+			ErrorDisplay("connect()");
+			continue;
+		}
+
+		int option = TRUE;							//네이글 알고리즘 on/off
+		setsockopt(my_socket,						//해당 소켓
+			IPPROTO_TCP,							//소켓의 레벨
+			TCP_NODELAY,							//설정 옵션
+			reinterpret_cast<const char*>(&option),	// 옵션 포인터
+			sizeof(option));						//옵션 크기
+
+		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
+		if (!th) {
+			ErrorDisplay("CreateThread()");
+			continue;
+		}
+		CloseHandle(th);
+
+		AtomicPrintLn("클라이언트 접속: ", client_socket);
+
+		WaitForSingleObject(event_accept, INFINITE);
+	}
 
 	return 0;
 }
@@ -185,7 +227,7 @@ bool ValidateSocketMessage(int socket_state) {
 	return false;
 }
 
-
+// 렌더링 정보 생성 함수
 void BakeRenderingInfos() {
 	if (!instances.empty()) {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
@@ -220,7 +262,7 @@ void BakeRenderingInfos() {
 	}
 }
 
-
+// 렌더링 정보 전송
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
 	auto render_size = sizeof(rendering_infos_last);
