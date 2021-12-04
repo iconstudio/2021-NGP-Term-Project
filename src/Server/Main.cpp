@@ -63,11 +63,11 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	SOCKET client_socket = reinterpret_cast<SOCKET>(arg);
 
 	while (true) {
-		char packet_info[HEADER_SIZE];
-		ZeroMemory(&packet_info, HEADER_SIZE);
+		PACKETS header;
+		ZeroMemory(&header, HEADER_SIZE);
 
 		// 1-1. 패킷 헤더 수신
-		int result = recv(client_socket, packet_info, HEADER_SIZE, 0);
+		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, 0);
 		if (SOCKET_ERROR == result) {
 			break;
 		} else if (0 == result) {
@@ -78,14 +78,20 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		int client_data_size = 0;
 
 		// 1-2. 패킷 내용 수신
-		int result = recv(client_socket, client_data, client_data_size, 0);
-		if (SOCKET_ERROR == result) {
+		switch (header) {
+			case PACKETS::CLIENT_KEY_INPUT:
+			{
+				int result = recv(client_socket, client_data, client_data_size, 0);
+				if (SOCKET_ERROR == result) {
+					break;
+				} else if (0 == result) {
+					break;
+				}
+			}
 			break;
-		} else if (0 == result) {
-			break;
+
+			default: break;
 		}
-
-
 
 		// 2. 게임 진행
 
