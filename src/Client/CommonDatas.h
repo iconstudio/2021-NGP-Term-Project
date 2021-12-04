@@ -81,7 +81,8 @@ struct GameUpdateMessage {
 };
 
 enum RENDER_TYPES : int {
-	CHARACTER = 0
+	BLANK = 0
+	, CHARACTER
 	, BULLET
 };
 

@@ -111,6 +111,11 @@ void ClientFramework::Initialize() {
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(COMMON_PORT);
 
+	for (int t = 0; t < 40; ++t)
+	{
+		last_render_info[t].instance_type = BLANK;
+	}
+
 	int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 
 	if (SOCKET_ERROR == result) {
@@ -136,8 +141,11 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001)
+	if ((GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001) && cooldown == 0)
+	{
 		key_checkers[4] = VK_SPACE;
+		cooldown = 6000;
+	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
@@ -146,6 +154,8 @@ void ClientFramework::Update() {
 	background_color = COLOR_YELLOW;
 	auto address_size = sizeof(server_address);
 
+	if (cooldown > 0)
+		--cooldown;
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
@@ -207,6 +217,9 @@ void ClientFramework::Render(HWND window) {
 				sprite_bullet.draw(surface_double, it->x, it->y, it->image_index, 0);
 			}
 			break;
+
+			case BLANK:
+				break;
 
 			default:
 				break;
