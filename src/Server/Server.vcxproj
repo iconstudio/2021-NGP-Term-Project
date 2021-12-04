@@ -143,7 +143,6 @@
     <ClCompile Include="GameInstance.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ServerFramework.cpp" />
-    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonDatas.h" />

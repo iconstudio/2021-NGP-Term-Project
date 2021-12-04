@@ -61,6 +61,3 @@ inline double point_distance(double x1, double y1, double x2, double y2) {
 inline double point_direction(double x1, double y1, double x2, double y2) {
 	return radtodeg(atan2(y1 - y2, x2 - x1));
 }
-
-void ErrorAbort(const char* msg);
-void ErrorDisplay(const char* msg);

@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#include "CommonDatas.h"
 #include "ServerFramework.h"
 
 int ServerFramework::Initialize()

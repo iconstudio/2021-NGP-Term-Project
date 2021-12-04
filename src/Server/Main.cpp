@@ -18,8 +18,6 @@ HANDLE event_accept;
 RenderInstance* rendering_infos_last;
 
 int main() {
-	cout << "서버 시작" << endl;
-
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
 		ErrorAbort("WSAStartup()");
@@ -58,6 +56,11 @@ int main() {
 	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+
+	while (true) {
+		// 서버 대기
+	}
+
 	return 0;
 }
 
