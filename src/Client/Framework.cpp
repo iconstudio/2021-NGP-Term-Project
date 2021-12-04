@@ -143,7 +143,7 @@ void ClientFramework::Update() {
 
 	if (SERVER_RENDER_INFO == RecvPacket(my_socket))
 	{
-		int result = recv(my_socket, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+		int result = recv(my_socket, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 4, MSG_WAITALL);
 		background_color = COLOR_YELLOW;
 	}
 
