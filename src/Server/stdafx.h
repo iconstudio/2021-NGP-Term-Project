@@ -22,7 +22,6 @@
 
 // 수학 상수 선언
 #define _USE_MATH_DEFINES
-#include <math.h>
 
 // 표준 라이브러리
 #include <memory>
