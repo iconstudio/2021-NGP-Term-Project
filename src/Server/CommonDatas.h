@@ -67,6 +67,7 @@ enum PACKETS : int {
 	, SERVER_GAME_DONE			// 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 게임을 다시 시작함을 알려주는 메시지
 };
+constexpr int HEADER_SIZE = sizeof(PACKETS);
 
 struct GameUpdateMessage {
 	int players_count;
@@ -103,4 +104,3 @@ int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);
 
-const int HEADER_SIZE = sizeof(PACKETS);
