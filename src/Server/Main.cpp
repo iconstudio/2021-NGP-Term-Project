@@ -21,6 +21,8 @@ HANDLE event_accept;
 
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
+CCharacter* test_character = nullptr;
+
 int main() {
 	WSADATA wsadata;
 	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
@@ -63,8 +65,8 @@ int main() {
 	// 클라이언트 연결
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
-	auto aa = Instantiate<CCharacter>(50, 50);
-	aa->AssignRenderingInfo(0);
+	test_character = Instantiate<CCharacter>(50, 50);
+	test_character->AssignRenderingInfo(0);
 
 	Instantiate<CCharacter>(150, 50)->AssignRenderingInfo(0);
 	Instantiate<CCharacter>(250, 150)->AssignRenderingInfo(0);
@@ -130,7 +132,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		} else if (0 == result) {
 			break;
 		}
-		AtomicPrintLn("받은 패킷 헤더: ", header);
+		//AtomicPrintLn("받은 패킷 헤더: ", header);
 
 		char* client_data = nullptr;
 		int client_data_size = 0;
@@ -141,7 +143,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			{
 				client_data = new char[SEND_INPUT_COUNT];
 				client_data_size = SEND_INPUT_COUNT;
-				ZeroMemory(&client_data, client_data_size);
+				ZeroMemory(client_data, client_data_size);
 
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (SOCKET_ERROR == result) {
@@ -149,7 +151,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				} else if (0 == result) {
 					break;
 				}
-				AtomicPrintLn("받은 패킷 내용: ", client_data);
 			}
 			break;
 
@@ -163,47 +164,44 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		}
 
 		// 2. 게임 진행
+		for (int i = 0; i < client_data_size; ++i) {
+			auto input = client_data[i];
+
+			switch (input) {
+				case VK_UP:
+				{
+					test_character->y -= 2;
+				}
+				break;
+
+				case VK_LEFT:
+				{
+					test_character->x -= 2;
+				}
+				break;
+
+				case VK_RIGHT:
+				{
+					test_character->x += 2;
+				}
+				break;
+
+				case VK_DOWN:
+				{
+					test_character->y += 2;
+				}
+				break;
+			}
+		}
 
 		// 3. 게임 처리
+		test_character->AssignRenderingInfo(0);
 
 		// 4. 렌더링 정보 작성
 		BakeRenderingInfos();
 
 		// 5. 렌더링 정보 전송
 		SendRenderingInfos(client_socket);
-	}
-
-	return 0;
-}
-
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-	while (true) {
-		SOCKET client_socket;
-		SOCKADDR_IN client_address;
-		int my_addr_size = sizeof(client_address);
-
-		SetEvent(event_accept);
-
-		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
-		if (INVALID_SOCKET == client_socket) {
-			ErrorDisplay("connect()");
-			continue;
-		}
-
-		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
-		if (!th) {
-			ErrorDisplay("CreateThread()");
-			continue;
-		}
-
-		// Nagle 알고리즘을 끄기.
-		BOOL option = FALSE;
-		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY, (char*)(&option), sizeof(option));
-		CloseHandle(th);
-
-		AtomicPrintLn("클라이언트 접속: ", client_socket);
-
-		WaitForSingleObject(event_accept, INFINITE);
 	}
 
 	return 0;
@@ -268,8 +266,6 @@ void SendRenderingInfos(SOCKET client_socket) {
 	auto render_size = sizeof(rendering_infos_last);
 
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
-
-	Sleep(FRAME_TIME);
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
