@@ -100,25 +100,46 @@ void ClientFramework::Initialize() {
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(COMMON_PORT);
+
+	//int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+
+	//if (SOCKET_ERROR == result) {
+	//	// 오류
+	//	return;
+	//}
 }
 
 
 void ClientFramework::Update() {
-
-	if (GetAsyncKeyState(VK_UP) == 0x8000)
-		key_checkers[0] = VK_UP;
+	for (int t = 0; t < 7; ++t)
+	{
+		key_checkers[t] = false;
+	}
+	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState(VK_UP) & 0x8001)
+		key_checkers[0] = true;
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState(VK_DOWN) & 0x8001)
+		key_checkers[1] = true;
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState(VK_LEFT) & 0x8001)
+		key_checkers[2] = true;
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
+		key_checkers[3] = true;
+	if (GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001)
+		key_checkers[4] = true;
+	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
+		key_checkers[5] = true;
+	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
+		key_checkers[6] = true;
 
 	background_color = COLOR_YELLOW;
 	auto address_size = sizeof(server_address);
 
-	int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+
+	int result = send(my_socket, (char*)key_checkers, sizeof(bool)*7, 0);
 	if (SOCKET_ERROR == result) {
 		// 오류
 		return;
 	}
-
-	result = send(my_socket, (char*)key_checkers[0], sizeof(WPARAM), 0);
-
+	recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, 0);
 	for (int i = 0; i < 6; i++) {
 
 		//if (check & 0x0000) { // released
