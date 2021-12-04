@@ -34,6 +34,7 @@
 #include <cmath>
 #include <chrono>
 #include <random>
+#include <math.h>
 
 using namespace std;
 
