@@ -72,7 +72,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		ZeroMemory(&header, HEADER_SIZE);
 
 		// 1-1. 패킷 헤더 수신
-		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, 0);
+		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, MSG_WAITALL);
 		if (SOCKET_ERROR == result) {
 			break;
 		} else if (0 == result) {
