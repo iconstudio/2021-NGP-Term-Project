@@ -16,12 +16,10 @@ SOCKET my_socket;
 SOCKADDR_IN my_address;
 int my_address_size = sizeof(my_address);
 
-// 이벤트 핸들
-HANDLE event_accept;
+HANDLE event_accept; // 클라이언트 수용 신호
+HANDLE event_game_process; // 게임 처리 신호
 
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
-
-CCharacter* test_character = nullptr;
 
 int main() {
 	WSADATA wsadata;
@@ -60,28 +58,46 @@ int main() {
 
 	AtomicPrintLn("서버 시작");
 
+	client_number = 0;
+	players.reserve(CLIENT_NUMBER_MAX);
+
+	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
+
+	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
+		double dir = dir_increment * i;
+		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
+		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
+
+		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
+	}
+
 	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
+	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// 클라이언트 연결
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
-	test_character = Instantiate<CCharacter>(50, 50);
-	test_character->AssignRenderingInfo(0);
-
-	Instantiate<CCharacter>(150, 50)->AssignRenderingInfo(0);
-	Instantiate<CCharacter>(250, 150)->AssignRenderingInfo(0);
-	Instantiate<CCharacter>(350, 250)->AssignRenderingInfo(0);
+	Sleep(8000);
+	CreatePlayerCharacters();
+	SetEvent(event_game_process);
 
 	while (true) {
 		// 서버 대기
 	}
 
 	CloseHandle(event_accept);
+	CloseHandle(event_game_process);
 	closesocket(my_socket);
 
 	return 0;
 }
 
+CCharacter::CCharacter()
+	: GameInstance() {
+	SetRenderType(RENDER_TYPES::CHARACTER);
+	SetBoundBox(RECT{ -6, -6, 6, 6 });
+}
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
 		SOCKET client_socket;
@@ -96,21 +112,24 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 
-		int option = TRUE;							//네이글 알고리즘 on/off
+		BOOL option = FALSE;							//네이글 알고리즘 on/off
 		setsockopt(my_socket,						//해당 소켓
 			IPPROTO_TCP,							//소켓의 레벨
 			TCP_NODELAY,							//설정 옵션
 			reinterpret_cast<const char*>(&option),	// 옵션 포인터
 			sizeof(option));						//옵션 크기
 
-		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
+		auto client = new ClientSession(client_socket, NULL, client_number++);
+
+		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
 		}
 		CloseHandle(th);
+		players.push_back(client);
 
-		AtomicPrintLn("클라이언트 접속: ", client_socket);
+		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", client_number);
 
 		WaitForSingleObject(event_accept, INFINITE);
 	}
@@ -119,9 +138,12 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 }
 
 DWORD WINAPI GameProcess(LPVOID arg) {
-	SOCKET client_socket = reinterpret_cast<SOCKET>(arg);
+	ClientSession* client = reinterpret_cast<ClientSession*>(arg);
+	SOCKET client_socket = client->my_socket;
 
 	while (true) {
+		WaitForSingleObject(event_game_process, INFINITE);
+
 		PACKETS header;
 		ZeroMemory(&header, HEADER_SIZE);
 
@@ -132,7 +154,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		} else if (0 == result) {
 			break;
 		}
-		//AtomicPrintLn("받은 패킷 헤더: ", header);
+		AtomicPrintLn("받은 패킷 헤더: ", header);
 
 		char* client_data = nullptr;
 		int client_data_size = 0;
@@ -151,6 +173,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				} else if (0 == result) {
 					break;
 				}
+				AtomicPrintLn("받은 패킷 내용: ", client_data);
 			}
 			break;
 
@@ -164,44 +187,55 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		}
 
 		// 2. 게임 진행
-		for (int i = 0; i < client_data_size; ++i) {
-			auto input = client_data[i];
+		CCharacter* client_char = client->player_character;
+		if (!client_char) {
+			//client_char = Instantiate<CCharacter>(50, 50);
+		}
 
-			switch (input) {
-				case VK_UP:
-				{
-					test_character->y -= 2;
-				}
-				break;
+		if (client_char) {
+			for (int i = 0; i < client_data_size; ++i) {
+				auto input = client_data[i];
 
-				case VK_LEFT:
-				{
-					test_character->x -= 2;
-				}
-				break;
+				switch (input) {
+					case VK_UP:
+					{
+						client_char->y -= 2;
+					}
+					break;
 
-				case VK_RIGHT:
-				{
-					test_character->x += 2;
-				}
-				break;
+					case VK_LEFT:
+					{
+						client_char->x -= 2;
+					}
+					break;
 
-				case VK_DOWN:
-				{
-					test_character->y += 2;
+					case VK_RIGHT:
+					{
+						client_char->x += 2;
+					}
+					break;
+
+					case VK_DOWN:
+					{
+						client_char->y += 2;
+					}
+					break;
 				}
-				break;
 			}
+			client_char->AssignRenderingInfo(0);
 		}
 
 		// 3. 게임 처리
-		test_character->AssignRenderingInfo(0);
 
 		// 4. 렌더링 정보 작성
 		BakeRenderingInfos();
 
 		// 5. 렌더링 정보 전송
 		SendRenderingInfos(client_socket);
+
+		// 6. 대기
+		Sleep(FRAME_TIME);
+		SetEvent(event_game_process);
 	}
 
 	return 0;
@@ -211,6 +245,19 @@ void ClientConnect() {
 }
 
 void ClientDisconnect(int player_index) {
+}
+
+void CreatePlayerCharacters() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int places[2] = {80, 80};//PLAYER_SPAWN_PLACES[i];
+		auto character = Instantiate<CCharacter>(places[0], places[1]);
+
+		player->player_character = character;
+		character->owner = player->player_index;
+		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
+	}
 }
 
 void ProceedContinuation() {
