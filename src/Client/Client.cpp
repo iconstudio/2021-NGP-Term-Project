@@ -1,5 +1,4 @@
 ﻿// Client.cpp : 애플리케이션에 대한 진입점을 정의합니다.
-//
 
 #include "pch.h"
 #include "framework.h"
@@ -39,6 +38,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_CLIENT, szWindowClass, MAX_LOADSTRING);
 
+    // 애플리케이션 초기화를 수행합니다:
     if (!game_client.initialize(hInstance, WndProc, szTitle, szWindowClass, nCmdShow))
     {
         return FALSE;
@@ -46,9 +46,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     framework.Initialize();
     MyRegisterClass(hInstance);
-
-    // 애플리케이션 초기화를 수행합니다:
-
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIENT));
 

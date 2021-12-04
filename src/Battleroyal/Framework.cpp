@@ -1,10 +1,10 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Framework.h"
 #include "resource.h"
 
 GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
-GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 GameSprite sprite_bullet("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
 
 
