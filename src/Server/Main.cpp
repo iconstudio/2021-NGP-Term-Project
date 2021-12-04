@@ -170,19 +170,31 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		for (int i = 0; i < client_data_size; ++i) {
 			auto input = client_data[i];
 
-			switch (input) {
-				case VK_UP: { player[client[i].player_index]->y -= 2; }
-				break;
+			bool check_up = false;
+			bool check_dw = false;
+			bool check_lt = false;
+			bool check_rt = false;
 
-				case VK_LEFT: { player[client[i].player_index]->x -= 2; }
-				break;
+			if (input == VK_UP) { check_up = true; }
+			if (input == VK_DOWN) { check_dw = true; }
+			if (input == VK_LEFT) { check_lt = true; }
+			if (input == VK_RIGHT) { check_rt = true; }
 
-				case VK_RIGHT: { player[client[i].player_index]->x += 2; }
-				break;
-
-				case VK_DOWN: { player[client[i].player_index]->y += 2; }
-				break;
+			bool check_hz = check_lt - check_rt;
+			bool check_vt = check_up - check_dw;
+			if (!check_hz)
+			{
+				player[client[i].player_index]->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_hz;
 			}
+			if (!check_vt)
+			{
+				player[client[i].player_index]->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vt;
+			}
+
+			if (input == VK_UP) { check_up = false; }
+			if (input == VK_DOWN) { check_dw = false; }
+			if (input == VK_LEFT) { check_lt = false; }
+			if (input == VK_RIGHT) { check_rt = false; }
 
 			// 3. 게임 처리
 			player[client[i].player_index]->AssignRenderingInfo(0);
