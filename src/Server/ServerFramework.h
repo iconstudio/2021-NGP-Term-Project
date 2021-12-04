@@ -11,6 +11,8 @@ public:
 	void Disconnect();			 // 클라이언트 연결 해제
 	void Close();				 // 서버 종료
 public:
+	void RecieveKeyInput();
+public:
 	SOCKET GetServerSocket() { return s_socket; }
 	sockaddr_in GetClientAddr() { return cl_addr; }
 
@@ -22,6 +24,8 @@ private:
 	SOCKET		 cl_socket;		  // 클라이언트 소켓
 	sockaddr_in	 cl_addr;		  // 클라이언트 주소
 	int			 cl_addr_len;	  // 클라이언트 주소 길이
+private:
+	std::vector<char> key_input;
 };
 
 #endif

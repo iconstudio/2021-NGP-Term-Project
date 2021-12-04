@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "ServerFramework.h"
+#include "CommonDatas.h"
 
 ServerFramework f{};
 
