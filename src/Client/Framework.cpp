@@ -108,7 +108,7 @@ void ClientFramework::Initialize() {
 
 	if (SOCKET_ERROR == result) {
 		// 오류
-		return;
+		ErrorAbort(L"connect error");
 	}
 }
 
@@ -141,7 +141,7 @@ void ClientFramework::Update() {
 
 	if (RecvPacket(my_socket) == SERVER_RENDER_INFO)
 	{
-		int result = recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, 0);
+		int result = recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, MSG_WAITALL);
 	}
 
 	for (int i = 0; i < 6; i++) {
@@ -241,6 +241,7 @@ PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 	PACKETS packet = CLIENT_PING;
 	int retval = recv(sock, (char*)&packet, sizeof(int), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
+		ErrorAbort(L"recv packet");
 	}
 
 	return packet;
