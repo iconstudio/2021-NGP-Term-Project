@@ -1,7 +1,11 @@
 ﻿#pragma once
-#include "stdafx.h"
+#include "pch.h"
 
+
+//#define SERVER_IP "192.168.120.35"
+//#define SERVER_IP "127.0.0.1"
 #define COMMON_PORT 15000
+
 #define GAME_SCENE_W 1280
 #define GAME_SCENE_H 1280
 #define CLIENT_W 960
@@ -38,9 +42,9 @@ constexpr int FRAMERATE = 20;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
 /* 송수신 설정 */
-const int SEND_INPUT_COUNT = 7;
+const int SEND_INPUT_COUNT = 6;
 const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
-const int CLIENT_NUMBER_MIN = 1;
+const int CLIENT_NUMBER_MIN = 2;
 const int RENDER_INST_COUNT = 40;
 
 constexpr int LERP_MIN = 50;
@@ -99,8 +103,6 @@ struct RenderInstance {
 	double x, y, angle;		// 이미지 회전 각도/방향
 };
 
-int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
+void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);
-
-const int HEADER_SIZE = sizeof(PACKETS);
