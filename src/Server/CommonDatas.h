@@ -99,7 +99,6 @@ struct RenderInstance {
 	double x, y, angle;		// 이미지 회전 각도/방향
 };
 
-int WINAPI RecvData(SOCKET, PACKETS*, const char* = nullptr, int = 0);
 int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);

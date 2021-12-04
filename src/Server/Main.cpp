@@ -83,17 +83,23 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		switch (header) {
 			case PACKETS::CLIENT_KEY_INPUT:
 			{
-				int result = recv(client_socket, client_data, client_data_size, 0);
+				client_data = new char[SEND_INPUT_COUNT];
+				client_data_size = SEND_INPUT_COUNT;
+				
+				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (SOCKET_ERROR == result) {
 					break;
 				} else if (0 == result) {
 					break;
 				}
 			}
+
 			break;
 
 			default: break;
 		}
+		if (client_data)
+			cout << client_data;
 
 		// 2. 게임 진행
 
@@ -111,10 +117,10 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	SOCKET client_socket;
 	SOCKADDR_IN client_address;
-	auto my_addr_size = sizeof(my_address);
+	int my_addr_size = sizeof(my_address);
 
 	while (true) {
-		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &client_address);
+		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
 			continue;
