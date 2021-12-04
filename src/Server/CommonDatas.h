@@ -1,16 +1,18 @@
 ﻿#pragma once
 #include "stdafx.h"
 
-#define COMMON_PORT 15000
-#define GAME_SCENE_W 1280
-#define GAME_SCENE_H 1280
-#define CLIENT_W 960
-#define CLIENT_H 540
-#define VIEW_W 320
-#define VIEW_H 240
-#define PORT_W 640
-#define PORT_H 480
-
+enum ClinetInfo
+{
+	COMMON_PORT = 15000,
+	GAME_SCENE_W = 1280,
+	GAME_SCENE_H = 1280,
+	CLIENT_W = 960,
+	CLIENT_H = 540,
+	VIEW_W = 320,
+	VIEW_H = 240,
+	PORT_W = 640,
+	PORT_H = 480
+};
 
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;
