@@ -15,7 +15,7 @@ auto my_address_size = sizeof(my_address);
 
 HANDLE event_accept;
 
-RenderInstance* rendering_infos_last;
+RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
 int main() {
 	WSADATA wsadata;
@@ -57,14 +57,19 @@ int main() {
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
-	Instantiate<CCharacter>(50, 50);
-	Instantiate<CCharacter>(150, 50);
-	Instantiate<CCharacter>(250, 150);
-	Instantiate<CCharacter>(350, 250);
+	auto aa = Instantiate<CCharacter>(50, 50);
+	aa->AssignRenderingInfo(0);
+
+	Instantiate<CCharacter>(150, 50)->AssignRenderingInfo(0);
+	Instantiate<CCharacter>(250, 150)->AssignRenderingInfo(0);
+	Instantiate<CCharacter>(350, 250)->AssignRenderingInfo(0);
 
 	while (true) {
 		// 서버 대기
 	}
+
+	CloseHandle(event_accept);
+	closesocket(my_socket);
 
 	return 0;
 }
@@ -108,7 +113,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 			case PACKETS::CLIENT_PING:
 			{
-
+				// 아무것도 안함
 			}
 			break;
 
@@ -185,9 +190,8 @@ void BakeRenderingInfos() {
 	if (!instances.empty()) {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (rendering_infos_last) {
-			delete[] rendering_infos_last;
+			ZeroMemory(rendering_infos_last, sizeof(rendering_infos_last));
 		}
-		rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
 
 		auto CopyList = vector<GameInstance*>(instances);
 
@@ -198,22 +202,28 @@ void BakeRenderingInfos() {
 
 		int index = 0;
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
-			auto& render_infos = (*it)->GetRenderInstance();
+			auto render_infos = (*it)->GetRenderInstance();
 
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
-			if (!(*it)->dead)
-				rendering_infos_last[index++] = render_infos;
+			if (!(*it)->dead) {
+				auto dest = (rendering_infos_last + index);
+				auto src = &render_infos;
+
+				memcpy(dest, src, sizeof(RenderInstance));
+				index++;
+			}
 		}
 	} else if (rendering_infos_last) {
-		delete[] rendering_infos_last;
-		rendering_infos_last = nullptr;
+		if (rendering_infos_last) {
+			ZeroMemory(rendering_infos_last, sizeof(rendering_infos_last));
+		}
 	}
 }
 
 
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
-	auto render_size = sizeof(RenderInstance) * RENDER_INST_COUNT;
+	auto render_size = sizeof(rendering_infos_last);
 
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
 
