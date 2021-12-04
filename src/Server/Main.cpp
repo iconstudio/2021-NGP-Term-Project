@@ -1,23 +1,23 @@
 ﻿#include "stdafx.h"
 #include "ServerFramework.h"
 
-ServerFramework framework{};
+ServerFramework f{};
 
 int main() {
-	if (framework.Initialize() == -1)
+	if (f.Initialize() == -1)
 	{
 		return 0;
 	}
 
 	while (true)
 	{
-		if (!framework.Connect())
+		if (!f.Connect())
 		{
 			break;
 		}
 
-		
+		f.Disconnect();
 	}
 
-	framework.Close();
+	f.Close();
 }
