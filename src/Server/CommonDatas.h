@@ -1,16 +1,18 @@
 ﻿#pragma once
 #include "stdafx.h"
 
-#define COMMON_PORT 15000
-#define GAME_SCENE_W 1280
-#define GAME_SCENE_H 1280
-#define CLIENT_W 960
-#define CLIENT_H 540
-#define VIEW_W 320
-#define VIEW_H 240
-#define PORT_W 640
-#define PORT_H 480
-
+enum ClinetInfo
+{
+	COMMON_PORT = 15000,
+	GAME_SCENE_W = 1280,
+	GAME_SCENE_H = 1280,
+	CLIENT_W = 960,
+	CLIENT_H = 540,
+	VIEW_W = 320,
+	VIEW_H = 240,
+	PORT_W = 640,
+	PORT_H = 480
+};
 
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;
@@ -37,7 +39,7 @@ const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 constexpr int FRAMERATE = 20;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
-/* 송수신 설정 */
+// 송수신 설정
 const int SEND_INPUT_COUNT = 7;
 const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
 const int CLIENT_NUMBER_MIN = 1;
@@ -46,9 +48,8 @@ const int RENDER_INST_COUNT = 40;
 constexpr int LERP_MIN = 50;
 constexpr int LERP_MAX = 200;
 
-/* 다중 스레드 설정 */
+// 다중 스레드 설정
 constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
-
 
 enum PACKETS : int {
 	// 클라이언트 -> 서버
@@ -67,6 +68,7 @@ enum PACKETS : int {
 	, SERVER_GAME_DONE			// 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 게임을 다시 시작함을 알려주는 메시지
 };
+
 constexpr int HEADER_SIZE = sizeof(PACKETS);
 
 struct GameUpdateMessage {
