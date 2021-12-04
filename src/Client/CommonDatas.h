@@ -38,7 +38,7 @@ const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 
 // 프레임 수
-constexpr int FRAMERATE = 20;
+constexpr int FRAMERATE = 60;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
 /* 송수신 설정 */

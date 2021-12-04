@@ -117,6 +117,9 @@ void ClientFramework::Initialize() {
 		// 오류
 		ErrorAbort(L"connect error");
 	}
+
+
+	CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 }
 
 
@@ -148,11 +151,6 @@ void ClientFramework::Update() {
 
 	char temp = 0;
 
-	if (SERVER_RENDER_INFO == RecvPacket(my_socket))
-	{
-		int result = recv(my_socket, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-		background_color = COLOR_YELLOW;
-	}
 
 	for (int i = 0; i < 6; i++) {
 
