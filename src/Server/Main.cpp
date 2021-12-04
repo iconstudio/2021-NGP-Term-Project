@@ -125,9 +125,11 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	SOCKET client_socket;
 	SOCKADDR_IN client_address;
-	int my_addr_size = sizeof(my_address);
+	int my_addr_size = sizeof(client_address);
 
 	while (true) {
+		SetEvent(event_accept);
+
 		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
@@ -138,9 +140,8 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
-		} else {
-			CloseHandle(th);
 		}
+		CloseHandle(th);
 
 		WaitForSingleObject(event_accept, INFINITE);
 	}
@@ -167,12 +168,13 @@ bool ValidateSocketMessage(int socket_state) {
 }
 
 void BakeRenderingInfos() {
-
+	rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
+	ZeroMemory(&rendering_infos_last, sizeof(RenderInstance) * RENDER_INST_COUNT);
 }
 
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
-	auto render_size = sizeof(rendering_infos_last) * RENDER_INST_COUNT;
+	auto render_size = sizeof(RenderInstance) * RENDER_INST_COUNT;
 
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
 
