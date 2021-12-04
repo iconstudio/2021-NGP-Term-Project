@@ -89,23 +89,27 @@ _GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid) {
 
 void ClientConnect();
 void ClientDisconnect(int player_index);
-void ProceedContinuation();
-bool CheckClientNumber();
-bool ValidateSocketMessage(int socket_state);
-void BakeRenderingInfos();
-void SendRenderingInfos(SOCKET my_socket);
 
+void ProceedContinuation(); // 게임 진행 확인
+bool CheckClientNumber(); // 접속한 클라이언트 수 확인
+bool ValidateSocketMessage(int socket_state); // 받은 소켓 메시지 검증
+void BakeRenderingInfos(); // 렌더링 정보 만들기
+void SendRenderingInfos(SOCKET my_socket); // 렌더링 정보 보내기
+
+// cout으로 출력하기
 template<typename Ty>
 void AtomicPrint(Ty caption) {
 	cout << caption;
 }
 
+// 여러 개의 값을 함수 하나로 cout으로 출력하기
 template<typename Ty1, typename... Ty2>
 void AtomicPrint(Ty1 caption, Ty2... args) {
 	AtomicPrint(caption);
 	AtomicPrint(args...);
 }
 
+// 한줄 띄우고 cout으로 출력하기
 template<typename... Ty>
 void AtomicPrintLn(Ty... args) {
 	AtomicPrint(args..., "\n");
