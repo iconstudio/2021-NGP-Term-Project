@@ -57,6 +57,11 @@ int main() {
 
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
+	Instantiate<CCharacter>(50, 50);
+	Instantiate<CCharacter>(150, 50);
+	Instantiate<CCharacter>(250, 150);
+	Instantiate<CCharacter>(350, 250);
+
 	while (true) {
 		// 서버 대기
 	}
@@ -121,15 +126,16 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 5. 렌더링 정보 전송
 		SendRenderingInfos(client_socket);
 	}
+
 	return 0;
 }
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
-	SOCKET client_socket;
-	SOCKADDR_IN client_address;
-	int my_addr_size = sizeof(client_address);
-
 	while (true) {
+		SOCKET client_socket;
+		SOCKADDR_IN client_address;
+		int my_addr_size = sizeof(client_address);
+
 		SetEvent(event_accept);
 
 		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
@@ -138,7 +144,14 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 
-		auto th = CreateThread(NULL, 0, GameProcess, (&client_socket), 0, NULL);
+		int option = TRUE;               //네이글 알고리즘 on/off
+		setsockopt(my_socket,             //해당 소켓
+			IPPROTO_TCP,          //소켓의 레벨
+			TCP_NODELAY,          //설정 옵션
+			(const char*)&option, // 옵션 포인터
+			sizeof(option));      //옵션 크기
+
+		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
@@ -171,10 +184,36 @@ bool ValidateSocketMessage(int socket_state) {
 	return false;
 }
 
+
 void BakeRenderingInfos() {
-	rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
-	ZeroMemory(&rendering_infos_last, sizeof(RenderInstance) * RENDER_INST_COUNT);
+	if (!instances.empty()) {
+		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
+		if (rendering_infos_last) {
+			delete[] rendering_infos_last;
+		}
+		rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
+
+		auto CopyList = vector<GameInstance*>(instances);
+
+		// 플레이어 개체를 맨 위로
+		std::partition(CopyList.begin(), CopyList.end(), [&] (GameInstance* inst) {
+			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+		});
+
+		int index = 0;
+		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
+			auto& render_infos = (*it)->GetRenderInstance();
+
+			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
+			if (!(*it)->dead)
+				rendering_infos_last[index++] = render_infos;
+		}
+	} else if (rendering_infos_last) {
+		delete[] rendering_infos_last;
+		rendering_infos_last = nullptr;
+	}
 }
+
 
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
@@ -184,6 +223,8 @@ void SendRenderingInfos(SOCKET client_socket) {
 
 	Sleep(FRAME_TIME);
 }
+
+const char* CCharacter::GetIdentifier() const { return "Player"; }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)
@@ -200,28 +241,3 @@ ClientSession::~ClientSession() {
 		delete player_character;
 	}
 }
-/*
-int main() {
-        if (framework.Initialize() == -1)
-        {
-                return 0;
-        }
-
-        while (true)
-        {
-                if (!framework.Connect())
-                {
-                        break;
-                }
-
-
-        }
-
-        framework.Close();
-}
-		f.Disconnect();
-	}
-
-	f.Close();
-}
-*/
