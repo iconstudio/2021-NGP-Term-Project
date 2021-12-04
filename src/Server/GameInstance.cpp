@@ -69,10 +69,6 @@ void GameInstance::SetVelocity(double speed, double dir) {
 	vspeed = lengthdir_y(speed, dir);
 }
 
-RenderInstance& GameInstance::GetRenderInstance() {
-	return my_renders;
-}
-
 void GameInstance::SetBoundBox(const RECT& mask) {
 	CopyRect(&box, &mask);
 }
