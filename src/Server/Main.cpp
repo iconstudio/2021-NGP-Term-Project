@@ -94,6 +94,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			{
 				client_data = new char[SEND_INPUT_COUNT];
 				client_data_size = SEND_INPUT_COUNT;
+				ZeroMemory(&client_data, client_data_size);
 
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (SOCKET_ERROR == result) {
@@ -113,8 +114,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 			default: break;
 		}
-		if (client_data)
-			cout << client_data;
 
 		// 2. 게임 진행
 
@@ -144,18 +143,15 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 
-		int option = TRUE;               //네이글 알고리즘 on/off
-		setsockopt(my_socket,             //해당 소켓
-			IPPROTO_TCP,          //소켓의 레벨
-			TCP_NODELAY,          //설정 옵션
-			(const char*)&option, // 옵션 포인터
-			sizeof(option));      //옵션 크기
-
 		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
 		}
+
+		// Nagle 알고리즘을 끄기.
+		BOOL option = FALSE;
+		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY, (char*)(&option), sizeof(option));
 		CloseHandle(th);
 
 		AtomicPrintLn("클라이언트 접속: ", client_socket);
