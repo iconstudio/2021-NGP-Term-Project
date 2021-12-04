@@ -139,9 +139,12 @@ void ClientFramework::Update() {
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
-	if (RecvPacket(my_socket) == SERVER_RENDER_INFO)
+	char temp = 0;
+
+	if (SERVER_RENDER_INFO == RecvPacket(my_socket))
 	{
-		int result = recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, MSG_WAITALL);
+		int result = recv(my_socket, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+		background_color = COLOR_YELLOW;
 	}
 
 	for (int i = 0; i < 6; i++) {
@@ -182,20 +185,21 @@ void ClientFramework::Render(HWND window) {
 	// 파이프라인
 	//if (status == GAME) {
 	//}
-	for (auto inst = last_render_info; inst != NULL; inst++)
+
+	for (auto it = begin(last_render_info); it < end(last_render_info); it++)
 	{
-		if (inst)
+		if (it)
 		{
-			switch (inst->instance_type) {
+			switch (it->instance_type) {
 			case CHARACTER:
 			{
-				playersprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+				playersprite.draw(surface_double, it->x, it->y, it->image_index, 0);
 			}
 			break;
 
 			case BULLET:
 			{
-				sprite_bullet.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+				sprite_bullet.draw(surface_double, it->x, it->y, it->image_index, 0);
 			}
 			break;
 
@@ -239,7 +243,7 @@ void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
 PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 
 	PACKETS packet = CLIENT_PING;
-	int retval = recv(sock, (char*)&packet, sizeof(int), MSG_WAITALL);
+	int retval = recv(sock, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
 		ErrorAbort(L"recv packet");
 	}

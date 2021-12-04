@@ -125,11 +125,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 }
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
-	SOCKET client_socket;
-	SOCKADDR_IN client_address;
-	int my_addr_size = sizeof(client_address);
 
 	while (true) {
+		SOCKET client_socket;
+		SOCKADDR_IN client_address;
+		int my_addr_size = sizeof(client_address);
+
 		SetEvent(event_accept);
 
 		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
