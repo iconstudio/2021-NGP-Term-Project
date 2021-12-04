@@ -79,7 +79,7 @@ int main() {
 	CloseHandle(event_accept);
 	closesocket(my_socket);
 
-	return 0;
+	WSACleanup();
 }
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
