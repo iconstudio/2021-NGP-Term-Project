@@ -23,7 +23,7 @@ public:
 	~ClientSession();
 };
 
-/* 게임 관련 속성 */
+// 게임 관련 속성
 vector<GameInstance*> instances; // 인스턴스 목록
 normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 default_random_engine randomizer;

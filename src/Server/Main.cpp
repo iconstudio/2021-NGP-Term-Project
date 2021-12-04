@@ -77,25 +77,34 @@ int main() {
 }
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
-	SOCKET client_socket;
-	SOCKADDR_IN client_address;
-	int my_addr_size = sizeof(my_address);
-
 	while (true) {
+		SOCKET client_socket;
+		SOCKADDR_IN client_address;
+		int my_addr_size = sizeof(client_address);
+
+		SetEvent(event_accept);
+
 		client_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
 			continue;
 		}
 
-		HANDLE th = CreateThread(NULL, 0, GameProcess, (&client_socket), 0, NULL);
+		int option = TRUE;							//네이글 알고리즘 on/off
+		setsockopt(my_socket,						//해당 소켓
+			IPPROTO_TCP,							//소켓의 레벨
+			TCP_NODELAY,							//설정 옵션
+			reinterpret_cast<const char*>(&option),	// 옵션 포인터
+			sizeof(option));						//옵션 크기
+
+		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
 		}
-		else {
-			CloseHandle(th);
-		}
+		CloseHandle(th);
+
+		AtomicPrintLn("클라이언트 접속: ", client_socket);
 
 		WaitForSingleObject(event_accept, INFINITE);
 	}
@@ -165,45 +174,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
-DWORD WINAPI ConnectProcess(LPVOID arg) {
-	while (true) {
-		SOCKET client_socket;
-		SOCKADDR_IN client_address;
-		int my_addr_size = sizeof(client_address);
-
-		SetEvent(event_accept);
-
-		client_socket = accept(my_socket, (SOCKADDR*)(&client_address), &my_addr_size);
-		if (INVALID_SOCKET == client_socket) {
-			ErrorDisplay("connect()");
-			continue;
-		}
-
-		int option = TRUE;               //네이글 알고리즘 on/off
-		setsockopt(my_socket,             //해당 소켓
-			IPPROTO_TCP,          //소켓의 레벨
-			TCP_NODELAY,          //설정 옵션
-			(const char*)&option, // 옵션 포인터
-			sizeof(option));      //옵션 크기
-
-		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
-		if (!th) {
-			ErrorDisplay("CreateThread()");
-			continue;
-		}
-		CloseHandle(th);
-
-		AtomicPrintLn("클라이언트 접속: ", client_socket);
-
-		WaitForSingleObject(event_accept, INFINITE);
-	}
-
-	return 0;
-}
-
->>>>>>> origin/Prototype
 void ClientConnect() {
 }
 
@@ -222,7 +192,7 @@ bool ValidateSocketMessage(int socket_state) {
 	return false;
 }
 
-
+// 렌더링 정보 생성 함수
 void BakeRenderingInfos() {
 	if (!instances.empty()) {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
@@ -252,7 +222,7 @@ void BakeRenderingInfos() {
 	}
 }
 
-
+// 렌더링 정보 전송
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
 	auto render_size = sizeof(RenderInstance) * RENDER_INST_COUNT;
