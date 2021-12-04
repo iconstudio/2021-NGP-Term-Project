@@ -18,13 +18,14 @@ int main() {
 	framework.Instantiate<CCharacter>(80, 80);
 	framework.Instantiate<CCharacter>(180, 80);
 	framework.Instantiate<CCharacter>(280, 80);
+
+	/*
 	if (!framework.Initialize()) {
 		WSACleanup();
 		return 0;
 	}
-
 	framework.Startup();
-
+	*/
 
 	WSACleanup();
 	return 0;
