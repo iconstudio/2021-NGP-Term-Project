@@ -6,6 +6,8 @@
 #define SERVER_IP "192.168.122.4"
 //#define SERVER_IP "127.0.0.1"
 
+DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
+
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
 	, LOBBY			// 로비
@@ -15,6 +17,13 @@ enum CLIENT_STATES : int {
 	, GAME_RESTART	// 게임 다시 참가
 	, EXIT			// 클라이언트 종료
 
+};
+
+struct SockInfo {
+	SOCKET client_socket;
+
+	SockInfo(SOCKET sk, HANDLE hd);
+	~SockInfo();
 };
 
 class ClientFramework {
@@ -34,6 +43,10 @@ public:
 
 	PACKETS RecvPacket(SOCKET sock);
 
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);	//스레드 함수
+
+	RenderInstance last_render_info[40];
+
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
@@ -49,7 +62,6 @@ private:
 	vector<GameSprite*> sprites;
 
 	// 마지막에 수신한 렌더링 정보
-	RenderInstance last_render_info[40];
 	char key_checkers[7];			//입력중인 키
 	int mouse_x;
 	int mouse_y;
