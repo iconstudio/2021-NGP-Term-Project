@@ -232,3 +232,21 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     }
     return (INT_PTR)FALSE;
 }
+
+
+DWORD WINAPI CommunicateProcess(LPVOID arg) {
+
+    while (true) {
+        PACKETS packet = CLIENT_PING;
+        int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
+        if (retval == SOCKET_ERROR) {
+        }
+
+        if (SERVER_RENDER_INFO == packet)
+        {
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+            framework.background_color = COLOR_YELLOW;
+        }
+    }
+	return 0;
+}

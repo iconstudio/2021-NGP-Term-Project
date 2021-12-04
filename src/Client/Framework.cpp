@@ -98,6 +98,13 @@ void ClientFramework::Initialize() {
 		return;
 	}
 
+	int option = FALSE;							//네이글 알고리즘 on/off
+	setsockopt(my_socket,						//해당 소켓
+		IPPROTO_TCP,							//소켓의 레벨
+		TCP_NODELAY,							//설정 옵션
+		reinterpret_cast<const char*>(&option),	// 옵션 포인터
+		sizeof(option));						//옵션 크기
+
 	auto address_size = sizeof(server_address);
 	ZeroMemory(&server_address, address_size);
 	server_address.sin_family = AF_INET;
@@ -110,6 +117,9 @@ void ClientFramework::Initialize() {
 		// 오류
 		ErrorAbort(L"connect error");
 	}
+
+
+	CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 }
 
 
@@ -141,11 +151,6 @@ void ClientFramework::Update() {
 
 	char temp = 0;
 
-	if (SERVER_RENDER_INFO == RecvPacket(my_socket))
-	{
-		int result = recv(my_socket, reinterpret_cast<char*>(last_render_info), sizeof(RenderInstance) * 4, MSG_WAITALL);
-		background_color = COLOR_YELLOW;
-	}
 
 	for (int i = 0; i < 6; i++) {
 
