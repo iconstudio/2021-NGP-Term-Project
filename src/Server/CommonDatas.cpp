@@ -1,7 +1,7 @@
 ﻿#include "CommonDatas.h"
 
 int WINAPI SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
-	int result = send(socket, reinterpret_cast<char*>(&type), sizeof(PACKETS), 0);
+	int result = send(socket, reinterpret_cast<char*>(&type), HEADER_SIZE, 0);
 	if (SOCKET_ERROR == result) {
 		ErrorDisplay("send 1");
 		return SOCKET_ERROR;

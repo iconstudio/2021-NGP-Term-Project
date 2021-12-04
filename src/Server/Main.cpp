@@ -106,12 +106,13 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		ZeroMemory(&header, HEADER_SIZE);
 
 		// 1-1. 패킷 헤더 수신
-		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, 0);
+		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, MSG_WAITALL);
 		if (SOCKET_ERROR == result) {
 			break;
 		} else if (0 == result) {
 			break;
 		}
+		AtomicPrintLn("받은 패킷 헤더: ", header);
 
 		char* client_data = nullptr;
 		int client_data_size = 0;
@@ -122,13 +123,20 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			{
 				client_data = new char[SEND_INPUT_COUNT];
 				client_data_size = SEND_INPUT_COUNT;
-				
+
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (SOCKET_ERROR == result) {
 					break;
 				} else if (0 == result) {
 					break;
 				}
+				AtomicPrintLn("받은 패킷 내용: ", client_data);
+			}
+			break;
+
+			case PACKETS::CLIENT_PING:
+			{
+
 			}
 			break;
 
@@ -170,12 +178,13 @@ bool ValidateSocketMessage(int socket_state) {
 }
 
 void BakeRenderingInfos() {
-
+	rendering_infos_last = new RenderInstance[RENDER_INST_COUNT];
+	ZeroMemory(&rendering_infos_last, sizeof(RenderInstance) * RENDER_INST_COUNT);
 }
 
 void SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
-	auto render_size = sizeof(rendering_infos_last) * RENDER_INST_COUNT;
+	auto render_size = sizeof(RenderInstance) * RENDER_INST_COUNT;
 
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
 
