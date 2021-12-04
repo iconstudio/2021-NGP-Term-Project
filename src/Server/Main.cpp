@@ -1,11 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Main.h"
-#include "Framework.h"
 #include "CommonDatas.h"
-#include "ServerFramework.h"
-#include "CommonDatas.h"
-
-//ServerFramework framework{};
 
 // 스레드 프로세스
 DWORD WINAPI ConnectProcess(LPVOID arg);
@@ -16,12 +11,18 @@ SOCKET my_socket;
 SOCKADDR_IN my_address;
 int my_address_size = sizeof(my_address);
 
+// 클라이언트(플레이어) 세션 목록
+std::vector<ClientSession> client;
+std::vector<CCharacter*> player;
+
 // 이벤트 핸들
 HANDLE event_accept;
 
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
-CCharacter* test_character = nullptr;
+std::default_random_engine dre(std::random_device{}());
+std::uniform_int_distribution<> uid_x(0, 400);
+std::uniform_int_distribution<> uid_y(0, 300);
 
 int main() {
 	WSADATA wsadata;
@@ -58,6 +59,9 @@ int main() {
 		return false;
 	}
 
+	player.resize(10);
+	client.reserve(10);
+
 	AtomicPrintLn("서버 시작");
 
 	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
@@ -65,16 +69,7 @@ int main() {
 	// 클라이언트 연결
 	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
 
-	test_character = Instantiate<CCharacter>(50, 50);
-	test_character->AssignRenderingInfo(0);
-
-	Instantiate<CCharacter>(150, 50)->AssignRenderingInfo(0);
-	Instantiate<CCharacter>(250, 150)->AssignRenderingInfo(0);
-	Instantiate<CCharacter>(350, 250)->AssignRenderingInfo(0);
-
-	while (true) {
-		// 서버 대기
-	}
+	while (true) { continue; }	// 서버 대기
 
 	CloseHandle(event_accept);
 	closesocket(my_socket);
@@ -103,7 +98,15 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			reinterpret_cast<const char*>(&option),	// 옵션 포인터
 			sizeof(option));						//옵션 크기
 
-		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client_socket), 0, NULL);
+		CCharacter* character = Instantiate<CCharacter>(uid_x(dre), uid_y(dre));
+		character->AssignRenderingInfo(0);
+
+		auto th = CreateThread(NULL, 0, GameProcess, reinterpret_cast<LPVOID>(client_socket), 0, NULL);
+
+		// 클라이언트 세션 추가 후 플레이어 추가
+		client.emplace_back(client_socket, th, client.size());
+		player[client.back().player_index] = character;
+
 		if (!th) {
 			ErrorDisplay("CreateThread()");
 			continue;
@@ -168,34 +171,22 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			auto input = client_data[i];
 
 			switch (input) {
-				case VK_UP:
-				{
-					test_character->y -= 2;
-				}
+				case VK_UP: { player[client[i].player_index]->y -= 2; }
 				break;
 
-				case VK_LEFT:
-				{
-					test_character->x -= 2;
-				}
+				case VK_LEFT: { player[client[i].player_index]->x -= 2; }
 				break;
 
-				case VK_RIGHT:
-				{
-					test_character->x += 2;
-				}
+				case VK_RIGHT: { player[client[i].player_index]->x += 2; }
 				break;
 
-				case VK_DOWN:
-				{
-					test_character->y += 2;
-				}
+				case VK_DOWN: { player[client[i].player_index]->y += 2; }
 				break;
 			}
-		}
 
-		// 3. 게임 처리
-		test_character->AssignRenderingInfo(0);
+			// 3. 게임 처리
+			player[client[i].player_index]->AssignRenderingInfo(0);
+		}
 
 		// 4. 렌더링 정보 작성
 		BakeRenderingInfos();
@@ -242,7 +233,7 @@ void BakeRenderingInfos() {
 
 		int index = 0;
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
-			auto render_infos = (*it)->GetRenderInstance();
+			auto render_infos = (*it)->my_renders;
 
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
 			if (!(*it)->dead) {
