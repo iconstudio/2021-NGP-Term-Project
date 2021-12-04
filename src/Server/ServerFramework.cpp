@@ -48,6 +48,11 @@ bool ServerFramework::Connect()
 	return true;
 }
 
+void ServerFramework::Disconnect()
+{
+	closesocket(cl_socket);
+}
+
 void ServerFramework::Close()
 {
 	closesocket(s_socket);

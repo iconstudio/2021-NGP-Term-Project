@@ -96,7 +96,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 					break;
 				}
 			}
-
 			break;
 
 			default: break;
@@ -207,5 +206,10 @@ int main() {
         }
 
         framework.Close();
+}
+		f.Disconnect();
+	}
+
+	f.Close();
 }
 */
