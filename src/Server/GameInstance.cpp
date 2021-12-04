@@ -1,4 +1,5 @@
-﻿#include "GameBehavior.h"
+﻿#include "stdafx.h"
+#include "GameInstance.h"
 
 
 GameInstance::GameInstance()

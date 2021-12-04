@@ -32,9 +32,7 @@ void SendRenderingInfos(SOCKET my_socket);
 
 template<typename Ty>
 void AtomicPrint(Ty caption) {
-	EnterCriticalSection(&print_permission);
 	cout << caption;
-	LeaveCriticalSection(&print_permission);
 }
 
 template<typename Ty1, typename... Ty2>

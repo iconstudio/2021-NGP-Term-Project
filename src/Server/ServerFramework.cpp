@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#include "CommonDatas.h"
 #include "ServerFramework.h"
 
 int ServerFramework::Initialize()
@@ -45,6 +46,11 @@ bool ServerFramework::Connect()
 	}
 
 	return true;
+}
+
+void ServerFramework::Disconnect()
+{
+	closesocket(cl_socket);
 }
 
 void ServerFramework::Close()
