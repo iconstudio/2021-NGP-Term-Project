@@ -4,7 +4,7 @@
 #include "CommonDatas.h"
 #include "ServerFramework.h"
 
-ServerFramework framework{};
+//ServerFramework framework{};
 
 DWORD WINAPI ConnectProcess(LPVOID arg);
 DWORD WINAPI GameProcess(LPVOID arg);
