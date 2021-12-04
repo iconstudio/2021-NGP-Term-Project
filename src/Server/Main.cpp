@@ -5,7 +5,6 @@
 #include "ServerFramework.h"
 #include "CommonDatas.h"
 
-//ServerFramework framework{};
 
 // 스레드 프로세스
 DWORD WINAPI ConnectProcess(LPVOID arg);
@@ -98,6 +97,7 @@ CCharacter::CCharacter()
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
+
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
 		SOCKET client_socket;
