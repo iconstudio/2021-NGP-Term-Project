@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31624.102
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyal", "Battleroyal\Battleroyal.vcxproj", "{7F1C2897-4E3E-4572-B5BA-077CF40F9986}"
-	ProjectSection(ProjectDependencies) = postProject
-		{552806AC-B16B-4E58-B870-28884C3DC0C2} = {552806AC-B16B-4E58-B870-28884C3DC0C2}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyale", "Battleroyal\Battleroyal.vcxproj", "{7F1C2897-4E3E-4572-B5BA-077CF40F9986}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyale Server", "Battleroyale Server\Battleroyale Server.vcxproj", "{552806AC-B16B-4E58-B870-28884C3DC0C2}"
 EndProject
