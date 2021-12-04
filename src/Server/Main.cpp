@@ -88,13 +88,19 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			{
 				client_data = new char[SEND_INPUT_COUNT];
 				client_data_size = SEND_INPUT_COUNT;
-				
+
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (SOCKET_ERROR == result) {
 					break;
 				} else if (0 == result) {
 					break;
 				}
+			}
+			break;
+
+			case PACKETS::CLIENT_PING:
+			{
+
 			}
 			break;
 
