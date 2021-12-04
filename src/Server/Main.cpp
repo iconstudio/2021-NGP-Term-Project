@@ -78,6 +78,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		} else if (0 == result) {
 			break;
 		}
+		AtomicPrintLn("받은 패킷 헤더: ", header);
 
 		char* client_data = nullptr;
 		int client_data_size = 0;
@@ -95,6 +96,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				} else if (0 == result) {
 					break;
 				}
+				AtomicPrintLn("받은 패킷 내용: ", client_data);
 			}
 			break;
 
@@ -142,6 +144,8 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 		CloseHandle(th);
+
+		AtomicPrintLn("클라이언트 접속: ", client_socket);
 
 		WaitForSingleObject(event_accept, INFINITE);
 	}
