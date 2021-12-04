@@ -2,6 +2,9 @@
 #include "Framework.h"
 #include "Resource.h"
 
+GameSprite playersprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite sprite_bullet(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
 
@@ -101,45 +104,46 @@ void ClientFramework::Initialize() {
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(COMMON_PORT);
 
-	//int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+	int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 
-	//if (SOCKET_ERROR == result) {
-	//	// 오류
-	//	return;
-	//}
+	if (SOCKET_ERROR == result) {
+		// 오류
+		return;
+	}
 }
 
 
 void ClientFramework::Update() {
 	for (int t = 0; t < 7; ++t)
 	{
-		key_checkers[t] = false;
+		key_checkers[t] = 0;
 	}
 	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState(VK_UP) & 0x8001)
-		key_checkers[0] = true;
+		key_checkers[0] = VK_UP;
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState(VK_DOWN) & 0x8001)
-		key_checkers[1] = true;
+		key_checkers[1] = VK_DOWN;
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState(VK_LEFT) & 0x8001)
-		key_checkers[2] = true;
+		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
-		key_checkers[3] = true;
+		key_checkers[3] = VK_RIGHT;
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001)
-		key_checkers[4] = true;
+		key_checkers[4] = VK_SPACE;
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
-		key_checkers[5] = true;
+		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
-		key_checkers[6] = true;
+		key_checkers[6] = 'D';
 
 	background_color = COLOR_YELLOW;
 	auto address_size = sizeof(server_address);
 
 
-	int result = send(my_socket, (char*)key_checkers, sizeof(bool)*7, 0);
-	if (SOCKET_ERROR == result) {
-		// 오류
-		return;
+	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
+
+	if (RecvPacket(my_socket) == SERVER_RENDER_INFO)
+	{
+		int result = recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, 0);
 	}
-	recv(my_socket, (char*)last_render_info, sizeof(RenderInstance) * 40, 0);
+
 	for (int i = 0; i < 6; i++) {
 
 		//if (check & 0x0000) { // released
@@ -175,31 +179,31 @@ void ClientFramework::Render(HWND window) {
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
-	//// 파이프라인
+	// 파이프라인
 	//if (status == GAME) {
-	//	for (auto inst = last_render_info; inst != NULL; inst++)
-	//	{
-	//		if (inst)
-	//		{
-	//			switch (inst->instance_type) {
-	//			case CHARACTER:
-	//			{
-	//				playersprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
-	//			}
-	//			break;
-
-	//			case BULLET:
-	//			{
-	//				sprite_bullet.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
-	//			}
-	//			break;
-
-	//			default:
-	//				break;
-	//			}
-	//		}
-	//	}
 	//}
+	for (auto inst = last_render_info; inst != NULL; inst++)
+	{
+		if (inst)
+		{
+			switch (inst->instance_type) {
+			case CHARACTER:
+			{
+				playersprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+			}
+			break;
+
+			case BULLET:
+			{
+				sprite_bullet.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+			}
+			break;
+
+			default:
+				break;
+			}
+		}
+	}
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);

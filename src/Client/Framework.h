@@ -33,6 +33,7 @@ public:
 	void Render(HWND window);
 
 	PACKETS RecvPacket(SOCKET sock);
+
 private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
@@ -49,7 +50,7 @@ private:
 
 	// 마지막에 수신한 렌더링 정보
 	RenderInstance* last_render_info;
-	bool key_checkers[7];			//입력중인 키
+	char key_checkers[7];			//입력중인 키
 	int mouse_x;
 	int mouse_y;
 };
