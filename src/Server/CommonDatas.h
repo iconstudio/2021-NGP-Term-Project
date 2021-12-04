@@ -102,3 +102,5 @@ struct RenderInstance {
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);
+
+const int HEADER_SIZE = sizeof(PACKETS);

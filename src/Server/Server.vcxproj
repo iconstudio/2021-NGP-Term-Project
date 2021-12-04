@@ -143,6 +143,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonDatas.h" />
+    <ClInclude Include="Framework.h" />
+    <ClInclude Include="GameBehavior.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

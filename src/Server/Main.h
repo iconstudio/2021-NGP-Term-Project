@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "stdafx.h"
+#include "CommonDatas.h"
 
 
 CRITICAL_SECTION client_permission, print_permission;
@@ -38,9 +39,7 @@ void AtomicPrint(Ty caption) {
 
 template<typename Ty1, typename... Ty2>
 void AtomicPrint(Ty1 caption, Ty2... args) {
-	EnterCriticalSection(&print_permission);
-	cout << caption;
-	LeaveCriticalSection(&print_permission);
+	AtomicPrint(caption);
 	AtomicPrint(args...);
 }
 
