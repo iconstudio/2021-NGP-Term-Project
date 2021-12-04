@@ -6,6 +6,13 @@
 #include "Client.h"
 
 #define MAX_LOADSTRING 100
+#define RENDER_TIMER_ID 1
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+WindowsClient game_client{ CLIENT_W, CLIENT_H };
+ClientFramework framework{ GAME_SCENE_W, GAME_SCENE_H, VIEW_W,
+                          VIEW_H,       PORT_W,       PORT_H };
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
@@ -43,13 +50,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    // 기본 메시지 루프입니다:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+    while (true) {
+        if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) {
+                break;
+            }
+
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
         }
     }
 
@@ -121,41 +129,85 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_PAINT    - 주 창을 그립니다.
 //  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
 //
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+        // 창 생성
+    case WM_CREATE:
     {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
+        SetTimer(hwnd, RENDER_TIMER_ID, 1, NULL);
+    }
+    break;
+
+    // 렌더링 타이머
+    case WM_TIMER:
+    {
+        framework.Update();
+        InvalidateRect(hwnd, NULL, FALSE);
+    }
+    break;
+
+    // 마우스 왼쪽 누름
+    case WM_LBUTTONDOWN:
+    {
+        mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
+        mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
+        framework.OnMouseDown(MK_LBUTTON, lParam);
+    }
+    break;
+
+    // 마우스 왼쪽 뗌
+    case WM_LBUTTONUP:
+    {
+        framework.OnMouseUp(MK_LBUTTON, lParam);
+    }
+    break;
+
+    // 마우스 오른쪽 누름
+    case WM_RBUTTONDOWN:
+    {
+        framework.OnMouseDown(MK_RBUTTON, lParam);
+    }
+    break;
+
+    // 마우스 오른쪽 뗌
+    case WM_RBUTTONUP:
+    {
+        framework.OnMouseUp(MK_RBUTTON, lParam);
+    }
+    break;
+
+    // 마우스 휠 누름
+    case WM_MBUTTONDOWN:
+    {
+        framework.OnMouseDown(MK_MBUTTON, lParam);
+    }
+    break;
+
+    // 마우스 휠 뗌
+    case WM_MBUTTONUP:
+    {
+        framework.OnMouseUp(MK_MBUTTON, lParam);
+    }
+    break;
+
+    // 렌더링
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            EndPaint(hWnd, &ps);
-        }
-        break;
+    {
+        framework.Render(hwnd);
+    }
+    break;
+
+    // 창 종료
     case WM_DESTROY:
+    {
+        KillTimer(hwnd, RENDER_TIMER_ID);
         PostQuitMessage(0);
-        break;
+    }
+    break;
+
     default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        return DefWindowProc(hwnd, message, wParam, lParam);
     }
     return 0;
 }

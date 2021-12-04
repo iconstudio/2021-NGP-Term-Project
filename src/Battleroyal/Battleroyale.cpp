@@ -10,14 +10,14 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 WCHAR szTitle[MAX_LOADSTRING];       // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING]; // 기본 창 클래스 이름입니다.
 
-WindowsClient game_client{CLIENT_W, CLIENT_H};
-ClientFramework framework{GAME_SCENE_W, GAME_SCENE_H, VIEW_W,
-                          VIEW_H,       PORT_W,       PORT_H};
+WindowsClient game_client{ CLIENT_W, CLIENT_H };
+ClientFramework framework{ GAME_SCENE_W, GAME_SCENE_H, VIEW_W,
+						  VIEW_H,       PORT_W,       PORT_H };
 
-int APIENTRY wWinMain(	_In_ HINSTANCE hInstance, 
-						_In_opt_ HINSTANCE hPrevInstance,
-						_In_ LPWSTR    lpCmdLine,
-						_In_ int       nCmdShow) {
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow) {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -30,7 +30,6 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	}
 
 	framework.Initialize();
-	//framework.Update();
 
 	// 코드
 	framework.background_color = COLOR_NAVY;
@@ -52,81 +51,81 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		// 창 생성
-		case WM_CREATE:
-		{
-			SetTimer(hwnd, RENDER_TIMER_ID, 1, NULL);
-		}
-		break;
+	case WM_CREATE:
+	{
+		SetTimer(hwnd, RENDER_TIMER_ID, 1, NULL);
+	}
+	break;
 
-		// 렌더링 타이머
-		case WM_TIMER:
-		{
-			framework.Update();
-			//InvalidateRect(hwnd, NULL, FALSE);
-		}
-		break;
+	// 렌더링 타이머
+	case WM_TIMER:
+	{
+		framework.Update();
+		InvalidateRect(hwnd, NULL, FALSE);
+	}
+	break;
 
-		// 마우스 왼쪽 누름
-		case WM_LBUTTONDOWN:
-		{
-			mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
-			mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
-			framework.OnMouseDown(MK_LBUTTON, lParam);
-		}
-		break;
+	// 마우스 왼쪽 누름
+	case WM_LBUTTONDOWN:
+	{
+		mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
+		mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
+		framework.OnMouseDown(MK_LBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 왼쪽 뗌
-		case WM_LBUTTONUP:
-		{
-			framework.OnMouseUp(MK_LBUTTON, lParam);
-		}
-		break;
+	// 마우스 왼쪽 뗌
+	case WM_LBUTTONUP:
+	{
+		framework.OnMouseUp(MK_LBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 오른쪽 누름
-		case WM_RBUTTONDOWN:
-		{
-			framework.OnMouseDown(MK_RBUTTON, lParam);
-		}
-		break;
+	// 마우스 오른쪽 누름
+	case WM_RBUTTONDOWN:
+	{
+		framework.OnMouseDown(MK_RBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 오른쪽 뗌
-		case WM_RBUTTONUP:
-		{
-			framework.OnMouseUp(MK_RBUTTON, lParam);
-		}
-		break;
+	// 마우스 오른쪽 뗌
+	case WM_RBUTTONUP:
+	{
+		framework.OnMouseUp(MK_RBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 휠 누름
-		case WM_MBUTTONDOWN:
-		{
-			framework.OnMouseDown(MK_MBUTTON, lParam);
-		}
-		break;
+	// 마우스 휠 누름
+	case WM_MBUTTONDOWN:
+	{
+		framework.OnMouseDown(MK_MBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 휠 뗌
-		case WM_MBUTTONUP:
-		{
-			framework.OnMouseUp(MK_MBUTTON, lParam);
-		}
-		break;
+	// 마우스 휠 뗌
+	case WM_MBUTTONUP:
+	{
+		framework.OnMouseUp(MK_MBUTTON, lParam);
+	}
+	break;
 
-		// 렌더링
-		case WM_PAINT:
-		{
-			framework.Render(hwnd);
-		}
-		break;
+	// 렌더링
+	case WM_PAINT:
+	{
+		framework.Render(hwnd);
+	}
+	break;
 
-		// 창 종료
-		case WM_DESTROY:
-		{
-			KillTimer(hwnd, RENDER_TIMER_ID);
-			PostQuitMessage(0);
-		}
-		break;
+	// 창 종료
+	case WM_DESTROY:
+	{
+		KillTimer(hwnd, RENDER_TIMER_ID);
+		PostQuitMessage(0);
+	}
+	break;
 
-		default:
-			return DefWindowProc(hwnd, message, wParam, lParam);
+	default:
+		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
 	return 0;
 }
@@ -139,10 +138,19 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	bool thread_done = false;
 
 
-	while (!thread_done) {
-		int data_size = 0;	
+	while (true) {
+		int data_size = 0;
 
 		int result = recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+		if (packet == SERVER_PLAYER_COUNT)
+		{
+			recv(my_socket, (char*)framework.player_index, sizeof(int), MSG_WAITALL);
+		}
+
+		if (framework.player_index == 0)
+		{
+			framework.player_captain = true;
+		}
 		if (result == 0 || result == SOCKET_ERROR) {
 			break;
 		}
@@ -199,9 +207,6 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 			framework.background_color = COLOR_RED;
 
-			packet = CLIENT_GAME_START;
-			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
-
 			if (framework.player_captain == true &&
 				mouse_x > VIEW_W / 2 - framework.sprites[2]->get_width() / 2 &&
 				mouse_x < VIEW_W / 2 + framework.sprites[2]->get_width() / 2 &&
@@ -217,36 +222,55 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 				{
 				}
 			}
+			packet = CLIENT_GAME_START;
+			SendData(my_socket, CLIENT_GAME_START, nullptr, 0);
 			if (packet == SERVER_GAME_START)
 			{
 			}
 			framework.status = GAME;
-		} 
+		}
 		break;
 
 		case GAME:
 		{
-			framework.background_color = COLOR_GREEN;
-
-			SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
-
-			int itercount = 0;
-			PACKETS gamemessage = CLIENT_KEY_INPUT;
-
-			int retval;
-			if (packet == SERVER_RENDER_INFO)
+			while (true)
 			{
-				retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-				if (retval == SOCKET_ERROR)
+
+				framework.background_color = COLOR_GREEN;
+
+				SendData(my_socket, CLIENT_KEY_INPUT, (char*)framework.keys, sizeof(InputStream) * 6);
+
+				int retval;
+				if (packet == SERVER_RENDER_INFO)
 				{
+					retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+					if (retval == SOCKET_ERROR)
+						int itercount = 0;
+					PACKETS gamemessage = CLIENT_KEY_INPUT;
+
+					int retval;
+					if (packet == SERVER_RENDER_INFO)
+					{
+						retval = recv(my_socket, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+						if (retval == SOCKET_ERROR)
+						{
+						}
+					}
+
+
+
+					if (framework.view_track_enabled) {
+						SendData(my_socket, CLIENT_GAME_START, (char*)framework.keys, sizeof(InputStream) * 6);
+
+
+						if (framework.view_track_enabled) {
+							if (framework.view_target_player != -1) {
+								framework.ViewSetPosition(framework.last_render_info[framework.view_target_player].x, framework.last_render_info[framework.view_target_player].y);
+							}
+						}
+					}
 				}
-			}
-
-
-			if (framework.view_track_enabled) {
-			}
-		}
-		break;
+				break;
 
 		case GAME_OVER:
 		{
@@ -277,8 +301,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
 		default:
 			break;
+			}
 		}
-	}
 
-	return 0;
-}
+		return 0;
+		}
