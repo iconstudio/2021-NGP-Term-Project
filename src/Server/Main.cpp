@@ -5,17 +5,20 @@
 #include "Main.h"
 
 
-// 스레드 프로세스
-DWORD WINAPI ConnectProcess(LPVOID arg);
-DWORD WINAPI GameProcess(LPVOID arg);
-
-// 소켓 정보
-SOCKET my_socket;
-SOCKADDR_IN my_address;
+/* 소켓 */
+SOCKET my_socket; // 서버 소켓
+SOCKADDR_IN my_address; // 서버 주소
 int my_address_size = sizeof(my_address);
 
+/* 다중 스레드 정보 */
 HANDLE event_accept; // 클라이언트 수용 신호
-HANDLE event_game_process; // 게임 처리 신호
+HANDLE event_game_communicate; // 게임 처리 신호
+HANDLE event_quit; // 종료 신호
+CRITICAL_SECTION permission_client, permission_;
+
+/* 스레드 선언 */
+DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
+DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
 
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
@@ -70,22 +73,37 @@ int main() {
 		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
 	}
 
-	event_accept = CreateEvent(NULL, FALSE, TRUE, NULL);
-	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if (NULL == (event_accept = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+		ErrorAbort("CreateEvent[event_accept]");
+		return 1;
+	}
+
+	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+		ErrorAbort("CreateEvent[event_game_communicate]");
+		return 1;
+	}
+
+	if (NULL == (event_quit = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+		ErrorAbort("CreateEvent[event_quit]");
+		return 1;
+	}
 
 	// 클라이언트 연결
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+	if (!CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL)) {
+		ErrorAbort("CreateThread[ConnectProcess]");
+	}
 
 	Sleep(8000);
 	CreatePlayerCharacters();
-	SetEvent(event_game_process);
-
-	while (true) {
-		// 서버 대기
-	}
+	SetEvent(event_game_communicate);
+	
+	// 서버 대기
+	WaitForSingleObject(event_quit, INFINITE);
 
 	CloseHandle(event_accept);
-	CloseHandle(event_game_process);
+	CloseHandle(event_game_communicate);
+	CloseHandle(event_quit);
+
 	closesocket(my_socket);
 
 	return 0;
@@ -141,7 +159,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	SOCKET client_socket = client->my_socket;
 
 	while (true) {
-		WaitForSingleObject(event_game_process, INFINITE);
+		WaitForSingleObject(event_game_communicate, INFINITE);
 
 		PACKETS header;
 		ZeroMemory(&header, HEADER_SIZE);
@@ -234,7 +252,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		SetEvent(event_game_process);
+		SetEvent(event_game_communicate);
 	}
 
 	return 0;
