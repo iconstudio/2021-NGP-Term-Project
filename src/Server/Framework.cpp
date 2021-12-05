@@ -87,7 +87,7 @@ void ServerFramework::Startup() {
 		ErrorAbort("CreateThread[ConnectProcess]");
 	}
 
-	Sleep(6000);
+	Sleep(8000);
 	GameReady();
 }
 
@@ -129,6 +129,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
+	
 }
 
 void ServerFramework::SendTerrainSeed() {
@@ -187,12 +188,12 @@ void ServerFramework::CreateRenderingInfos() {
 			rendering_infos_last.clear();
 		}
 
-		auto CopyList = instances;
+		auto CopyList = vector<GameInstance*>(instances);
 
 		// 플레이어 개체를 맨 위로
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
 			return (strcmp(inst->GetIdentifier(), "Player") == 0);
-			});
+		});
 
 		int index = 0;
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
