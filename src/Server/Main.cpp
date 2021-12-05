@@ -1,34 +1,61 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Framework.h"
 #include "CommonDatas.h"
-#include "Main.h"
 #include "ServerFramework.h"
+#include "Main.h"
 
 
-// 스레드 프로세스
-DWORD WINAPI ConnectProcess(LPVOID arg);
-DWORD WINAPI GameProcess(LPVOID arg);
+/* 소켓 */
+SOCKET my_socket; // 서버 소켓
+SOCKADDR_IN my_address; // 서버 주소
+int my_address_size = sizeof(my_address);
 
-ServerFramework f{};
+/* 다중 스레드 정보 */
+HANDLE event_accept; // 클라이언트 수용 신호
+HANDLE event_game_communicate; // 게임 처리 신호
+HANDLE event_quit; // 종료 신호
+CRITICAL_SECTION permission_client, permission_;
+
+/* 스레드 선언 */
+DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
+DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
+
+RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
 int main() {
-	f.Initialize();
-
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
-
-	Sleep(8000);
-	f.CreatePlayer();
-	f.SetGameProcess();
-
-	// 클라이언트 연결
-	while (true)
-	{
+	WSADATA wsadata;
+	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
+		ErrorAbort("WSAStartup()");
+		return false;
 	}
 
-CCharacter::CCharacter() : GameInstance() {
-	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
-}
+	my_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (INVALID_SOCKET == my_socket) {
+		ErrorAbort("socket()");
+		return false;
+	}
+
+	BOOL option = TRUE;
+	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
+		, reinterpret_cast<char*>(&option), sizeof(option))) {
+		ErrorAbort("setsockopt()");
+		return false;
+	}
+
+	ZeroMemory(&my_address, sizeof(my_address));
+	my_address.sin_family = AF_INET;
+	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	my_address.sin_port = htons(COMMON_PORT);
+
+	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<SOCKADDR*>(&my_address), my_address_size)) {
+		ErrorAbort("bind()");
+		return false;
+	}
+
+	if (SOCKET_ERROR == listen(my_socket, CLIENT_NUMBER_MAX + 1)) {
+		ErrorAbort("listen()");
+		return false;
+	}
 
 	AtomicPrintLn("서버 시작");
 
@@ -82,59 +109,38 @@ CCharacter::CCharacter() : GameInstance() {
 	return 0;
 }
 
-CCharacter::CCharacter()
-	: GameInstance() {
-	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
-}
-
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		SOCKET listen_socket = f.GetListenSocket();
 		SOCKET client_socket;
 		SOCKADDR_IN client_address;
 		int my_addr_size = sizeof(client_address);
 
-		f.SetConnectProcess();
+		SetEvent(event_accept);
 
-		client_socket = accept(listen_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
+		client_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
 			continue;
 		}
 
-<<<<<<< HEAD
-		BOOL option = FALSE;							//네이글 알고리즘 on/off
-		setsockopt(my_socket,						//해당 소켓
-			IPPROTO_TCP,							//소켓의 레벨
-			TCP_NODELAY,							//설정 옵션
-			reinterpret_cast<const char*>(&option),	// 옵션 포인터
-			sizeof(option));						//옵션 크기
-=======
-
 		BOOL option = FALSE;
 		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 			, reinterpret_cast<const char*>(&option), sizeof(option));
->>>>>>> 0640c531b0869610c1d82cb5e9944fb7d9cac01f
 
-		auto client = new ClientSession(client_socket, NULL, f.GetPlayerNumber());
+		auto client = new ClientSession(client_socket, NULL, players_number++);
 
 		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
-		if (!th) {
-			ErrorDisplay("CreateThread()");
+		if (NULL == th) {
+			ErrorDisplay("CreateThread[GameProcess]");
 			continue;
 		}
 		CloseHandle(th);
-<<<<<<< HEAD
+
 		players.push_back(client);
-=======
 
-		f.AddPlayer(client);
->>>>>>> 0640c531b0869610c1d82cb5e9944fb7d9cac01f
+		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
 
-		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", f.GetPlayerNumber());
-
-		WaitForSingleObject(f.GetAcceptEvent(), INFINITE);
+		WaitForSingleObject(event_accept, INFINITE);
 	}
 
 	return 0;
@@ -145,7 +151,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	SOCKET client_socket = client->my_socket;
 
 	while (true) {
-		WaitForSingleObject(f.GetGameProcessEvent(), INFINITE);
+		WaitForSingleObject(event_game_communicate, INFINITE);
 
 		PACKETS header;
 		ZeroMemory(&header, HEADER_SIZE);
@@ -231,14 +237,14 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 3. 게임 처리
 
 		// 4. 렌더링 정보 작성
-		f.CreateRenderingInfos();
+		BakeRenderingInfos();
 
 		// 5. 렌더링 정보 전송
-		f.SendRenderingInfos(client_socket);
+		SendRenderingInfos(client_socket);
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		f.SetGameProcess();
+		SetEvent(event_game_communicate);
 	}
 
 	return 0;
@@ -318,8 +324,6 @@ void SendRenderingInfos(SOCKET client_socket) {
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
 }
 
-<<<<<<< HEAD
-=======
 CCharacter::CCharacter()
 	: GameInstance()
 	, attack_cooltime(0.0), inv_time(0.0)
@@ -328,68 +332,7 @@ CCharacter::CCharacter()
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
-void CCharacter::OnUpdate(double frame_advance) {
-	auto collide_bullet = SeekCollision<CBullet>(this, "Bullet");
-
-	if (collide_bullet) {
-		Kill(collide_bullet);
-		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
-
-		GetHurt(1);
-	}
-
-	if (hspeed != 0.0 || vspeed != 0.0)
-		direction = point_direction(0, 0, hspeed, vspeed);
-
-	AssignRenderingInfo(direction);
-
-	GameInstance::OnUpdate(frame_advance);
-}
-
->>>>>>> 0640c531b0869610c1d82cb5e9944fb7d9cac01f
 const char* CCharacter::GetIdentifier() const { return "Player"; }
-
-void CCharacter::GetHurt(int dmg) {
-	if (inv_time <= 0) {
-		health -= dmg;
-		if (health <= 0) {
-			cout << "플레이어 " << owner << " 사망." << endl;
-			Die();
-		}
-		else {
-			inv_time = PLAYER_INVINCIBLE_DURATION;
-		}
-	}
-	else {
-		inv_time -= FRAME_TIME;
-	}
-}
-
-void CCharacter::Die() {
-	dead = true;
-	Kill(this);
-}
-
-CBullet::CBullet()
-	: GameInstance(), lifetime(SNOWBALL_DURATION) {
-	SetRenderType(RENDER_TYPES::BULLET);
-	SetBoundBox(RECT{ -2, -2, 2, 2 });
-}
-
-void CBullet::OnUpdate(double frame_advance) {
-	lifetime -= frame_advance;
-	if (lifetime <= 0) {
-		Kill(this);
-		return;
-	}
-
-	image_angle = point_direction(0, 0, hspeed, vspeed);
-	AssignRenderingInfo(image_angle);
-
-	GameInstance::OnUpdate(frame_advance);
-}
-
-const char* CBullet::GetIdentifier() const { return "Bullet"; }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)

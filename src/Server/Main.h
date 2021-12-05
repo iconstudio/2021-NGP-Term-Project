@@ -109,9 +109,6 @@ _GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid) {
 	return nullptr;
 }
 
-void ClientConnect();
-void ClientDisconnect(int player_index);
-
 // 정해둔 스폰 지점에 플레이어 캐릭터들을 생성한다.
 void CreatePlayerCharacters();
 
@@ -120,6 +117,9 @@ bool CheckClientNumber(); // 접속한 클라이언트 수 확인
 bool ValidateSocketMessage(int socket_state); // 받은 소켓 메시지 검증
 void BakeRenderingInfos(); // 렌더링 정보 만들기
 void SendRenderingInfos(SOCKET my_socket); // 렌더링 정보 보내기
+
+void ClientConnect();
+void ClientDisconnect(int player_index);
 
 // cout으로 출력하기
 template<typename Ty>
