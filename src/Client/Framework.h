@@ -3,7 +3,7 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-#define SERVER_IP "192.168.122.4"
+#define SERVER_IP "192.168.122.202"
 //#define SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
@@ -71,9 +71,11 @@ private:
 	int mouse_x;
 	int mouse_y;
 
+	GameUpdateMessage playerinfo;
 	int cooldown = 0;
 	int bulletleft = 3;
 	double hp = 100;
+
 };
 
 typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);

@@ -7,6 +7,8 @@
 #define MAX_LOADSTRING 100
 #define RENDER_TIMER_ID 1
 
+GameSprite tile_sprite(L"../../res/tiles.png", 2, 0, 0);
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 WindowsClient game_client{ CLIENT_W, CLIENT_H };
@@ -235,34 +237,46 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-
-	PACKETS packet = CLIENT_PING;
-	int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
-	if (retval == SOCKET_ERROR) {
-	}
-
-	if (SERVER_TERRAIN_SEED == packet)
-	{
-		int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
-        fill(framework.mapdata.begin(), framework.mapdata.end(), 0);
-        fill_n(framework.mapdata.begin(), 100, 1);
-
-        std::default_random_engine rng(framework.terrain_seed);
-        shuffle(framework.mapdata.begin(), framework.mapdata.end(), rng);
-
-	}
-
-
 	while (true) {
-        packet = CLIENT_PING;
+
+        PACKETS packet = CLIENT_PING;
         int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
         if (retval == SOCKET_ERROR) {
+        }
+
+        if (SERVER_GAME_STATUS == packet)
+        {
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.playerinfo), sizeof(GameUpdateMessage), MSG_WAITALL);
+            framework.view.x = framework.playerinfo.player_x;
+            framework.view.y = framework.playerinfo.player_y;
         }
 
         if (SERVER_RENDER_INFO == packet)
         {
             int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-            framework.background_color = COLOR_YELLOW;
+
+        }	
+
+        if (SERVER_TERRAIN_SEED == packet)
+        {
+            int tilex = WORLD_W / tile_sprite.get_width();      //x축 타일 갯수
+            int tiley = WORLD_H / tile_sprite.get_height();     //y축 타일 갯수
+
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
+            framework.mapdata.resize(tilex * tiley);
+            fill(framework.mapdata.begin(), framework.mapdata.end(), 0);
+            fill_n(framework.mapdata.begin(), 100, 1);
+
+            std::default_random_engine rng(framework.terrain_seed);
+            shuffle(framework.mapdata.begin(), framework.mapdata.end(), rng);
+
+            for (int ty = 0; ty < tilex; ++ty)
+            {
+                for (int tx = 0; tx < tiley; ++tx)
+                {
+                    tile_sprite.draw(framework.map_surface, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), framework.mapdata[(ty * tilex) + tx], 0);
+                }
+            }
         }
     }
 	return 0;

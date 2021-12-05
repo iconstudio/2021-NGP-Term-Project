@@ -8,12 +8,12 @@
 
 #define WORLD_W 1280
 #define WORLD_H 1280
-#define CLIENT_W 960
-#define CLIENT_H 540
-#define VIEW_W 320
-#define VIEW_H 240
-#define PORT_W 640
-#define PORT_H 480
+#define CLIENT_W 800
+#define CLIENT_H 600
+#define VIEW_W 400
+#define VIEW_H 300
+#define PORT_W 800
+#define PORT_H 600
 
 
 constexpr double METER_TO_PIXELS = 16.;

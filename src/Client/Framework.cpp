@@ -4,7 +4,6 @@
 
 GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
 GameSprite bullet_sprite(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
-GameSprite tile_sprite(L"../../res/tiles.png", 4, 0, 0);
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
@@ -116,9 +115,10 @@ void ClientFramework::Initialize() {
 	{
 		last_render_info[t].instance_type = BLANK;
 	}
-
-	map_surface = CreateCompatibleDC(NULL);
-	map_bitmap = CreateCompatibleBitmap(NULL, WORLD_W, WORLD_H);
+	HDC WorldDC = GetDC(NULL);
+	map_surface = CreateCompatibleDC(WorldDC);
+	map_bitmap = CreateCompatibleBitmap(WorldDC, WORLD_W, WORLD_H);
+	SelectObject(map_surface, map_bitmap);
 
 	Render::draw_clear(map_surface, WORLD_W, WORLD_H, COLOR_BLACK);
 
@@ -146,11 +146,8 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001) && cooldown == 0)
-	{
+	if ((GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001))
 		key_checkers[4] = VK_SPACE;
-		cooldown = 600;
-	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
@@ -161,10 +158,9 @@ void ClientFramework::Update() {
 	background_color = COLOR_YELLOW;
 	auto address_size = sizeof(server_address);
 
-	if (cooldown > 0)
-		--cooldown;
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
+
 
 	char temp = 0;
 }
@@ -184,22 +180,15 @@ void ClientFramework::Render(HWND window) {
 	HBITMAP m_newBit = CreateCompatibleBitmap(surface_app, view.w, view.h);
 	HBITMAP m_newoldBit = reinterpret_cast<HBITMAP>(SelectObject(surface_back, m_newBit));
 
+	Render::draw_clear(surface_back, WORLD_W, WORLD_H, background_color);
 
 	//&& player_captain == true
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
-	if (terrain_seed != 0)
-	{
-		srand(terrain_seed);
-		for (int ty = 0; ty < WORLD_W / tile_sprite.get_width(); ++ty)
-		{
-			for (int tx = 0; tx < WORLD_H / tile_sprite.get_height(); ++tx)
-			{
-				tile_sprite.draw(surface_double, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), mapdata[(ty* WORLD_W / tile_sprite.get_width()) + tx], 0);
-			}
-		}
-	}
-	for (auto it = begin(last_render_info); it < end(last_render_info); it++)
+
+	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
+
+	for (auto it = begin(last_render_info); it != end(last_render_info); it++)
 	{
 		if (it)
 		{
@@ -226,6 +215,7 @@ void ClientFramework::Render(HWND window) {
 	}
 
 	// 이중 버퍼 -> 백 버퍼
+
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
