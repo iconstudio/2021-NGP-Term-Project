@@ -7,6 +7,8 @@
 #define MAX_LOADSTRING 100
 #define RENDER_TIMER_ID 1
 
+HANDLE event_render;
+
 GameSprite tile_sprite(L"../../res/tiles.png", 2, 0, 0);
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -47,6 +49,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     framework.Initialize();
+
+    event_render = CreateEvent(NULL, true, false, NULL);
+
     MyRegisterClass(hInstance);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIENT));
@@ -197,6 +202,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     // 렌더링
     case WM_PAINT:
     {
+        WaitForSingleObject(event_render, INFINITE);
         framework.Render(hwnd);
     }
     break;
@@ -247,8 +253,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
         if (SERVER_GAME_STATUS == packet)
         {
             int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.playerinfo), sizeof(GameUpdateMessage), MSG_WAITALL);
-            framework.view.x = framework.playerinfo.player_x;
-            framework.view.y = framework.playerinfo.player_y;
+            framework.view.x = framework.playerinfo.player_x - VIEW_W / 2;
+            framework.view.y = framework.playerinfo.player_y - VIEW_H / 2;
         }
 
         if (SERVER_RENDER_INFO == packet)
@@ -277,6 +283,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
                     tile_sprite.draw(framework.map_surface, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), framework.mapdata[(ty * tilex) + tx], 0);
                 }
             }
+
+            SetEvent(event_render);
         }
     }
 	return 0;

@@ -221,7 +221,7 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 }
 
 void ServerFramework::SetConnectProcess() {
-	SetEvent(event_accept);
+	SwtEvent(event_accept);
 }
 
 void ServerFramework::CastReceiveEvent() {
