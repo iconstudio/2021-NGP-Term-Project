@@ -62,6 +62,7 @@ public:
 
 	void SendTerrainSeed();
 	void CreatePlayerCharacters(); // 플레이어 생성
+	void SendGameStatus(ClientSession* client);
 
 	void ProceedContinuation();							// 게임 진행 확인
 	void ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
@@ -124,7 +125,7 @@ private:
 	vector<GameInstance*> instances;	 // 인스턴스 목록
 	vector<RenderInstance> rendering_infos_last;		// 렌더링 정보
 
-	normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
+	uniform_int<> random_distrubution; // 서버의 무작위 분포 범위
 	default_random_engine randomizer;
 };
 

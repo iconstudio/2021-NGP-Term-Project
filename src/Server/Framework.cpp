@@ -3,7 +3,8 @@
 #include "Framework.h"
 
 
-ServerFramework::ServerFramework() {
+ServerFramework::ServerFramework()
+	: random_distrubution(0, INT32_MAX) {
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
 	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
@@ -21,7 +22,7 @@ ServerFramework::ServerFramework() {
 		return;
 	}
 
-	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, FALSE, NULL))) {
 		ErrorAbort("CreateEvent[event_game_communicate]");
 		return;
 	}
@@ -86,7 +87,7 @@ void ServerFramework::Startup() {
 		ErrorAbort("CreateThread[ConnectProcess]");
 	}
 
-	Sleep(8000);
+	Sleep(6000);
 	GameReady();
 }
 
@@ -141,6 +142,22 @@ void ServerFramework::SendTerrainSeed() {
 		SendData(player->my_socket, PACKETS::SERVER_TERRAIN_SEED
 			, reinterpret_cast<char*>(&seed), sizeof(seed));
 	}
+}
+
+void ServerFramework::SendGameStatus(ClientSession* client) {
+	auto client_socket = client->my_socket;
+	auto player_index = client->player_index;
+	auto player_character = client->player_character;
+
+	auto state = new GameUpdateMessage;
+	state->players_count = GetPlayerNumber();
+	state->player_hp = player_character->health;
+	state->player_x = player_character->x;
+	state->player_y = player_character->y;
+	state->player_direction = player_character->direction;
+	state->target_player = 0;
+
+	SendData(client_socket, SERVER_GAME_STATUS, reinterpret_cast<char*>(state), sizeof(GameUpdateMessage));
 }
 
 void ServerFramework::CreatePlayerCharacters() {
