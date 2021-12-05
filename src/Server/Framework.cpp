@@ -3,7 +3,8 @@
 #include "Framework.h"
 
 
-ServerFramework::ServerFramework() {
+ServerFramework::ServerFramework()
+	: random_distrubution(0, INT32_MAX) {
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
 	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
@@ -21,7 +22,7 @@ ServerFramework::ServerFramework() {
 		return;
 	}
 
-	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, FALSE, NULL))) {
 		ErrorAbort("CreateEvent[event_game_communicate]");
 		return;
 	}
@@ -86,11 +87,14 @@ void ServerFramework::Startup() {
 		ErrorAbort("CreateThread[ConnectProcess]");
 	}
 
-	Sleep(8000);
-	CreatePlayerCharacters();
+	Sleep(6000);
+	GameReady();
 }
 
 void ServerFramework::GameReady() {
+	CreatePlayerCharacters();
+	SendTerrainSeed();
+	CastReceiveEvent();
 }
 
 SOCKET ServerFramework::AcceptClient() {
@@ -127,6 +131,35 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
+void ServerFramework::SendTerrainSeed() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int player_socket = player->my_socket;
+
+		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
+		int seed = random_distrubution(randomizer);
+		SendData(player->my_socket, PACKETS::SERVER_TERRAIN_SEED
+			, reinterpret_cast<char*>(&seed), sizeof(seed));
+	}
+}
+
+void ServerFramework::SendGameStatus(ClientSession* client) {
+	auto client_socket = client->my_socket;
+	auto player_index = client->player_index;
+	auto player_character = client->player_character;
+
+	auto state = new GameUpdateMessage;
+	state->players_count = GetPlayerNumber();
+	state->player_hp = player_character->health;
+	state->player_x = player_character->x;
+	state->player_y = player_character->y;
+	state->player_direction = player_character->direction;
+	state->target_player = 0;
+
+	SendData(client_socket, SERVER_GAME_STATUS, reinterpret_cast<char*>(state), sizeof(GameUpdateMessage));
+}
+
 void ServerFramework::CreatePlayerCharacters() {
 	auto sz = players.size();
 	for (int i = 0; i < sz; ++i) {
@@ -135,7 +168,7 @@ void ServerFramework::CreatePlayerCharacters() {
 		auto character = Instantiate<CCharacter>(places[0], places[1]);
 
 		player->player_character = character;
-		character->owner = player->player_index;
+		player->player_character->owner = player->player_index;
 		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
 	}
 }
@@ -152,11 +185,9 @@ void ServerFramework::CreateRenderingInfos() {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
-			rendering_infos_last.shrink_to_fit();
-			rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
 
-		auto CopyList = vector<GameInstance*>(instances);
+		auto CopyList = instances;
 
 		// 플레이어 개체를 맨 위로
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
@@ -170,24 +201,22 @@ void ServerFramework::CreateRenderingInfos() {
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
 			if (!(*it)->dead) {
 				auto dest = (rendering_infos_last.data() + index);
-				auto src = &render_infos;
+				auto src = render_infos;
 
-				memcpy(dest, src, sizeof(RenderInstance));
+				rendering_infos_last.push_back(src);
 				index++;
 			}
 		}
-	}
-	else if (!rendering_infos_last.empty()) {
+	} else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
-		rendering_infos_last.shrink_to_fit();
-		rendering_infos_last.reserve(RENDER_INST_COUNT);
 	}
 }
 
 void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 	auto renderings = reinterpret_cast<char*>(rendering_infos_last.data());
-	auto render_size = sizeof(rendering_infos_last);
+	auto render_size = sizeof(RenderInstance) * RENDER_INST_COUNT;
 
+	AtomicPrintLn("렌더링 정보 전송 (크기: ", render_size, ")");
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
 }
 
@@ -195,7 +224,7 @@ void ServerFramework::SetConnectProcess() {
 	SetEvent(event_accept);
 }
 
-void ServerFramework::SetGameProcess() {
+void ServerFramework::CastReceiveEvent() {
 	SetEvent(event_game_communicate);
 }
 
