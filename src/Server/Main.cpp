@@ -118,13 +118,13 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		}
 
 		// 3. 게임 처리
-		framework.SendGameStatus(client);
 
 		// 4. 렌더링 정보 작성
 		framework.CreateRenderingInfos();
 
 		// 5. 렌더링 정보 전송
 		framework.SendRenderingInfos(client_socket);
+		framework.SendGameStatus(client);
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
