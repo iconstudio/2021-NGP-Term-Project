@@ -165,7 +165,7 @@ void ServerFramework::CreateRenderingInfos() {
 
 		int index = 0;
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
-			auto render_infos = (*it)->GetRenderInstance();
+			auto render_infos = (*it)->my_renders;
 
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
 			if (!(*it)->dead) {
