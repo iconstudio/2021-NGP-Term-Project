@@ -1,5 +1,4 @@
-<<<<<<< Updated upstream
-﻿#ifndef _SERVER_FRAMEWORK
+﻿﻿#ifndef _SERVER_FRAMEWORK
 #define _SERVER_FRAMEWORK
 
 class ServerFramework
@@ -65,8 +64,6 @@ private:
 	bool game_started;
 };
 
-#endif
-
 template<class _GameClass1, class _GameClass2>
 inline _GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other) {
 	if (self && other && self != other) {
@@ -75,6 +72,5 @@ inline _GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other) {
 	}
 	return nullptr;
 }
-=======
-﻿
->>>>>>> Stashed changes
+
+#endif

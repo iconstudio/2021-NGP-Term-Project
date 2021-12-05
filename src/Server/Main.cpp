@@ -1,63 +1,12 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Framework.h"
 #include "CommonDatas.h"
 #include "Main.h"
-#include "ServerFramework.h"
 
-
-<<<<<<< Updated upstream
-// 스레드 프로세스
-DWORD WINAPI ConnectProcess(LPVOID arg);
-DWORD WINAPI GameProcess(LPVOID arg);
-
-ServerFramework f{};
-
-int main() {
-	f.Initialize();
-
-	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
-
-	Sleep(8000);
-	f.CreatePlayer();
-	f.SetGameProcess();
-
-	// 클라이언트 연결
-	while (true)
-	{
-	}
-
-CCharacter::CCharacter() : GameInstance() {
-	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
-}
-
-	AtomicPrintLn("서버 시작");
-
-	players_number = 0;
-	players.reserve(CLIENT_NUMBER_MAX);
-
-	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
-
-	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
-	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
-		double dir = dir_increment * i;
-		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
-		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
-
-		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
-	}
-
-	if (NULL == (event_accept = CreateEvent(NULL, FALSE, TRUE, NULL))) {
-		ErrorAbort("CreateEvent[event_accept]");
-		return 1;
-	}
-=======
 ServerFramework framework;
 
 normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 default_random_engine randomizer;
-
->>>>>>> Stashed changes
 
 int main() {
 	framework.Initialize();
@@ -71,50 +20,17 @@ int main() {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-<<<<<<< Updated upstream
-		SOCKET listen_socket = f.GetListenSocket();
-		SOCKET client_socket;
-		SOCKADDR_IN client_address;
-		int my_addr_size = sizeof(client_address);
-
-		f.SetConnectProcess();
-
-		client_socket = accept(listen_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
-=======
 		framework.SetConnectProcess();
 
 		SOCKET client_socket = framework.AcceptClient();
->>>>>>> Stashed changes
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
 			continue;
 		}
 
-<<<<<<< Updated upstream
-
-		BOOL option = FALSE;
-		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
-			, reinterpret_cast<const char*>(&option), sizeof(option));
-
-		auto client = new ClientSession(client_socket, NULL, f.GetPlayerNumber());
-
-		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
-		if (NULL == th) {
-			ErrorDisplay("CreateThread[GameProcess]");
-			continue;
-		}
-		CloseHandle(th);
-
-		f.AddPlayer(client);
-
-		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", f.GetPlayerNumber());
-
-		WaitForSingleObject(f.GetAcceptEvent(), INFINITE);
-=======
 		framework.ConnectClient(client_socket);
 
 		framework.AwaitClientAcceptEvent();
->>>>>>> Stashed changes
 	}
 
 	return 0;
@@ -125,11 +41,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	SOCKET client_socket = client->my_socket;
 
 	while (true) {
-<<<<<<< Updated upstream
-		WaitForSingleObject(f.GetGameProcessEvent(), INFINITE);
-=======
 		framework.AwaitReceiveEvent();
->>>>>>> Stashed changes
 
 		PACKETS header;
 		ZeroMemory(&header, HEADER_SIZE);
@@ -215,16 +127,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 3. 게임 처리
 
 		// 4. 렌더링 정보 작성
-<<<<<<< Updated upstream
-		f.CreateRenderingInfos();
-
-		// 5. 렌더링 정보 전송
-		f.SendRenderingInfos(client_socket);
-
-		// 6. 대기
-		Sleep(FRAME_TIME);
-		f.SetGameProcess();
-=======
 		framework.CreateRenderingInfos();
 
 		// 5. 렌더링 정보 전송
@@ -233,7 +135,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 6. 대기
 		Sleep(FRAME_TIME);
 		framework.SetGameProcess();
->>>>>>> Stashed changes
 	}
 
 	return 0;

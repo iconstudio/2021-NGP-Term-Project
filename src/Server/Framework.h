@@ -3,7 +3,6 @@
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
-
 /* 스레드 선언 */
 DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
 DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
