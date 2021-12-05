@@ -2,7 +2,7 @@
 #include "Framework.h"
 #include "Resource.h"
 
-GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
 GameSprite bullet_sprite(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
