@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "CommonDatas.h"
 
+
 int WINAPI SendData(SOCKET socket, PACKETS type, const char* buffer, int length) {
 	int result = send(socket, reinterpret_cast<char*>(&type), HEADER_SIZE, 0);
 	if (SOCKET_ERROR == result) {
@@ -17,7 +18,6 @@ int WINAPI SendData(SOCKET socket, PACKETS type, const char* buffer, int length)
 	}
 	return result;
 }
-
 
 void ErrorAbort(const char* msg) {
 	LPVOID lpMsgBuf;

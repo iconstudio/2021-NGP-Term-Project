@@ -4,6 +4,44 @@
 #include "GameInstance.h"
 
 
+class CCharacter : public GameInstance {
+public:
+	CCharacter();
+
+	virtual void OnUpdate(double frame_advance);
+
+	virtual const char* GetIdentifier() const;
+
+	void GetHurt(int dmg);
+	void Die();
+
+	double health;
+	double attack_cooltime;
+	double inv_time;
+};
+
+class CBullet : public GameInstance {
+public:
+	CBullet();
+
+	virtual void OnUpdate(double frame_advance);
+
+	virtual const char* GetIdentifier() const;
+
+	double lifetime;
+};
+
+class ClientSession {
+public:
+	SOCKET my_socket;
+	HANDLE my_thread;
+
+	int player_index; // 플레이어 번호
+	CCharacter* player_character;
+
+	ClientSession(SOCKET sk, HANDLE th, int id);
+	~ClientSession();
+};
 
 /* 소켓 */
 SOCKET my_socket; // 서버 소켓
@@ -65,45 +103,6 @@ inline DWORD WINAPI AwaitReceiveEvent() {
 	return WaitForSingleObject(event_game_communicate, INFINITE);
 }
 
-class CCharacter : public GameInstance {
-public:
-	CCharacter();
-
-	virtual void OnUpdate(double frame_advance);
-
-	virtual const char* GetIdentifier() const;
-
-	void GetHurt(int dmg);
-	void Die();
-
-	double health;
-	double attack_cooltime;
-	double inv_time;
-};
-
-class CBullet : public GameInstance {
-public:
-	CBullet();
-
-	virtual void OnUpdate(double frame_advance);
-
-	virtual const char* GetIdentifier() const;
-
-	double lifetime;
-};
-
-class ClientSession {
-public:
-	SOCKET my_socket;
-	HANDLE my_thread;
-
-	int player_index; // 플레이어 번호
-	CCharacter* player_character;
-
-	ClientSession(SOCKET sk, HANDLE th, int id);
-	~ClientSession();
-};
-
 // 지정한 위치에 인스턴스를 생성한다.
 template<class _GameClass = GameInstance>
 _GameClass* Instantiate(double x = 0.0, double y = 0.0) {
@@ -157,23 +156,4 @@ _GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid) {
 		}
 	}
 	return nullptr;
-}
-
-// cout으로 출력하기
-template<typename Ty>
-void AtomicPrint(Ty caption) {
-	cout << caption;
-}
-
-// 여러 개의 값을 함수 하나로 cout으로 출력하기
-template<typename Ty1, typename... Ty2>
-void AtomicPrint(Ty1 caption, Ty2... args) {
-	AtomicPrint(caption);
-	AtomicPrint(args...);
-}
-
-// cout으로 출력하고 한줄 띄우기
-template<typename... Ty>
-void AtomicPrintLn(Ty... args) {
-	AtomicPrint(args..., "\n");
 }

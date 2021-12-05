@@ -32,6 +32,8 @@ void GameInstance::OnUpdate(double frame_advance) {
 	}
 }
 
+void GameInstance::OnDestroy() {}
+
 void GameInstance::SetOwner(int player_index) {
 	owner = player_index;
 }

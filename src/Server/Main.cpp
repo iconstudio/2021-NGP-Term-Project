@@ -317,7 +317,67 @@ CCharacter::CCharacter()
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
+void CCharacter::OnUpdate(double frame_advance) {
+	auto collide_bullet = SeekCollision<CBullet>(this, "Bullet");
+
+	if (collide_bullet) {
+		Kill(collide_bullet);
+		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+
+		GetHurt(1);
+	}
+
+	if (hspeed != 0.0 || vspeed != 0.0)
+		direction = point_direction(0, 0, hspeed, vspeed);
+
+	AssignRenderingInfo(direction);
+
+	GameInstance::OnUpdate(frame_advance);
+}
+
 const char* CCharacter::GetIdentifier() const { return "Player"; }
+
+void CCharacter::GetHurt(int dmg) {
+	if (inv_time <= 0) {
+		health -= dmg;
+		if (health <= 0) {
+			cout << "플레이어 " << owner << " 사망." << endl;
+			Die();
+		}
+		else {
+			inv_time = PLAYER_INVINCIBLE_DURATION;
+		}
+	}
+	else {
+		inv_time -= FRAME_TIME;
+	}
+}
+
+void CCharacter::Die() {
+	dead = true;
+	Kill(this);
+}
+
+CBullet::CBullet()
+	: GameInstance(), lifetime(SNOWBALL_DURATION) {
+	SetRenderType(RENDER_TYPES::BULLET);
+	SetBoundBox(RECT{ -2, -2, 2, 2 });
+}
+
+void CBullet::OnUpdate(double frame_advance) {
+	lifetime -= frame_advance;
+	if (lifetime <= 0) {
+		Kill(this);
+		return;
+	}
+
+	image_angle = point_direction(0, 0, hspeed, vspeed);
+	AssignRenderingInfo(image_angle);
+
+	GameInstance::OnUpdate(frame_advance);
+}
+
+const char* CBullet::GetIdentifier() const { return "Bullet"; }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)
