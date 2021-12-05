@@ -20,7 +20,6 @@ public:
 	virtual const char* GetIdentifier() const;
 
 	RenderInstance& AssignRenderingInfo(double angle);
-	RenderInstance& GetRenderInstance();
 
 	void SetBoundBox(const RECT& mask);
 	int GetBoundLT() const;

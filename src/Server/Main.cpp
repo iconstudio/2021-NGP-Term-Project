@@ -1,46 +1,34 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Framework.h"
 #include "CommonDatas.h"
-#include "ServerFramework.h"
 #include "Main.h"
+#include "ServerFramework.h"
 
 
-RenderInstance rendering_infos_last[RENDER_INST_COUNT];
+// 스레드 프로세스
+DWORD WINAPI ConnectProcess(LPVOID arg);
+DWORD WINAPI GameProcess(LPVOID arg);
+
+ServerFramework f{};
 
 int main() {
-	WSADATA wsadata;
-	if (0 != WSAStartup(MAKEWORD(2, 2), &wsadata)) {
-		ErrorAbort("WSAStartup()");
-		return false;
+	f.Initialize();
+
+	CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL);
+
+	Sleep(8000);
+	f.CreatePlayer();
+	f.SetGameProcess();
+
+	// 클라이언트 연결
+	while (true)
+	{
 	}
 
-	my_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (INVALID_SOCKET == my_socket) {
-		ErrorAbort("socket()");
-		return false;
-	}
-
-	BOOL option = TRUE;
-	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
-		, reinterpret_cast<char*>(&option), sizeof(option))) {
-		ErrorAbort("setsockopt()");
-		return false;
-	}
-
-	ZeroMemory(&my_address, sizeof(my_address));
-	my_address.sin_family = AF_INET;
-	my_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	my_address.sin_port = htons(COMMON_PORT);
-
-	if (SOCKET_ERROR == bind(my_socket, reinterpret_cast<SOCKADDR*>(&my_address), my_address_size)) {
-		ErrorAbort("bind()");
-		return false;
-	}
-
-	if (SOCKET_ERROR == listen(my_socket, CLIENT_NUMBER_MAX + 1)) {
-		ErrorAbort("listen()");
-		return false;
-	}
+CCharacter::CCharacter() : GameInstance() {
+	SetRenderType(RENDER_TYPES::CHARACTER);
+	SetBoundBox(RECT{ -6, -6, 6, 6 });
+}
 
 	AtomicPrintLn("서버 시작");
 
@@ -96,23 +84,25 @@ int main() {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
+		SOCKET listen_socket = f.GetListenSocket();
 		SOCKET client_socket;
 		SOCKADDR_IN client_address;
 		int my_addr_size = sizeof(client_address);
 
-		SetEvent(event_accept);
+		f.SetConnectProcess();
 
-		client_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
+		client_socket = accept(listen_socket, reinterpret_cast<SOCKADDR*>(&client_address), &my_addr_size);
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
 			continue;
 		}
 
+
 		BOOL option = FALSE;
 		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 			, reinterpret_cast<const char*>(&option), sizeof(option));
 
-		auto client = new ClientSession(client_socket, NULL, players_number++);
+		auto client = new ClientSession(client_socket, NULL, f.GetPlayerNumber());
 
 		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 		if (NULL == th) {
@@ -121,11 +111,11 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 		}
 		CloseHandle(th);
 
-		players.push_back(client);
+		f.AddPlayer(client);
 
-		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
+		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", f.GetPlayerNumber());
 
-		WaitForSingleObject(event_accept, INFINITE);
+		WaitForSingleObject(f.GetAcceptEvent(), INFINITE);
 	}
 
 	return 0;
@@ -136,7 +126,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	SOCKET client_socket = client->my_socket;
 
 	while (true) {
-		WaitForSingleObject(event_game_communicate, INFINITE);
+		WaitForSingleObject(f.GetGameProcessEvent(), INFINITE);
 
 		PACKETS header;
 		ZeroMemory(&header, HEADER_SIZE);
@@ -222,14 +212,14 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		// 3. 게임 처리
 
 		// 4. 렌더링 정보 작성
-		BakeRenderingInfos();
+		f.CreateRenderingInfos();
 
 		// 5. 렌더링 정보 전송
-		SendRenderingInfos(client_socket);
+		f.SendRenderingInfos(client_socket);
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		SetEvent(event_game_communicate);
+		f.SetGameProcess();
 	}
 
 	return 0;
