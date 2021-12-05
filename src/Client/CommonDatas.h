@@ -42,7 +42,7 @@ constexpr int FRAMERATE = 60;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
 /* 송수신 설정 */
-const int SEND_INPUT_COUNT = 6;
+const int SEND_INPUT_COUNT = 8;
 const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
 const int CLIENT_NUMBER_MIN = 2;
 const int RENDER_INST_COUNT = 40;
@@ -65,6 +65,7 @@ enum PACKETS : int {
 	// 서버 -> 클라이언트
 	, SERVER_SET_CAPATIN		// 방장임을 알려주는 메시지
 	, SERVER_GAME_START			// 게임이 시작되었음을 알려주는 메시지
+	, SERVER_TERRAIN_SEED		// 지형 생성 씨앗값
 	, SERVER_PLAYER_COUNT		// 플레이어가 몇 명인지 알려주는 메시지
 	, SERVER_GAME_STATUS		// 게임 상태를 알려주는 메시지
 	, SERVER_RENDER_INFO		// 렌더링 정보를 보내주는 메시지
