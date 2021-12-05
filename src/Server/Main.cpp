@@ -109,6 +109,12 @@ int main() {
 	return 0;
 }
 
+CCharacter::CCharacter()
+	: GameInstance() {
+	SetRenderType(RENDER_TYPES::CHARACTER);
+	SetBoundBox(RECT{ -6, -6, 6, 6 });
+}
+
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
 		SOCKET client_socket;
@@ -123,19 +129,21 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 
-		BOOL option = FALSE;
-		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
-			, reinterpret_cast<const char*>(&option), sizeof(option));
+		BOOL option = FALSE;							//네이글 알고리즘 on/off
+		setsockopt(my_socket,						//해당 소켓
+			IPPROTO_TCP,							//소켓의 레벨
+			TCP_NODELAY,							//설정 옵션
+			reinterpret_cast<const char*>(&option),	// 옵션 포인터
+			sizeof(option));						//옵션 크기
 
 		auto client = new ClientSession(client_socket, NULL, players_number++);
 
 		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
-		if (NULL == th) {
-			ErrorDisplay("CreateThread[GameProcess]");
+		if (!th) {
+			ErrorDisplay("CreateThread()");
 			continue;
 		}
 		CloseHandle(th);
-
 		players.push_back(client);
 
 		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
@@ -322,14 +330,6 @@ void SendRenderingInfos(SOCKET client_socket) {
 	auto render_size = sizeof(rendering_infos_last);
 
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
-}
-
-CCharacter::CCharacter()
-	: GameInstance()
-	, attack_cooltime(0.0), inv_time(0.0)
-	, health(PLAYER_HEALTH) {
-	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
