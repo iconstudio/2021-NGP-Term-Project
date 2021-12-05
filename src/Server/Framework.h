@@ -3,6 +3,7 @@
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
+
 /* 스레드 선언 */
 DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
 DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
@@ -59,6 +60,7 @@ public:
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
 	void DisconnectClient(ClientSession* client); // 플레이어 종료
 
+	void SendTerrainSeed();
 	void CreatePlayerCharacters(); // 플레이어 생성
 
 	void ProceedContinuation();							// 게임 진행 확인
@@ -67,7 +69,7 @@ public:
 	void SendRenderingInfos(SOCKET client_socket);							// 렌더링 정보 전송
 
 	void SetConnectProcess();			// accept 이벤트 활성화
-	void SetGameProcess();			    // 게임 프로세스 이벤트 활성화
+	void CastReceiveEvent();			    // 게임 프로세스 이벤트 활성화
 	const int GetPlayerNumber() const;
 	
 	inline DWORD WINAPI AwaitClientAcceptEvent();
@@ -121,6 +123,9 @@ private:
 private:
 	vector<GameInstance*> instances;	 // 인스턴스 목록
 	vector<RenderInstance> rendering_infos_last;		// 렌더링 정보
+
+	normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
+	default_random_engine randomizer;
 };
 
 inline const int ServerFramework::GetPlayerNumber() const {

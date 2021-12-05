@@ -6,9 +6,6 @@
 
 ServerFramework framework;
 
-normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
-default_random_engine randomizer;
-
 int main() {
 	framework.Initialize();
 	framework.Startup();
@@ -87,10 +84,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 2. 게임 진행
 		CCharacter* client_char = client->player_character;
-		if (!client_char) {
-			//client_char = Instantiate<CCharacter>(50, 50);
-		}
-
 		if (client_char) {
 			for (int i = 0; i < client_data_size; ++i) {
 				auto input = client_data[i];
@@ -134,7 +127,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		framework.SetGameProcess();
+		framework.CastReceiveEvent();
 	}
 
 	return 0;
