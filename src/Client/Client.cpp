@@ -253,8 +253,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
         if (SERVER_GAME_STATUS == packet)
         {
             int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.playerinfo), sizeof(GameUpdateMessage), MSG_WAITALL);
-            framework.view.x = framework.playerinfo.player_x - VIEW_W / 2;
-            framework.view.y = framework.playerinfo.player_y - VIEW_H / 2;
+            framework.view.x = max(0, min(framework.world_w - framework.view.w, framework.playerinfo.player_x - framework.view.xoff));
+            framework.view.y = max(0, min(framework.world_h - framework.view.h, framework.playerinfo.player_y - framework.view.yoff));
         }
 
         if (SERVER_RENDER_INFO == packet)
