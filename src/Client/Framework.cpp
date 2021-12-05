@@ -2,8 +2,9 @@
 #include "Framework.h"
 #include "Resource.h"
 
-GameSprite playersprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
-GameSprite sprite_bullet(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite bullet_sprite(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite tile_sprite(L"../../res/tiles.png", 4, 0, 0);
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
@@ -129,7 +130,7 @@ void ClientFramework::Initialize() {
 
 
 void ClientFramework::Update() {
-	for (int t = 0; t < 7; ++t)
+	for (int t = 0; t < SEND_INPUT_COUNT; ++t)
 	{
 		key_checkers[t] = 0;
 	}
@@ -144,12 +145,14 @@ void ClientFramework::Update() {
 	if ((GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001) && cooldown == 0)
 	{
 		key_checkers[4] = VK_SPACE;
-		cooldown = 6000;
+		cooldown = 600;
 	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
 		key_checkers[6] = 'D';
+	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001)
+		key_checkers[7] = 'F';
 
 	background_color = COLOR_YELLOW;
 	auto address_size = sizeof(server_address);
@@ -160,21 +163,6 @@ void ClientFramework::Update() {
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
 	char temp = 0;
-
-
-	for (int i = 0; i < 6; i++) {
-
-		//if (check & 0x0000) { // released
-		//	framework.keys[i].type = NONE;
-		//}
-		//else if (check & 0x8000) {
-		//	framework.keys[i].type = PRESS;
-		//}
-		//else if (check & 0x0001) {
-		//	framework.keys[i].type = RELEASE;
-		//}
-	}
-
 }
 
 
@@ -200,7 +188,13 @@ void ClientFramework::Render(HWND window) {
 	// 파이프라인
 	//if (status == GAME) {
 	//}
+	for (int ty = 0; ty < 80; ++ty)
+	{
+		for (int tx = 0; tx < 80; ++tx)
+		{
 
+		}
+	}
 	for (auto it = begin(last_render_info); it < end(last_render_info); it++)
 	{
 		if (it)
@@ -208,13 +202,13 @@ void ClientFramework::Render(HWND window) {
 			switch (it->instance_type) {
 			case CHARACTER:
 			{
-				playersprite.draw(surface_double, it->x, it->y, it->image_index, 0);
+				player_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
 			}
 			break;
 
 			case BULLET:
 			{
-				sprite_bullet.draw(surface_double, it->x, it->y, it->image_index, 0);
+				bullet_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
 			}
 			break;
 
@@ -259,13 +253,11 @@ void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
 }
 
 PACKETS ClientFramework::RecvPacket(SOCKET sock) {
-
 	PACKETS packet = CLIENT_PING;
 	int retval = recv(sock, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
 		ErrorAbort(L"recv packet");
 	}
-
 	return packet;
 }
 

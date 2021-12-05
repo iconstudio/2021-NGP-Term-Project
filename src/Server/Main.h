@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "stdafx.h"
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
-
+CRITICAL_SECTION client_permission, print_permission;
 
 class CCharacter : public GameInstance {
 public:
@@ -44,18 +44,10 @@ public:
 	~ClientSession();
 };
 
-/* 플레이어 관련 속성 */
-vector<ClientSession*> players; // 플레이어 목록
-int player_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
-int	players_number; // 지금 접속한 플레이어의 수
-int player_number_last; // 마지막에 추가된 플레이어의 번호
-int	player_captain; // 방장 플레이어
-int player_winner; // 승리한 플레이어
-
 /* 게임 관련 속성 */
-vector<GameInstance*> instances; // 인스턴스 목록
 normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 default_random_engine randomizer;
+<<<<<<< HEAD
 
 bool game_started;
 const int WORLD_W = 1280, WORLD_H = 1280;
@@ -147,3 +139,5 @@ template<typename... Ty>
 void AtomicPrintLn(Ty... args) {
 	AtomicPrint(args..., "\n");
 }
+=======
+>>>>>>> 0640c531b0869610c1d82cb5e9944fb7d9cac01f

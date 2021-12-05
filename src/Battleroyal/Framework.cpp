@@ -2,8 +2,8 @@
 #include "Framework.h"
 #include "resource.h"
 
-GameSprite playersprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
-GameSprite sprite_bullet("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite player_sprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite bullet_sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
 GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
 
@@ -76,10 +76,10 @@ void ClientFramework::Initialize() {
 
 	InputRegister(VK_ESCAPE);
 
-	SetSprite(&playersprite);
+	SetSprite(&player_sprite);
 	SetSprite(&player2sprite);
 	SetSprite(&buttonsprite);
-	SetSprite(&sprite_bullet);
+	SetSprite(&bullet_sprite);
 }
 
 void ClientFramework::Update() {
@@ -205,13 +205,13 @@ void ClientFramework::Render(HWND window) {
 				switch (inst->instance_type) {
 					case CHARACTER:
 					{
-						playersprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+						player_sprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
 					}
 					break;
 
 					case BULLET:
 					{
-						sprite_bullet.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
+						bullet_sprite.draw(surface_double, inst->x, inst->y, inst->image_index, 0);
 					}
 					break;
 

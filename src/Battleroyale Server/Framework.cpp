@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 
@@ -29,7 +29,7 @@ ServerFramework::ServerFramework(int rw, int rh)
 	event_player_accept = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_game_start = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_receives = CreateEvent(NULL, FALSE, FALSE, NULL);
-	event_game_process = CreateEvent(NULL, FALSE, FALSE, NULL);
+	event_game_communication = CreateEvent(NULL, FALSE, FALSE, NULL);
 	event_send_renders = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// event_player_accept
@@ -55,7 +55,7 @@ ServerFramework::~ServerFramework() {
 	CloseHandle(event_player_accept);
 	CloseHandle(event_game_start);
 	CloseHandle(event_receives);
-	CloseHandle(event_game_process);
+	CloseHandle(event_game_communication);
 	CloseHandle(event_send_renders);
 }
 
@@ -93,7 +93,7 @@ bool ServerFramework::Initialize() {
 		ErrorAbort("listen()");
 		return false;
 	}
-	AtomicPrintLn("¼­¹ö ½ÃÀÛ");
+	AtomicPrintLn("ì„œë²„ ì‹œì‘");
 
 	SOCKET new_client = PlayerConnect();
 	if (INVALID_SOCKET == new_client) {
@@ -198,9 +198,9 @@ void ServerFramework::ProcessReady() {
 }
 
 void ServerFramework::ProcessGame() {
-	if (CheckClientNumber()) { // °ÔÀÓ Ã³¸®
+	if (CheckClientNumber()) { // ê²Œì„ ì²˜ë¦¬
 		ProceedContinuation();
-	} else { // °ÔÀÓ ÆÇÁ¤½Â È¤Àº °ÔÀÓ °­Á¦ Á¾·á
+	} else { // ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
 		auto numb = GetClientNumber();
 
 		if (0 == numb) {
@@ -241,7 +241,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	SOCKET new_socket = accept(my_socket, reinterpret_cast<SOCKADDR*>(&address), &address_length);
 	if (INVALID_SOCKET == new_socket) {
-		// ¿À·ù
+		// ì˜¤ë¥˜
 		return new_socket;
 	}
 
@@ -249,7 +249,7 @@ SOCKET ServerFramework::PlayerConnect() {
 	switch (GetStatus()) {
 		case LISTEN:
 		{
-			// Ã¹¹øÂ° ÇÃ·¹ÀÌ¾î Á¢¼Ó
+			// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´ ì ‘ì†
 			SetStatus(LOBBY);
 		}
 		break;
@@ -276,7 +276,7 @@ SOCKET ServerFramework::PlayerConnect() {
 
 	//SendData(new_socket, PACKETS::SERVER_PLAYER_COUNT , reinterpret_cast<char*>(&client_number), sizeof(client_number));
 
-	// Ã¹¹øÂ° ÇÃ·¹ÀÌ¾î
+	// ì²«ë²ˆì§¸ í”Œë ˆì´ì–´
 	if (client_number == 0) {
 		SetCaptain(client_info);
 
@@ -284,8 +284,8 @@ SOCKET ServerFramework::PlayerConnect() {
 	}
 
 	client_number++;
-	cout << "»õ ÇÃ·¹ÀÌ¾î Á¢¼Ó: " << new_socket << endl;
-	cout << "ÇöÀç ÇÃ·¹ÀÌ¾î ¼ö: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
+	cout << "ìƒˆ í”Œë ˆì´ì–´ ì ‘ì†: " << new_socket << endl;
+	cout << "í˜„ì¬ í”Œë ˆì´ì–´ ìˆ˜: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
 
 	players.emplace_back(client_info);
 
@@ -309,12 +309,12 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 			Kill(static_cast<GameInstance*>(character));
 		client_number--;
 
-		cout << "ÇÃ·¹ÀÌ¾î Á¾·á: " << player->client_socket << endl;
-		cout << "ÇöÀç ÇÃ·¹ÀÌ¾î ¼ö: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
+		cout << "í”Œë ˆì´ì–´ ì¢…ë£Œ: " << player->client_socket << endl;
+		cout << "í˜„ì¬ í”Œë ˆì´ì–´ ìˆ˜: " << client_number << " / " << CLIENT_NUMBER_MAX << endl;
 
 		players.erase(dit);
 
-		// ÇÃ·¹ÀÌ¾î 0¸í È¤Àº 1¸í
+		// í”Œë ˆì´ì–´ 0ëª… í˜¹ì€ 1ëª…
 		if (!CheckClientNumber()) {
 			switch (status) {
 				case LISTEN:
@@ -348,13 +348,13 @@ void ServerFramework::PlayerDisconnect(PlayerInfo* player) {
 				}
 				break;
 
-				case GAME_RESTART: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
-				case EXIT: { /* ¿©±â¼­ Ã³¸® ¾ÈÇÔ */ } break;
+				case GAME_RESTART: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
+				case EXIT: { /* ì—¬ê¸°ì„œ ì²˜ë¦¬ ì•ˆí•¨ */ } break;
 				default: break;
 			}
 		}
 
-		// ¹æÀåÀÌ ³ª°¨
+		// ë°©ì¥ì´ ë‚˜ê°
 		if (player_captain == id) {
 			if (0 < client_number) {
 				auto new_captain = players.at(0);
@@ -390,7 +390,7 @@ void ServerFramework::SetCaptain(PlayerInfo* player) {
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		AtomicPrintLn("¼­¹ö »óÅÂ º¯°æ: ", status, " -> ", state);
+		AtomicPrintLn("ì„œë²„ ìƒíƒœ ë³€ê²½: ", status, " -> ", state);
 
 		status = state;
 		CastStatusChanged();
@@ -408,22 +408,22 @@ int ServerFramework::GetClientNumber() const {
 void ServerFramework::ProceedContinuation() {
 	cout << "ProceedContinuation()" << endl;
 	if (my_process_index < client_number) {
-		cout << "ÇÏ³ªÀÇ Å¬¶óÀÌ¾ğÆ® ½º·¹µå Ã³¸®: " << my_process_index << endl;
+		cout << "í•˜ë‚˜ì˜ í´ë¼ì´ì–¸íŠ¸ ìŠ¤ë ˆë“œ ì²˜ë¦¬: " << my_process_index << endl;
 		my_process_index++;
 
 		CastStartReceive(true);
 	} else {
 		my_process_index = 0;
-		cout << "°ÔÀÓ ÀÎ½ºÅÏ½º Ã³¸®" << endl;
+		cout << "ê²Œì„ ì¸ìŠ¤í„´ìŠ¤ ì²˜ë¦¬" << endl;
 
-		// °ÔÀÓ »óÅÂ °»½Å
+		// ê²Œì„ ìƒíƒœ ê°±ì‹ 
 		ForeachInstances([&](GameInstance*& inst) {
 			inst->OnUpdate(FRAME_TIME);
 		});
 
 		BakeRenderingInfos();
 
-		// °ÔÀÓ ½ÂÆĞ ÆÇÁ¤
+		// ê²Œì„ ìŠ¹íŒ¨ íŒì •
 
 
 		CastSendingRenderingInfos(true);
@@ -432,7 +432,7 @@ void ServerFramework::ProceedContinuation() {
 
 void ServerFramework::BakeRenderingInfos() {
 	if (!instances.empty()) {
-		AtomicPrintLn("·»´õ¸µ Á¤º¸ »ı¼º\nÅ©±â: ", instances.size());
+		AtomicPrintLn("ë Œë”ë§ ì •ë³´ ìƒì„±\ní¬ê¸°: ", instances.size());
 		if (rendering_infos_last) {
 			delete[] rendering_infos_last;
 		}
@@ -440,7 +440,7 @@ void ServerFramework::BakeRenderingInfos() {
 
 		auto CopyList = vector<GameInstance*>(instances);
 
-		// ÇÃ·¹ÀÌ¾î °³Ã¼¸¦ ¸Ç À§·Î
+		// í”Œë ˆì´ì–´ ê°œì²´ë¥¼ ë§¨ ìœ„ë¡œ
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
 			return (strcmp(inst->GetIdentifier(), "Player") == 0);
 		});
@@ -449,7 +449,7 @@ void ServerFramework::BakeRenderingInfos() {
 		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
 			auto& render_infos = (*it)->GetRenderInstance();
 
-			// ÀÎ½ºÅÏ½º°¡ »ì¾ÆÀÖ´Â °æ¿ì¿¡¸¸ ·»´õ¸µ ¸Ş¼¼Áö Àü¼Û
+			// ì¸ìŠ¤í„´ìŠ¤ê°€ ì‚´ì•„ìˆëŠ” ê²½ìš°ì—ë§Œ ë Œë”ë§ ë©”ì„¸ì§€ ì „ì†¡
 			if (!(*it)->dead)
 				rendering_infos_last[index++] = render_infos;
 		}
@@ -502,7 +502,7 @@ void ServerFramework::CastStartReceive(bool flag) {
 
 void ServerFramework::CastProcessingGame() {
 	AtomicPrintLn("CastProcessingGame");
-	SetEvent(event_game_process);
+	SetEvent(event_game_communication);
 }
 
 void ServerFramework::CastSendingRenderingInfos(bool flag) {

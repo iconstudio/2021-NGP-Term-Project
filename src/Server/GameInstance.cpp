@@ -32,6 +32,8 @@ void GameInstance::OnUpdate(double frame_advance) {
 	}
 }
 
+void GameInstance::OnDestroy() {}
+
 void GameInstance::SetOwner(int player_index) {
 	owner = player_index;
 }
@@ -67,10 +69,6 @@ void GameInstance::SetSpeed(double speed) {
 void GameInstance::SetVelocity(double speed, double dir) {
 	hspeed = lengthdir_x(speed, dir);
 	vspeed = lengthdir_y(speed, dir);
-}
-
-RenderInstance& GameInstance::GetRenderInstance() {
-	return my_renders;
 }
 
 void GameInstance::SetBoundBox(const RECT& mask) {
