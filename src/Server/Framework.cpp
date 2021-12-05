@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "CommonDatas.h"
-#include "ServerFramework.h"
 #include "Framework.h"
+
 
 ServerFramework::ServerFramework() {
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];

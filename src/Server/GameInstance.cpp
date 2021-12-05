@@ -111,3 +111,7 @@ RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
 
 	return my_renders;
 }
+
+RenderInstance& GameInstance::GetRenderInstance() {
+	return my_renders;
+}
