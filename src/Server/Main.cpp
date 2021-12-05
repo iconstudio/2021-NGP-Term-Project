@@ -1,8 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Framework.h"
 #include "CommonDatas.h"
 #include "Main.h"
 #include "ServerFramework.h"
+
 
 // 스레드 프로세스
 DWORD WINAPI ConnectProcess(LPVOID arg);
@@ -23,11 +24,62 @@ int main() {
 	while (true)
 	{
 	}
-}
 
 CCharacter::CCharacter() : GameInstance() {
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -6, -6, 6, 6 });
+}
+
+	AtomicPrintLn("서버 시작");
+
+	players_number = 0;
+	players.reserve(CLIENT_NUMBER_MAX);
+
+	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
+
+	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
+		double dir = dir_increment * i;
+		int cx = static_cast<int>(WORLD_W * 0.5 + lengthdir_x(SPAWN_DISTANCE, dir));
+		int cy = static_cast<int>(WORLD_W * 0.5 + lengthdir_y(SPAWN_DISTANCE, dir));
+
+		PLAYER_SPAWN_PLACES[i] = new int[2]{ cx, cy };
+	}
+
+	if (NULL == (event_accept = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+		ErrorAbort("CreateEvent[event_accept]");
+		return 1;
+	}
+
+	if (NULL == (event_game_communicate = CreateEvent(NULL, FALSE, TRUE, NULL))) {
+		ErrorAbort("CreateEvent[event_game_communicate]");
+		return 1;
+	}
+
+	if (NULL == (event_quit = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+		ErrorAbort("CreateEvent[event_quit]");
+		return 1;
+	}
+
+	// 클라이언트 연결
+	if (!CreateThread(NULL, 0, ConnectProcess, nullptr, 0, NULL)) {
+		ErrorAbort("CreateThread[ConnectProcess]");
+	}
+
+	Sleep(8000);
+	CreatePlayerCharacters();
+	SetEvent(event_game_communicate);
+	
+	// 서버 대기
+	WaitForSingleObject(event_quit, INFINITE);
+
+	CloseHandle(event_accept);
+	CloseHandle(event_game_communicate);
+	CloseHandle(event_quit);
+
+	closesocket(my_socket);
+
+	return 0;
 }
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
@@ -45,21 +97,20 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			continue;
 		}
 
-		BOOL option = FALSE;						//네이글 알고리즘 on/off
-		setsockopt(listen_socket,					//해당 소켓
-			IPPROTO_TCP,							//소켓의 레벨
-			TCP_NODELAY,							//설정 옵션
-			reinterpret_cast<const char*>(&option),	// 옵션 포인터
-			sizeof(option));						//옵션 크기
+
+		BOOL option = FALSE;
+		setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
+			, reinterpret_cast<const char*>(&option), sizeof(option));
 
 		auto client = new ClientSession(client_socket, NULL, f.GetPlayerNumber());
 
-		auto th = CreateThread(NULL, 0, GameProcess, reinterpret_cast<LPVOID>(client), 0, NULL);
-		if (!th) {
-			ErrorDisplay("CreateThread()");
+		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
+		if (NULL == th) {
+			ErrorDisplay("CreateThread[GameProcess]");
 			continue;
 		}
 		CloseHandle(th);
+
 		f.AddPlayer(client);
 
 		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", f.GetPlayerNumber());
@@ -174,7 +225,149 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	return 0;
 }
 
+void ClientConnect() {
+}
+
+void ClientDisconnect(int player_index) {
+}
+
+void CreatePlayerCharacters() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int places[2] = {80, 80};//PLAYER_SPAWN_PLACES[i];
+		auto character = Instantiate<CCharacter>(places[0], places[1]);
+
+		player->player_character = character;
+		character->owner = player->player_index;
+		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
+	}
+}
+
+void ProceedContinuation() {
+
+}
+
+bool CheckClientNumber() {
+	return false;
+}
+
+bool ValidateSocketMessage(int socket_state) {
+	return false;
+}
+
+// 렌더링 정보 생성 함수
+void BakeRenderingInfos() {
+	if (!instances.empty()) {
+		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
+		if (rendering_infos_last) {
+			ZeroMemory(rendering_infos_last, sizeof(rendering_infos_last));
+		}
+
+		auto CopyList = vector<GameInstance*>(instances);
+
+		// 플레이어 개체를 맨 위로
+		std::partition(CopyList.begin(), CopyList.end(), [&] (GameInstance* inst) {
+			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+		});
+
+		int index = 0;
+		for (auto it = CopyList.begin(); it != CopyList.end(); ++it) {
+			auto render_infos = (*it)->GetRenderInstance();
+
+			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
+			if (!(*it)->dead) {
+				auto dest = (rendering_infos_last + index);
+				auto src = &render_infos;
+
+				memcpy(dest, src, sizeof(RenderInstance));
+				index++;
+			}
+		}
+	} else if (rendering_infos_last) {
+		if (rendering_infos_last) {
+			ZeroMemory(rendering_infos_last, sizeof(rendering_infos_last));
+		}
+	}
+}
+
+// 렌더링 정보 전송
+void SendRenderingInfos(SOCKET client_socket) {
+	auto renderings = reinterpret_cast<char*>(rendering_infos_last);
+	auto render_size = sizeof(rendering_infos_last);
+
+	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
+}
+
+CCharacter::CCharacter()
+	: GameInstance()
+	, attack_cooltime(0.0), inv_time(0.0)
+	, health(PLAYER_HEALTH) {
+	SetRenderType(RENDER_TYPES::CHARACTER);
+	SetBoundBox(RECT{ -6, -6, 6, 6 });
+}
+
+void CCharacter::OnUpdate(double frame_advance) {
+	auto collide_bullet = SeekCollision<CBullet>(this, "Bullet");
+
+	if (collide_bullet) {
+		Kill(collide_bullet);
+		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+
+		GetHurt(1);
+	}
+
+	if (hspeed != 0.0 || vspeed != 0.0)
+		direction = point_direction(0, 0, hspeed, vspeed);
+
+	AssignRenderingInfo(direction);
+
+	GameInstance::OnUpdate(frame_advance);
+}
+
 const char* CCharacter::GetIdentifier() const { return "Player"; }
+
+void CCharacter::GetHurt(int dmg) {
+	if (inv_time <= 0) {
+		health -= dmg;
+		if (health <= 0) {
+			cout << "플레이어 " << owner << " 사망." << endl;
+			Die();
+		}
+		else {
+			inv_time = PLAYER_INVINCIBLE_DURATION;
+		}
+	}
+	else {
+		inv_time -= FRAME_TIME;
+	}
+}
+
+void CCharacter::Die() {
+	dead = true;
+	Kill(this);
+}
+
+CBullet::CBullet()
+	: GameInstance(), lifetime(SNOWBALL_DURATION) {
+	SetRenderType(RENDER_TYPES::BULLET);
+	SetBoundBox(RECT{ -2, -2, 2, 2 });
+}
+
+void CBullet::OnUpdate(double frame_advance) {
+	lifetime -= frame_advance;
+	if (lifetime <= 0) {
+		Kill(this);
+		return;
+	}
+
+	image_angle = point_direction(0, 0, hspeed, vspeed);
+	AssignRenderingInfo(image_angle);
+
+	GameInstance::OnUpdate(frame_advance);
+}
+
+const char* CBullet::GetIdentifier() const { return "Bullet"; }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)

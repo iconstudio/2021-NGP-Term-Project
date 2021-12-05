@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "pch.h"
 #include "CommonDatas.h"
 
@@ -14,7 +14,7 @@ struct PlayerInfo {
 	SOCKET client_socket;
 	HANDLE client_thread;
 
-	int player_index; // ÇÃ·¹ÀÌ¾î ¹øÈ£
+	int player_index; // í”Œë ˆì´ì–´ ë²ˆí˜¸
 	void* player_character = nullptr;
 
 	PlayerInfo(SOCKET sk, HANDLE hd, int id);
@@ -22,19 +22,19 @@ struct PlayerInfo {
 };
 
 enum SERVER_STATES : int {
-	LISTEN = 0			// Å¬¶óÀÌ¾ğÆ® Á¢¼Ó ´ë±â
-	, LOBBY				// ·Îºñ
-	, GAME				// °ÔÀÓ
-	, GAME_OVER			// °ÔÀÓ ¿Ï·á
-	, GAME_RESTART		// °ÔÀÓ ´Ù½Ã ½ÃÀÛ
-	, EXIT				// ¼­¹ö Á¾·á
+	LISTEN = 0			// í´ë¼ì´ì–¸íŠ¸ ì ‘ì† ëŒ€ê¸°
+	, LOBBY				// ë¡œë¹„
+	, GAME				// ê²Œì„
+	, GAME_OVER			// ê²Œì„ ì™„ë£Œ
+	, GAME_RESTART		// ê²Œì„ ë‹¤ì‹œ ì‹œì‘
+	, EXIT				// ì„œë²„ ì¢…ë£Œ
 };
 
 enum class ACTION_TYPES : int {
 	NONE = 0
 	, SET_HSPEED
 	, SET_VSPEED
-	, SHOOT // Åõ»çÃ¼ ¹ß»ç
+	, SHOOT // íˆ¬ì‚¬ì²´ ë°œì‚¬
 };
 
 class GameInstance {
@@ -71,7 +71,7 @@ public:
 	double image_angle, image_index, image_speed, image_number;
 
 private:
-	RECT box; // Ãæµ¹Ã¼
+	RECT box; // ì¶©ëŒì²´
 
 	RenderInstance my_renders;
 };
@@ -163,42 +163,42 @@ private:
 
 	SERVER_STATES status;
 
-	/* Åë½Å °ü·Ã ¼Ó¼º */
+	/* í†µì‹  ê´€ë ¨ ì†ì„± */
 	SOCKET my_socket;
 	SOCKADDR_IN	my_address;
-	RenderInstance* rendering_infos_last; // Àü¼ÛÇÒ ·»´õ¸µ Á¤º¸
+	RenderInstance* rendering_infos_last; // ì „ì†¡í•  ë Œë”ë§ ì •ë³´
 
-	/* ´ÙÁß ½º·¹µå °ü·Ã ¼Ó¼º */
+	/* ë‹¤ì¤‘ ìŠ¤ë ˆë“œ ê´€ë ¨ ì†ì„± */
 	WSAOVERLAPPED io_behavior;
 	CRITICAL_SECTION player_infos_permission, print_permission;
 
-	HANDLE event_status; // ¼­¹öÀÇ »óÅÂ º¯È­ ·çÆ¾À» ´ã´çÇÏ´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_player_accept; // ÇÃ·¹ÀÌ¾î Á¢¼ÓÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_game_start; // °ÔÀÓ ½ÃÀÛÀ» ÇÏ´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_receives; // ÇÃ·¹ÀÌ¾îÀÇ ÀÔ·ÂÀ» ¹Ş´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_game_process; // Ãæµ¹ Ã³¸®¸¦ ÇÏ´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_send_renders; // ·»´õ¸µ Á¤º¸¸¦ º¸³»´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_over_restart; // Àç½ÃÀÛÀ» ´ã´çÇÏ´Â ÀÌº¥Æ® °´Ã¼
-	HANDLE event_over_quit; // ·»´õ¸µ Á¤º¸¸¦ º¸³»´Â ÀÌº¥Æ® °´Ã¼
+	HANDLE event_status; // ì„œë²„ì˜ ìƒíƒœ ë³€í™” ë£¨í‹´ì„ ë‹´ë‹¹í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_player_accept; // í”Œë ˆì´ì–´ ì ‘ì†ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_game_start; // ê²Œì„ ì‹œì‘ì„ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_receives; // í”Œë ˆì´ì–´ì˜ ì…ë ¥ì„ ë°›ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_game_communication; // ì¶©ëŒ ì²˜ë¦¬ë¥¼ í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_send_renders; // ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_over_restart; // ì¬ì‹œì‘ì„ ë‹´ë‹¹í•˜ëŠ” ì´ë²¤íŠ¸ ê°ì²´
+	HANDLE event_over_quit; // ë Œë”ë§ ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ì´ë²¤íŠ¸ ê°ì²´
 
-	int my_process_index; // ÇöÀç Ã³¸® ÁßÀÎ ÇÃ·¹ÀÌ¾îÀÇ ¼ø¹ø [0~client_number)
+	int my_process_index; // í˜„ì¬ ì²˜ë¦¬ ì¤‘ì¸ í”Œë ˆì´ì–´ì˜ ìˆœë²ˆ [0~client_number)
 
-	/* ÇÃ·¹ÀÌ¾î °ü·Ã ¼Ó¼º */
-	vector<PlayerInfo*> players; // ÇÃ·¹ÀÌ¾î ¸ñ·Ï
-	int	client_number; // Áö±İ Á¢¼ÓÇÑ ÇÃ·¹ÀÌ¾îÀÇ ¼ö
-	int player_number_last; // ¸¶Áö¸·¿¡ Ãß°¡µÈ ÇÃ·¹ÀÌ¾îÀÇ ¹øÈ£
-	int	player_captain; // ¹æÀå ÇÃ·¹ÀÌ¾î
-	int player_winner; // ½Â¸®ÇÑ ÇÃ·¹ÀÌ¾î
+	/* í”Œë ˆì´ì–´ ê´€ë ¨ ì†ì„± */
+	vector<PlayerInfo*> players; // í”Œë ˆì´ì–´ ëª©ë¡
+	int	client_number; // ì§€ê¸ˆ ì ‘ì†í•œ í”Œë ˆì´ì–´ì˜ ìˆ˜
+	int player_number_last; // ë§ˆì§€ë§‰ì— ì¶”ê°€ëœ í”Œë ˆì´ì–´ì˜ ë²ˆí˜¸
+	int	player_captain; // ë°©ì¥ í”Œë ˆì´ì–´
+	int player_winner; // ìŠ¹ë¦¬í•œ í”Œë ˆì´ì–´
 
-	/* °ÔÀÓ °ü·Ã ¼Ó¼º */
-	vector<GameInstance*> instances; // ÀÎ½ºÅÏ½º ¸ñ·Ï
-	normal_distribution<> random_distrubution; // ¼­¹öÀÇ ¹«ÀÛÀ§ ºĞÆ÷ ¹üÀ§
+	/* ê²Œì„ ê´€ë ¨ ì†ì„± */
+	vector<GameInstance*> instances; // ì¸ìŠ¤í„´ìŠ¤ ëª©ë¡
+	normal_distribution<> random_distrubution; // ì„œë²„ì˜ ë¬´ì‘ìœ„ ë¶„í¬ ë²”ìœ„
 	default_random_engine randomizer;
 	
 	bool game_started;
 	const int WORLD_W, WORLD_H;
-	int** PLAYER_SPAWN_PLACES; // ÇÃ·¹ÀÌ¾î°¡ ¸Ç Ã³À½¿¡ »ı¼ºµÉ À§Ä¡ÀÇ ¹è¿­
-	const int SPAWN_DISTANCE; // ÇÃ·¹ÀÌ¾î »ı¼º À§Ä¡¸¦ Á¤ÇÒ ¶§ »ç¿ëÇÏ´Â °Å¸® °ª
+	int** PLAYER_SPAWN_PLACES; // í”Œë ˆì´ì–´ê°€ ë§¨ ì²˜ìŒì— ìƒì„±ë  ìœ„ì¹˜ì˜ ë°°ì—´
+	const int SPAWN_DISTANCE; // í”Œë ˆì´ì–´ ìƒì„± ìœ„ì¹˜ë¥¼ ì •í•  ë•Œ ì‚¬ìš©í•˜ëŠ” ê±°ë¦¬ ê°’
 };
 
 template<class _GamePlayerClass>
@@ -298,7 +298,7 @@ inline DWORD WINAPI ServerFramework::AwaitStartGameEvent() {
 
 inline DWORD WINAPI ServerFramework::AwaitProcessingGameEvent() {
 	AtomicPrintLn("AwaitProcessingGameEvent()");
-	return WaitForSingleObject(event_game_process, INFINITE);
+	return WaitForSingleObject(event_game_communication, INFINITE);
 }
 
 inline DWORD WINAPI ServerFramework::AwaitSendRendersEvent() {

@@ -235,6 +235,15 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
+    PACKETS packet = CLIENT_PING;
+    int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
+    if (retval == SOCKET_ERROR) {
+    }
+
+    if (SERVER_TERRAIN_SEED == packet)
+    {
+        int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
+    }
 
     while (true) {
         PACKETS packet = CLIENT_PING;

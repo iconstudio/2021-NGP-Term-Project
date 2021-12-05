@@ -9,6 +9,7 @@ public:
 	virtual ~GameInstance();
 
 	virtual void OnUpdate(double frame_advance);
+	virtual void OnDestroy();
 
 	void SetOwner(int player_index);
 	void SetRenderType(RENDER_TYPES sprite);

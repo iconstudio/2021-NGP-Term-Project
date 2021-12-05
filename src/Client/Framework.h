@@ -57,16 +57,19 @@ private:
 	int view_target_player;
 
 	CLIENT_STATES status;
+	int terrain_seed;
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
 
 	// 마지막에 수신한 렌더링 정보
-	char key_checkers[7];			//입력중인 키
+	char key_checkers[8];			//입력중인 키
 	int mouse_x;
 	int mouse_y;
 
 	int cooldown = 0;
+	int bulletleft = 3;
+	double hp = 100;
 };
 
 typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);

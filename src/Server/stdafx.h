@@ -7,18 +7,13 @@
 #define WIN32_LEAN_AND_MEAN  거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 #include <windows.h>
 #include <winperf.h>
+#include <WinSock2.h>
 
 // C 런타임 헤더 파일입니다.
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
 #include <time.h>
-
-// ATL / MFC 헤더 파일:
-#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS  일부 CString 생성자는 명시적으로 선언됩니다.
-#include <atlbase.h>
-#include <atlimage.h>
-#include <atlstr.h>
 
 // 수학 상수 선언
 #define _USE_MATH_DEFINES
@@ -60,4 +55,23 @@ inline double point_distance(double x1, double y1, double x2, double y2) {
 
 inline double point_direction(double x1, double y1, double x2, double y2) {
 	return radtodeg(atan2(y1 - y2, x2 - x1));
+}
+
+// cout으로 출력하기
+template<typename Ty>
+void AtomicPrint(Ty caption) {
+	cout << caption;
+}
+
+// 여러 개의 값을 함수 하나로 cout으로 출력하기
+template<typename Ty1, typename... Ty2>
+void AtomicPrint(Ty1 caption, Ty2... args) {
+	AtomicPrint(caption);
+	AtomicPrint(args...);
+}
+
+// cout으로 출력하고 한줄 띄우기
+template<typename... Ty>
+void AtomicPrintLn(Ty... args) {
+	AtomicPrint(args..., "\n");
 }
