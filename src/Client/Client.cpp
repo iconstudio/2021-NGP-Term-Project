@@ -136,7 +136,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
         // 창 생성
     case WM_CREATE:
     {
-        SetTimer(hwnd, RENDER_TIMER_ID, 1, NULL);
+        SetTimer(hwnd, RENDER_TIMER_ID, FRAME_TIME * 1000, NULL);
     }
     break;
 

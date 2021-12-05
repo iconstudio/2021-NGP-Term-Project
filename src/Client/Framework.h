@@ -65,6 +65,8 @@ private:
 	char key_checkers[7];			//입력중인 키
 	int mouse_x;
 	int mouse_y;
+
+	int cooldown = 0;
 };
 
 typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);

@@ -7,6 +7,8 @@ CRITICAL_SECTION client_permission, print_permission;
 
 class CCharacter : public GameInstance {
 public:
+	CCharacter();
+
 	virtual const char* GetIdentifier() const;
 };
 
@@ -22,10 +24,23 @@ public:
 	~ClientSession();
 };
 
-// 게임 관련 속성
+/* 플레이어 관련 속성 */
+vector<ClientSession*> players; // 플레이어 목록
+int player_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
+int	players_number; // 지금 접속한 플레이어의 수
+int player_number_last; // 마지막에 추가된 플레이어의 번호
+int	player_captain; // 방장 플레이어
+int player_winner; // 승리한 플레이어
+
+/* 게임 관련 속성 */
 vector<GameInstance*> instances; // 인스턴스 목록
 normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 default_random_engine randomizer;
+
+bool game_started;
+const int WORLD_W = 1280, WORLD_H = 1280;
+int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
+const int SPAWN_DISTANCE = 300; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 
 // 지정한 위치에 인스턴스를 생성한다.
 template<class _GameClass = GameInstance>
@@ -39,7 +54,7 @@ _GameClass* Instantiate(double x = 0.0, double y = 0.0) {
 	return result;
 }
 
-// 지정한 포인터의 개체를 삭제한다.
+// 지정한 인스턴스를 삭제한다.
 template<class _GameClass = GameInstance>
 void Kill(_GameClass* target) {
 	auto loc = find_if(instances.begin(), instances.end(), [target] (const auto& lhs) {
@@ -51,10 +66,6 @@ void Kill(_GameClass* target) {
 		instances.erase(loc);
 	}
 }
-
-// 정해둔 스폰 지점에 플레이어 캐릭터들을 생성한다.
-template<class _GamePlayerClass>
-void CreatePlayerCharacters();
 
 // 두 게임 인스턴스의 충돌을 검사한다.
 template<class _GameClass1, class _GameClass2>
@@ -89,6 +100,9 @@ _GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid) {
 void ClientConnect();
 void ClientDisconnect(int player_index);
 
+// 정해둔 스폰 지점에 플레이어 캐릭터들을 생성한다.
+void CreatePlayerCharacters();
+
 void ProceedContinuation(); // 게임 진행 확인
 bool CheckClientNumber(); // 접속한 클라이언트 수 확인
 bool ValidateSocketMessage(int socket_state); // 받은 소켓 메시지 검증
@@ -108,7 +122,7 @@ void AtomicPrint(Ty1 caption, Ty2... args) {
 	AtomicPrint(args...);
 }
 
-// 한줄 띄우고 cout으로 출력하기
+// cout으로 출력하고 한줄 띄우기
 template<typename... Ty>
 void AtomicPrintLn(Ty... args) {
 	AtomicPrint(args..., "\n");
