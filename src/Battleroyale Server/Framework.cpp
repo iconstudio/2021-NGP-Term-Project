@@ -1,4 +1,5 @@
-﻿#include "pch.h"
+﻿#include "..\Server\Framework.h"
+#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 
