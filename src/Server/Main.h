@@ -68,7 +68,6 @@ normal_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 default_random_engine randomizer;
 
 bool game_started;
-const int WORLD_W = 1280, WORLD_H = 1280;
 int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 const int SPAWN_DISTANCE = 300; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 

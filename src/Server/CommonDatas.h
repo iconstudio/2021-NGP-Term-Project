@@ -2,11 +2,10 @@
 #include "stdafx.h"
 
 
-enum ClinetInfo
-{
+enum ClinetInfo {
 	COMMON_PORT = 15000,
-	GAME_SCENE_W = 1280,
-	GAME_SCENE_H = 1280,
+	WORLD_W = 1280,
+	WORLD_H = 1280,
 	CLIENT_W = 960,
 	CLIENT_H = 540,
 	VIEW_W = 320,
