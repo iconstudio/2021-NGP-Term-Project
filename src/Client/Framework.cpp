@@ -72,7 +72,7 @@ void ErrorDisplay(const char* msg) {
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
-	, WORLD_W(rw), WORLD_H(rh)
+	, world_w(rw), world_h(rh)
 	, view{ 0, 0, vw, vh }, port{ 0, 0, pw, ph }
 	, view_track_enabled(false), view_target_player(-1) {
 	view.xoff = vw * 0.5;
@@ -117,13 +117,17 @@ void ClientFramework::Initialize() {
 		last_render_info[t].instance_type = BLANK;
 	}
 
+	map_surface = CreateCompatibleDC(NULL);
+	map_bitmap = CreateCompatibleBitmap(NULL, WORLD_W, WORLD_H);
+
+	Render::draw_clear(map_surface, WORLD_W, WORLD_H, COLOR_BLACK);
+
 	int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 
 	if (SOCKET_ERROR == result) {
 		// 오류
 		ErrorAbort(L"connect error");
 	}
-
 
 	CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 }
@@ -184,15 +188,15 @@ void ClientFramework::Render(HWND window) {
 	//&& player_captain == true
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
-
-	// 파이프라인
-	//if (status == GAME) {
-	//}
-	for (int ty = 0; ty < 80; ++ty)
+	if (terrain_seed != 0)
 	{
-		for (int tx = 0; tx < 80; ++tx)
+		srand(terrain_seed);
+		for (int ty = 0; ty < WORLD_W / tile_sprite.get_width(); ++ty)
 		{
-
+			for (int tx = 0; tx < WORLD_H / tile_sprite.get_height(); ++tx)
+			{
+				tile_sprite.draw(surface_double, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), mapdata[(ty* WORLD_W / tile_sprite.get_width()) + tx], 0);
+			}
 		}
 	}
 	for (auto it = begin(last_render_info); it < end(last_render_info); it++)

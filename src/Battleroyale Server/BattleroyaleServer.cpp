@@ -10,7 +10,7 @@
 	왜냐하면 게임의 지연없이 한번에 여러 클라이언트를 처리하기 위해서는 동시 실행이 필수적이다.
 	IOCP 말고 이 부분에만 Overlapped 모델을 사용하면 좋을 것 같다.
 */
-ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
+ServerFramework framework{ WORLD_W, WORLD_H };
 
 int main() {
 	framework.AtomicPrintLn("Hello World!\n");

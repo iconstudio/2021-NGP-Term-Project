@@ -10,7 +10,7 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 WindowsClient game_client{ CLIENT_W, CLIENT_H };
-ClientFramework framework{ GAME_SCENE_W, GAME_SCENE_H, VIEW_W,
+ClientFramework framework{ WORLD_W, WORLD_H, VIEW_W,
                           VIEW_H,       PORT_W,       PORT_H };
 
 // 전역 변수:
@@ -235,18 +235,26 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-    PACKETS packet = CLIENT_PING;
-    int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
-    if (retval == SOCKET_ERROR) {
-    }
 
-    if (SERVER_TERRAIN_SEED == packet)
-    {
-        int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
-    }
+	PACKETS packet = CLIENT_PING;
+	int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
+	if (retval == SOCKET_ERROR) {
+	}
 
-    while (true) {
-        PACKETS packet = CLIENT_PING;
+	if (SERVER_TERRAIN_SEED == packet)
+	{
+		int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
+        fill(framework.mapdata.begin(), framework.mapdata.end(), 0);
+        fill_n(framework.mapdata.begin(), 100, 1);
+
+        std::default_random_engine rng(framework.terrain_seed);
+        shuffle(framework.mapdata.begin(), framework.mapdata.end(), rng);
+
+	}
+
+
+	while (true) {
+        packet = CLIENT_PING;
         int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
         if (retval == SOCKET_ERROR) {
         }

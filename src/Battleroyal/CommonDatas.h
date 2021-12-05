@@ -6,8 +6,8 @@
 #define SERVER_IP "127.0.0.1"
 #define COMMON_PORT 15000
 
-#define GAME_SCENE_W 1280
-#define GAME_SCENE_H 1280
+#define WORLD_W 1280
+#define WORLD_H 1280
 #define CLIENT_W 960
 #define CLIENT_H 540
 #define VIEW_W 320

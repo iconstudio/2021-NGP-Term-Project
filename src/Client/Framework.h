@@ -29,7 +29,7 @@ struct SockInfo {
 class ClientFramework {
 public:
 	COLORREF background_color = COLOR_WHITE;
-	const int WORLD_W, WORLD_H;
+	const int world_w, world_h;
 
 	ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph);
 	~ClientFramework();
@@ -57,10 +57,14 @@ private:
 	int view_target_player;
 
 	CLIENT_STATES status;
-	int terrain_seed;
+	int terrain_seed = 0;
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+	
+	HDC map_surface;				//맵 HDC
+	HBITMAP map_bitmap;				//맵 HBITMAP
+	vector<int> mapdata{ 6400 };	//타일 vectoraa
 
 	// 마지막에 수신한 렌더링 정보
 	char key_checkers[8];			//입력중인 키
