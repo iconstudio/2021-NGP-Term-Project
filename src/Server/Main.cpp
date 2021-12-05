@@ -1,9 +1,8 @@
 ﻿#include "stdafx.h"
-#include "Main.h"
 #include "Framework.h"
 #include "CommonDatas.h"
 #include "ServerFramework.h"
-#include "CommonDatas.h"
+#include "Main.h"
 
 
 // 스레드 프로세스
@@ -57,7 +56,7 @@ int main() {
 
 	AtomicPrintLn("서버 시작");
 
-	client_number = 0;
+	players_number = 0;
 	players.reserve(CLIENT_NUMBER_MAX);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
@@ -119,7 +118,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 			reinterpret_cast<const char*>(&option),	// 옵션 포인터
 			sizeof(option));						//옵션 크기
 
-		auto client = new ClientSession(client_socket, NULL, client_number++);
+		auto client = new ClientSession(client_socket, NULL, players_number++);
 
 		auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 		if (!th) {
@@ -129,7 +128,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 		CloseHandle(th);
 		players.push_back(client);
 
-		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", client_number);
+		AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
 
 		WaitForSingleObject(event_accept, INFINITE);
 	}
