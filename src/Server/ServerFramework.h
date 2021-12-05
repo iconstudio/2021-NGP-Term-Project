@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ﻿#ifndef _SERVER_FRAMEWORK
 #define _SERVER_FRAMEWORK
 
@@ -74,3 +75,6 @@ inline _GameClass2* CheckCollision(_GameClass1* self, _GameClass2* other) {
 	}
 	return nullptr;
 }
+=======
+﻿
+>>>>>>> Stashed changes
