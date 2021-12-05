@@ -5,21 +5,6 @@
 #include "Main.h"
 
 
-/* 소켓 */
-SOCKET my_socket; // 서버 소켓
-SOCKADDR_IN my_address; // 서버 주소
-int my_address_size = sizeof(my_address);
-
-/* 다중 스레드 정보 */
-HANDLE event_accept; // 클라이언트 수용 신호
-HANDLE event_game_communicate; // 게임 처리 신호
-HANDLE event_quit; // 종료 신호
-CRITICAL_SECTION permission_client, permission_;
-
-/* 스레드 선언 */
-DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
-DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
-
 RenderInstance rendering_infos_last[RENDER_INST_COUNT];
 
 int main() {
