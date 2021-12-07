@@ -151,7 +151,12 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
-	players_number--;
+	for (auto iter = players.begin(); iter != players.end(); ++iter) {
+		if ((*iter)->player_character->dead) {
+			iter = players.erase(iter);
+			players_number--;
+		}
+	}
 }
 
 void ServerFramework::ProceedContinuation() {
