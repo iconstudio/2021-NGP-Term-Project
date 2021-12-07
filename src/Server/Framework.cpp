@@ -162,15 +162,30 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 void ServerFramework::ProceedContinuation() {
 	player_process_index++;
 
+	int dead_players = 0;
+
+	// 플레이어 사망 확인
+	for (auto player : players) {
+		if (player->player_character->dead) {
+			++dead_players;
+		}
+	}
+
 	if (players_number <= player_process_index) {
 		player_process_index = 0;
 
 		CastUpdateEvent();
 	}
+	else if (players_number >= dead_players) {
+
+	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
-	if (SOCKET_ERROR == socket_state || 0 == socket_state) {
+	if (SOCKET_ERROR == socket_state) {
+		return false;
+	}
+	else if (0 == socket_state) {
 		return false;
 	}
 
