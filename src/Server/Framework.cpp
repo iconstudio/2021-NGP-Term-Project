@@ -58,7 +58,7 @@ void ServerFramework::Initialize() {
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
-		, reinterpret_cast<char*>(&option), sizeof(option))) {
+								   , reinterpret_cast<char*>(&option), sizeof(option))) {
 		ErrorAbort("setsockopt()");
 		return;
 	}
@@ -93,7 +93,15 @@ void ServerFramework::Startup() {
 
 void ServerFramework::GameReady() {
 	CreatePlayerCharacters();
-	SendTerrainSeed();
+
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int player_socket = player->my_socket;
+
+		SendTerrainSeed(player_socket);
+		SendPlayersCount(player_socket);
+	}
 	CastReceiveEvent();
 }
 
@@ -124,41 +132,20 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	CloseHandle(th);
 
 	players.push_back(client);
+	players_number++;
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
-	
+	players_number--;
 }
 
-void ServerFramework::SendTerrainSeed() {
-	auto sz = players.size();
-	for (int i = 0; i < sz; ++i) {
-		auto player = players.at(i);
-		int player_socket = player->my_socket;
+void ServerFramework::ProceedContinuation() {
 
-		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
-		int seed = random_distrubution(randomizer);
-		SendData(player->my_socket, PACKETS::SERVER_TERRAIN_SEED
-			, reinterpret_cast<char*>(&seed), sizeof(seed));
-	}
 }
 
-void ServerFramework::SendGameStatus(ClientSession* client) {
-	auto client_socket = client->my_socket;
-	auto player_index = client->player_index;
-	auto player_character = client->player_character;
-
-	auto state = new GameUpdateMessage;
-	state->players_count = GetPlayerNumber();
-	state->player_hp = player_character->health;
-	state->player_x = player_character->x;
-	state->player_y = player_character->y;
-	state->player_direction = player_character->direction;
-	state->target_player = 0;
-
-	SendData(client_socket, SERVER_GAME_STATUS, reinterpret_cast<char*>(state), sizeof(GameUpdateMessage));
+void ServerFramework::ValidateSocketMessage(int socket_state) {
 }
 
 void ServerFramework::CreatePlayerCharacters() {
@@ -172,13 +159,6 @@ void ServerFramework::CreatePlayerCharacters() {
 		player->player_character->owner = player->player_index;
 		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
 	}
-}
-
-void ServerFramework::ProceedContinuation() {
-
-}
-
-void ServerFramework::ValidateSocketMessage(int socket_state) {
 }
 
 void ServerFramework::CreateRenderingInfos() {
@@ -208,9 +188,38 @@ void ServerFramework::CreateRenderingInfos() {
 				index++;
 			}
 		}
-	} else if (!rendering_infos_last.empty()) {
+	}
+	else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
 	}
+}
+
+void ServerFramework::SendTerrainSeed(SOCKET client_socket) {
+	int seed = random_distrubution(randomizer);
+	SendData(client_socket, PACKETS::SERVER_TERRAIN_SEED
+		, reinterpret_cast<char*>(&seed), sizeof(seed));
+}
+
+void ServerFramework::SendPlayersCount(SOCKET client_socket) {
+	SendData(client_socket, SERVER_GAME_STATUS
+			 , reinterpret_cast<char*>(&players_number), sizeof(players_number));
+}
+
+void ServerFramework::SendGameStatus(ClientSession* client) {
+	auto client_socket = client->my_socket;
+	auto player_index = client->player_index;
+	auto player_character = client->player_character;
+
+	GameUpdateMessage state;
+	state.players_count = GetPlayerNumber();
+	state.player_hp = player_character->health;
+	state.player_x = player_character->x;
+	state.player_y = player_character->y;
+	state.player_direction = player_character->direction;
+	state.target_player = 0;
+
+	SendData(client_socket, SERVER_GAME_STATUS
+			 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
 }
 
 void ServerFramework::SendRenderingInfos(SOCKET client_socket) {

@@ -60,14 +60,15 @@ public:
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
 	void DisconnectClient(ClientSession* client); // 플레이어 종료
 
-	void SendTerrainSeed();
-	void CreatePlayerCharacters(); // 플레이어 생성
-	void SendGameStatus(ClientSession* client);
-
 	void ProceedContinuation();							// 게임 진행 확인
 	void ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
-	void CreateRenderingInfos();											// 렌더링 정보 생성
-	void SendRenderingInfos(SOCKET client_socket);							// 렌더링 정보 전송
+	void CreatePlayerCharacters(); // 플레이어 생성
+	void CreateRenderingInfos(); // 렌더링 정보 생성
+
+	void SendTerrainSeed(SOCKET client_socket);
+	void SendPlayersCount(SOCKET client_socket);
+	void SendGameStatus(ClientSession* client);
+	void SendRenderingInfos(SOCKET client_socket); // 렌더링 정보 전송
 
 	void SetConnectProcess();			// accept 이벤트 활성화
 	void CastReceiveEvent();			    // 게임 프로세스 이벤트 활성화
