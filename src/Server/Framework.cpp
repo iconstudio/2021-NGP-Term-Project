@@ -171,6 +171,9 @@ void ServerFramework::CreateRenderingInfos() {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
+			rendering_infos_last.resize(RENDER_INST_COUNT);
+			//rendering_infos_last.shrink_to_fit();
+			//rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
 
 		auto CopyList = vector<GameInstance*>(instances);
@@ -196,6 +199,9 @@ void ServerFramework::CreateRenderingInfos() {
 	}
 	else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
+		rendering_infos_last.resize(RENDER_INST_COUNT);
+		//rendering_infos_last.shrink_to_fit();
+		//rendering_infos_last.reserve(RENDER_INST_COUNT);
 	}
 }
 

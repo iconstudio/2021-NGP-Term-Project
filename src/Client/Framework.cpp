@@ -215,9 +215,10 @@ void ClientFramework::Render(HWND window) {
 	}
 
 	// 이중 버퍼 -> 백 버퍼
-
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
+
+	//
 
 	// 백 버퍼 -> 화면 버퍼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h

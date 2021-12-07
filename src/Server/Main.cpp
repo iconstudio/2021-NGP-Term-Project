@@ -110,6 +110,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 								auto bullet = framework.Instantiate<CBullet>(player_x, player_y);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
+								bullet->SetDirection(player_ch->direction);
+								bullet->SetSpeed(SNOWBALL_SPEED);
 							}
 							break;
 
