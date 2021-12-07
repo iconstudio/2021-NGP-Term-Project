@@ -73,7 +73,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 				CCharacter* player_ch = client->player_character;
 				if (player_ch && !player_ch->dead) {
-					const auto player_velocity = PLAYER_MOVE_SPEED * FRAME_TIME;
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
 					
@@ -84,25 +83,25 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 						switch (input) {
 							case VK_LEFT:
 							{
-								player_ch->SetVelocity(player_velocity, 180);
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 180);
 							}
 							break;
 
 							case VK_UP:
 							{
-								player_ch->SetVelocity(player_velocity, 90);
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 90);
 							}
 							break;
 
 							case VK_RIGHT:
 							{
-								player_ch->SetVelocity(player_velocity, 0);
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 0);
 							}
 							break;
 
 							case VK_DOWN:
 							{
-								player_ch->SetVelocity(player_velocity, 270);
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 270);
 							}
 							break;
 
