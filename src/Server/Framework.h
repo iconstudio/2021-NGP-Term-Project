@@ -117,6 +117,8 @@ private:
 	int	player_captain; // 방장 플레이어
 	int player_winner; // 승리한 플레이어
 
+	CRITICAL_SECTION client_permission, print_permission;
+
 	/* 게임 관련 속성 */
 	bool game_started;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열

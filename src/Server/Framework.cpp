@@ -5,6 +5,8 @@
 
 ServerFramework::ServerFramework()
 	: random_distrubution(0, INT32_MAX) {
+	InitializeCriticalSection(&client_permission);
+
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
 	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
@@ -34,6 +36,7 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
+	DeleteCriticalSection(&client_permission);
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
 	CloseHandle(event_quit);
@@ -58,7 +61,7 @@ void ServerFramework::Initialize() {
 
 	BOOL option = TRUE;
 	if (SOCKET_ERROR == setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR
-								   , reinterpret_cast<char*>(&option), sizeof(option))) {
+		, reinterpret_cast<char*>(&option), sizeof(option))) {
 		ErrorAbort("setsockopt()");
 		return;
 	}
@@ -122,7 +125,8 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	auto client = new ClientSession(client_socket, NULL, players_number++);
+	EnterCriticalSection(&client_permission);
+	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
@@ -135,6 +139,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	players_number++;
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
+	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
@@ -201,7 +206,7 @@ void ServerFramework::SendTerrainSeed(SOCKET client_socket) {
 }
 
 void ServerFramework::SendPlayersCount(SOCKET client_socket) {
-	SendData(client_socket, SERVER_GAME_STATUS
+	SendData(client_socket, SERVER_PLAYER_COUNT
 			 , reinterpret_cast<char*>(&players_number), sizeof(players_number));
 }
 
