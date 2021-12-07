@@ -253,6 +253,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
         if (SERVER_GAME_STATUS == packet)
         {
             int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.playerinfo), sizeof(GameUpdateMessage), MSG_WAITALL);
+            if (result == SOCKET_ERROR) {
+            }
             framework.view.x = max(0, min(framework.world_w - framework.view.w, framework.playerinfo.player_x - framework.view.xoff));
             framework.view.y = max(0, min(framework.world_h - framework.view.h, framework.playerinfo.player_y - framework.view.yoff));
         }
@@ -260,15 +262,23 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
         if (SERVER_RENDER_INFO == packet)
         {
             int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
-
+            if (result == SOCKET_ERROR) {
+            }
         }	
+
+        if (SERVER_PLAYER_COUNT == packet)
+        {
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.player_num), sizeof(int), MSG_WAITALL);
+            if (result == SOCKET_ERROR) {
+            }
+        }
 
         if (SERVER_TERRAIN_SEED == packet)
         {
             int tilex = WORLD_W / tile_sprite.get_width();      //x축 타일 갯수
             int tiley = WORLD_H / tile_sprite.get_height();     //y축 타일 갯수
 
-            int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.terrain_seed), sizeof(int), MSG_WAITALL);
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.terrain_seed), sizeof(int), MSG_WAITALL);
             framework.mapdata.resize(tilex * tiley);
             fill(framework.mapdata.begin(), framework.mapdata.end(), 0);
             fill_n(framework.mapdata.begin(), 100, 1);

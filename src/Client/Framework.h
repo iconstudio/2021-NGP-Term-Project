@@ -3,7 +3,7 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-#define SERVER_IP "192.168.122.202"
+#define SERVER_IP "192.168.123.101"
 //#define SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
@@ -45,6 +45,7 @@ public:
 
 	friend DWORD WINAPI CommunicateProcess(LPVOID arg);	//스레드 함수
 
+	// 마지막에 수신한 렌더링 정보
 	RenderInstance last_render_info[40];
 
 private:
@@ -61,12 +62,12 @@ private:
 
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+	int player_num;
 	
 	HDC map_surface;				//맵 HDC
 	HBITMAP map_bitmap;				//맵 HBITMAP
 	vector<int> mapdata{ 6400 };	//타일 vectoraa
 
-	// 마지막에 수신한 렌더링 정보
 	char key_checkers[8];			//입력중인 키
 	int mouse_x;
 	int mouse_y;
@@ -74,6 +75,7 @@ private:
 	GameUpdateMessage playerinfo;
 	int cooldown = 0;
 	int bulletleft = 3;
+	int bulletcooldown = 0;
 	double hp = 100;
 
 };
