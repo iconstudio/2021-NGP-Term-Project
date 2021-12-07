@@ -4,6 +4,7 @@
 
 GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 0, 0);
+GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
 	: width(cw), height(ch), procedure(NULL) {}
@@ -115,6 +116,7 @@ void ClientFramework::Initialize() {
 	{
 		last_render_info[t].instance_type = BLANK;
 	}
+
 	HDC WorldDC = GetDC(NULL);
 	map_surface = CreateCompatibleDC(WorldDC);
 	map_bitmap = CreateCompatibleBitmap(WorldDC, WORLD_W, WORLD_H);
@@ -146,23 +148,27 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState(VK_SPACE) & 0x8000 || GetAsyncKeyState(VK_SPACE) & 0x8001))
-		key_checkers[4] = VK_SPACE;
+	if (GetAsyncKeyState('A') & 0x8000 && bulletcooldown == 0)
+	{
+		key_checkers[4] = 'A';
+		bulletcooldown = FRAMERATE / 5;
+		--bulletleft;
+	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
 		key_checkers[6] = 'D';
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001)
+	{
 		key_checkers[7] = 'F';
+		bulletleft = 3;
+	}
 
 	background_color = COLOR_YELLOW;
-	auto address_size = sizeof(server_address);
-
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
-
-	char temp = 0;
+	bulletcooldown--;
 }
 
 
@@ -185,6 +191,10 @@ void ClientFramework::Render(HWND window) {
 	//&& player_captain == true
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
+
+	//각자작업한코드봄
+	//스레드 뭐썼는지
+	//충돌처리는 서버에서
 
 	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
 
@@ -218,8 +228,13 @@ void ClientFramework::Render(HWND window) {
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
-	//
+	health_sprite.draw(surface_back, 0, 0, 3 - hp / 33, 0, 0.5, 0.5);
 
+	for (int curbullet = 0; curbullet < bulletleft; ++curbullet)
+	{
+		bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width()/ 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3 ), 0, 0, 0.8, 0.8, 0.5);
+	}
+	
 	// 백 버퍼 -> 화면 버퍼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
 		, surface_back, 0, 0, view.w, view.h, SRCCOPY);
@@ -249,7 +264,7 @@ void ClientFramework::OnMouseUp(const WPARAM button, const LPARAM cursor) {
 
 PACKETS ClientFramework::RecvPacket(SOCKET sock) {
 	PACKETS packet = CLIENT_PING;
-	int retval = recv(sock, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
+	int retval = recv(sock, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) {
 		ErrorAbort(L"recv packet");
 	}

@@ -56,6 +56,7 @@ public:
 	void Initialize(); // 서버 초기화
 	void Startup(); // 서버 구동
 	void GameReady(); // 게임 준비
+	bool GameUpdate(); // 게임 갱신, 접속한 플레이어가 없으면 false 반환
 
 	SOCKET AcceptClient();
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
@@ -70,6 +71,7 @@ public:
 	void SendPlayersCount(SOCKET client_socket);
 	void SendGameStatus(ClientSession* client);
 	void SendRenderingInfos(SOCKET client_socket); // 렌더링 정보 전송
+	void SendGameInfosToAll();
 
 	void SetConnectProcess();			// 클라이언트 접속 객체 신호
 	void CastReceiveEvent();			    // 게임 프로세스 이벤트 객체 신호
@@ -79,6 +81,7 @@ public:
 	
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
+	inline DWORD WINAPI AwaitUpdateEvent();
 	inline DWORD WINAPI AwaitQuitEvent();
 
 	friend DWORD WINAPI ConnectProcess(LPVOID arg);
@@ -148,6 +151,11 @@ inline DWORD WINAPI ServerFramework::AwaitClientAcceptEvent() {
 inline DWORD WINAPI ServerFramework::AwaitReceiveEvent() {
 	AtomicPrintLn("AwaitReceiveEvent()");
 	return WaitForSingleObject(event_game_communicate, INFINITE);
+}
+
+inline DWORD __stdcall ServerFramework::AwaitUpdateEvent() {
+	AtomicPrintLn("AwaitUpdateEvent()");
+	return WaitForSingleObject(event_game_update, INFINITE);
 }
 
 inline DWORD __stdcall ServerFramework::AwaitQuitEvent() {
