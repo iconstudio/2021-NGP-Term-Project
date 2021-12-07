@@ -63,12 +63,14 @@ void GameInstance::SetSpeed(double speed) {
 
 		hspeed = lengthdir_x(speed, old_dir);
 		vspeed = lengthdir_y(speed, old_dir);
+		direction = old_dir;
 	}
 }
 
 void GameInstance::SetVelocity(double speed, double dir) {
 	hspeed = lengthdir_x(speed, dir);
 	vspeed = lengthdir_y(speed, dir);
+	direction = dir;
 }
 
 void GameInstance::SetBoundBox(const RECT& mask) {

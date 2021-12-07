@@ -70,38 +70,39 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				} else if (0 == result) {
 					break;
 				}
-				
+
 				CCharacter* player_ch = client->player_character;
 				if (player_ch && !player_ch->dead) {
 					const auto player_velocity = PLAYER_MOVE_SPEED * FRAME_TIME;
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
-
+					
+					player_ch->SetSpeed(0);
 					for (int i = 0; i < client_data_size; ++i) {
 						char input = client_data[i];
 
 						switch (input) {
 							case VK_LEFT:
 							{
-								player_x -= player_velocity;
+								player_ch->SetVelocity(player_velocity, 180);
 							}
 							break;
 
 							case VK_UP:
 							{
-								player_y -= player_velocity;
+								player_ch->SetVelocity(player_velocity, 90);
 							}
 							break;
 
 							case VK_RIGHT:
 							{
-								player_x += player_velocity;
+								player_ch->SetVelocity(player_velocity, 0);
 							}
 							break;
 
 							case VK_DOWN:
 							{
-								player_y += player_velocity;
+								player_ch->SetVelocity(player_velocity, 270);
 							}
 							break;
 
@@ -172,7 +173,9 @@ CCharacter::CCharacter()
 	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
+	SetBoundBox(RECT{ -8, -8, 8, 8 });
+
+	image_speed = 0.4;
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
@@ -187,6 +190,10 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (hspeed != 0.0 || vspeed != 0.0)
 		direction = point_direction(0, 0, hspeed, vspeed);
+
+	if (0 < inv_time) {
+		inv_time -= frame_advance;
+	}
 
 	AssignRenderingInfo(direction);
 
@@ -205,9 +212,6 @@ void CCharacter::GetHurt(int dmg) {
 		else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
-	}
-	else {
-		inv_time -= FRAME_TIME;
 	}
 }
 
