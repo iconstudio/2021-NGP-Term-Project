@@ -36,6 +36,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 DWORD WINAPI GameProcess(LPVOID arg) {
 	ClientSession* client = reinterpret_cast<ClientSession*>(arg);
 	SOCKET client_socket = client->my_socket;
+	int player_index = client->player_index;
 
 	while (true) {
 		framework.AwaitReceiveEvent();
@@ -69,8 +70,61 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				} else if (0 == result) {
 					break;
 				}
-				AtomicPrintLn("받은 패킷 내용: ", client_data);
-			}
+				
+				CCharacter* player_ch = client->player_character;
+				if (player_ch) {
+					const auto player_velocity = PLAYER_MOVE_SPEED * FRAME_TIME;
+					auto& player_x = player_ch->x;
+					auto& player_y = player_ch->y;
+
+					for (int i = 0; i < client_data_size; ++i) {
+						char input = client_data[i];
+
+						switch (input) {
+							case VK_LEFT:
+							{
+								player_x -= player_velocity;
+							}
+							break;
+
+							case VK_UP:
+							{
+								player_y -= player_velocity;
+							}
+							break;
+
+							case VK_RIGHT:
+							{
+								player_x += player_velocity;
+							}
+							break;
+
+							case VK_DOWN:
+							{
+								player_y += player_velocity;
+							}
+							break;
+
+							case 'A': // 총알
+							{
+								auto bullet = framework.Instantiate<CBullet>(player_x, player_y);
+								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
+								bullet->SetOwner(player_index);
+								bullet->SetDirection(player_ch->direction);
+								bullet->SetSpeed(SNOWBALL_SPEED);
+							}
+							break;
+
+							case VK_SPACE: // 특수 능력
+							{
+
+							}
+							break;
+						}
+					}
+					player_ch->AssignRenderingInfo(0);
+				} // IF (player_ch)
+			} // CASE PACKETS::CLIENT_KEY_INPUT
 			break;
 
 			case PACKETS::CLIENT_PING:
@@ -83,39 +137,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		}
 
 		// 2. 게임 진행
-		CCharacter* client_char = client->player_character;
-		if (client_char) {
-			for (int i = 0; i < client_data_size; ++i) {
-				auto input = client_data[i];
-
-				switch (input) {
-					case VK_UP:
-					{
-						client_char->y -= 2;
-					}
-					break;
-
-					case VK_LEFT:
-					{
-						client_char->x -= 2;
-					}
-					break;
-
-					case VK_RIGHT:
-					{
-						client_char->x += 2;
-					}
-					break;
-
-					case VK_DOWN:
-					{
-						client_char->y += 2;
-					}
-					break;
-				}
-			}
-			client_char->AssignRenderingInfo(0);
-		}
+		if (client_data)
+			AtomicPrintLn("받은 패킷 내용: ", client_data);
 
 		// 3. 게임 처리
 
@@ -128,9 +151,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		framework.CastReceiveEvent();
 	}
 
+	return 0;
+}
+
+DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 	return 0;
 }
 

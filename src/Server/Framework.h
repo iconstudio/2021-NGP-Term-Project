@@ -7,6 +7,7 @@
 /* 스레드 선언 */
 DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
 DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
+DWORD WINAPI GameUpdateProcess(LPVOID arg); // 단일, 송신 스레드
 
 class CCharacter : public GameInstance {
 public:
@@ -60,17 +61,20 @@ public:
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
 	void DisconnectClient(ClientSession* client); // 플레이어 종료
 
-	void SendTerrainSeed();
-	void CreatePlayerCharacters(); // 플레이어 생성
-	void SendGameStatus(ClientSession* client);
-
 	void ProceedContinuation();							// 게임 진행 확인
-	void ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
-	void CreateRenderingInfos();											// 렌더링 정보 생성
-	void SendRenderingInfos(SOCKET client_socket);							// 렌더링 정보 전송
+	bool ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
+	void CreatePlayerCharacters(); // 플레이어 생성
+	void CreateRenderingInfos(); // 렌더링 정보 생성
 
-	void SetConnectProcess();			// accept 이벤트 활성화
-	void CastReceiveEvent();			    // 게임 프로세스 이벤트 활성화
+	void SendTerrainSeed(SOCKET client_socket);
+	void SendPlayersCount(SOCKET client_socket);
+	void SendGameStatus(ClientSession* client);
+	void SendRenderingInfos(SOCKET client_socket); // 렌더링 정보 전송
+
+	void SetConnectProcess();			// 클라이언트 접속 객체 신호
+	void CastReceiveEvent();			    // 게임 프로세스 이벤트 객체 신호
+	void CastUpdateEvent();			    // 게임 프로세스 이벤트 객체 신호
+
 	const int GetPlayerNumber() const;
 	
 	inline DWORD WINAPI AwaitClientAcceptEvent();
@@ -104,7 +108,8 @@ private:
 
 	/* 다중 스레드 속성 */
 	HANDLE event_accept; // 클라이언트 수용 신호
-	HANDLE event_game_communicate; // 게임 처리 신호
+	HANDLE event_game_communicate; // 입력 수신 신호
+	HANDLE event_game_update; // 게임 처리 신호
 	HANDLE event_quit; // 종료 신호
 	CRITICAL_SECTION permission_client, permission_;
 
@@ -115,6 +120,8 @@ private:
 	int player_number_last; // 마지막에 추가된 플레이어의 번호
 	int	player_captain; // 방장 플레이어
 	int player_winner; // 승리한 플레이어
+
+	CRITICAL_SECTION client_permission, print_permission;
 
 	/* 게임 관련 속성 */
 	bool game_started;

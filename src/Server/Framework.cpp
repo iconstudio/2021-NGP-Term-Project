@@ -5,6 +5,8 @@
 
 ServerFramework::ServerFramework()
 	: random_distrubution(0, INT32_MAX) {
+	InitializeCriticalSection(&client_permission);
+
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
 	double dir_increment = (360.0 / CLIENT_NUMBER_MAX);
@@ -27,6 +29,11 @@ ServerFramework::ServerFramework()
 		return;
 	}
 
+	if (NULL == (event_game_update = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+		ErrorAbort("CreateEvent[event_game_update]");
+		return;
+	}
+
 	if (NULL == (event_quit = CreateEvent(NULL, FALSE, FALSE, NULL))) {
 		ErrorAbort("CreateEvent[event_quit]");
 		return;
@@ -34,8 +41,11 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
+	DeleteCriticalSection(&client_permission);
+
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
+	CloseHandle(event_game_update);
 	CloseHandle(event_quit);
 
 	closesocket(my_socket);
@@ -93,7 +103,15 @@ void ServerFramework::Startup() {
 
 void ServerFramework::GameReady() {
 	CreatePlayerCharacters();
-	SendTerrainSeed();
+
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int player_socket = player->my_socket;
+
+		SendTerrainSeed(player_socket);
+		SendPlayersCount(player_socket);
+	}
 	CastReceiveEvent();
 }
 
@@ -114,51 +132,39 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	auto client = new ClientSession(client_socket, NULL, players_number++);
+	EnterCriticalSection(&client_permission);
+	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
 		ErrorDisplay("CreateThread[GameProcess]");
+		LeaveCriticalSection(&client_permission);
 		return;
 	}
 	CloseHandle(th);
 
 	players.push_back(client);
+	players_number++;
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
+	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
-	
+	players_number--;
 }
 
-void ServerFramework::SendTerrainSeed() {
-	auto sz = players.size();
-	for (int i = 0; i < sz; ++i) {
-		auto player = players.at(i);
-		int player_socket = player->my_socket;
+void ServerFramework::ProceedContinuation() {
+	player_process_index++;
 
-		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
-		int seed = random_distrubution(randomizer);
-		SendData(player->my_socket, PACKETS::SERVER_TERRAIN_SEED
-			, reinterpret_cast<char*>(&seed), sizeof(seed));
+	if (players_number <= player_process_index) {
+		player_process_index = 0;
+
+		CastUpdateEvent();
 	}
 }
 
-void ServerFramework::SendGameStatus(ClientSession* client) {
-	auto client_socket = client->my_socket;
-	auto player_index = client->player_index;
-	auto player_character = client->player_character;
-
-	auto state = new GameUpdateMessage;
-	state->players_count = GetPlayerNumber();
-	state->player_hp = player_character->health;
-	state->player_x = player_character->x;
-	state->player_y = player_character->y;
-	state->player_direction = player_character->direction;
-	state->target_player = 0;
-
-	SendData(client_socket, SERVER_GAME_STATUS, reinterpret_cast<char*>(state), sizeof(GameUpdateMessage));
+bool ServerFramework::ValidateSocketMessage(int socket_state) {
 }
 
 void ServerFramework::CreatePlayerCharacters() {
@@ -174,18 +180,14 @@ void ServerFramework::CreatePlayerCharacters() {
 	}
 }
 
-void ServerFramework::ProceedContinuation() {
-
-}
-
-void ServerFramework::ValidateSocketMessage(int socket_state) {
-}
-
 void ServerFramework::CreateRenderingInfos() {
 	if (!instances.empty()) {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
+			//rendering_infos_last.resize(RENDER_INST_COUNT);
+			rendering_infos_last.shrink_to_fit();
+			rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
 
 		auto CopyList = vector<GameInstance*>(instances);
@@ -208,9 +210,41 @@ void ServerFramework::CreateRenderingInfos() {
 				index++;
 			}
 		}
-	} else if (!rendering_infos_last.empty()) {
-		rendering_infos_last.clear();
 	}
+	else if (!rendering_infos_last.empty()) {
+		rendering_infos_last.clear();
+		//rendering_infos_last.resize(RENDER_INST_COUNT);
+		rendering_infos_last.shrink_to_fit();
+		rendering_infos_last.reserve(RENDER_INST_COUNT);
+	}
+}
+
+void ServerFramework::SendTerrainSeed(SOCKET client_socket) {
+	int seed = random_distrubution(randomizer);
+	SendData(client_socket, PACKETS::SERVER_TERRAIN_SEED
+		, reinterpret_cast<char*>(&seed), sizeof(seed));
+}
+
+void ServerFramework::SendPlayersCount(SOCKET client_socket) {
+	SendData(client_socket, SERVER_PLAYER_COUNT
+			 , reinterpret_cast<char*>(&players_number), sizeof(players_number));
+}
+
+void ServerFramework::SendGameStatus(ClientSession* client) {
+	auto client_socket = client->my_socket;
+	auto player_index = client->player_index;
+	auto player_character = client->player_character;
+
+	GameUpdateMessage state;
+	state.players_count = GetPlayerNumber();
+	state.player_hp = player_character->health;
+	state.player_x = player_character->x;
+	state.player_y = player_character->y;
+	state.player_direction = player_character->direction;
+	state.target_player = 0;
+
+	SendData(client_socket, SERVER_GAME_STATUS
+			 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
 }
 
 void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
@@ -222,11 +256,15 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 }
 
 void ServerFramework::SetConnectProcess() {
-	SwtEvent(event_accept);
+	SetEvent(event_accept);
 }
 
 void ServerFramework::CastReceiveEvent() {
 	SetEvent(event_game_communicate);
+}
+
+void ServerFramework::CastUpdateEvent() {
+	SetEvent(event_game_update);
 }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
