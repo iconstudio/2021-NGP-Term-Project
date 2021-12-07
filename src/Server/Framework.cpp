@@ -164,35 +164,35 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
-	for (auto iter = players.begin(); iter != players.end(); ++iter) {
-		if ((*iter)->player_character->dead) {
-			iter = players.erase(iter);
-			players_number--;
-		}
-	}
+	auto iter = std::find(players.begin(), players.end(), client);
+	players.erase(iter);
+	players_number--;
 }
 
 void ServerFramework::ProceedContinuation() {
 	player_process_index++;
 
-	int dead_players = 0;
+	//int dead_players = 0;
+	std::vector<ClientSession*> dead_players;
 
 	// 플레이어 사망 확인
 	for (auto player : players) {
 		if (player->player_character->dead) {
-			++dead_players;
+			//++dead_players;
+			dead_players.push_back(player);
 		}
 	}
 
-	if (players_number <= player_process_index) {
+	if (!dead_players.empty()) {	// 플레이어 사망
+		for (auto player : dead_players) {
+			DisconnectClient(player);
+		}
+	} else if (players_number <= player_process_index) {	// 플레이어 업데이트
 		player_process_index = 0;
 
 		CastUpdateEvent();
-	} else {
+	} else {	// 이벤트 recv
 		CastReceiveEvent();
-	}
-	else if (players_number >= dead_players) {
-
 	}
 }
 
