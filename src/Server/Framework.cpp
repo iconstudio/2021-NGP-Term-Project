@@ -150,7 +150,12 @@ void ServerFramework::ProceedContinuation() {
 
 }
 
-void ServerFramework::ValidateSocketMessage(int socket_state) {
+bool ServerFramework::ValidateSocketMessage(int socket_state) {
+	if (SOCKET_ERROR == socket_state || 0 == socket_state) {
+		return false;
+	}
+
+	return true;
 }
 
 void ServerFramework::CreatePlayerCharacters() {

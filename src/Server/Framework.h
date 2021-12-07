@@ -61,7 +61,7 @@ public:
 	void DisconnectClient(ClientSession* client); // 플레이어 종료
 
 	void ProceedContinuation();							// 게임 진행 확인
-	void ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
+	bool ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증
 	void CreatePlayerCharacters(); // 플레이어 생성
 	void CreateRenderingInfos(); // 렌더링 정보 생성
 
