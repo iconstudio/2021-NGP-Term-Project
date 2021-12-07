@@ -184,8 +184,8 @@ void ServerFramework::ProceedContinuation() {
 	}
 
 	if (!dead_players.empty()) {	// 플레이어 사망
-		for (auto player : dead_players) {
-			DisconnectClient(player);
+		for (auto client : dead_players) {
+			DisconnectClient(client);
 		}
 	} else if (players_number <= player_process_index) {	// 플레이어 업데이트
 		player_process_index = 0;
