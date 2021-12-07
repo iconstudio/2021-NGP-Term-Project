@@ -97,6 +97,11 @@ void ServerFramework::Startup() {
 		ErrorAbort("CreateThread[ConnectProcess]");
 	}
 
+	// 게임 처리
+	if (!CreateThread(NULL, 0, GameUpdateProcess, nullptr, 0, NULL)) {
+		ErrorAbort("CreateThread[ConnectProcess]");
+	}
+
 	Sleep(8000);
 	GameReady();
 }
@@ -113,6 +118,14 @@ void ServerFramework::GameReady() {
 		SendPlayersCount(player_socket);
 	}
 	CastReceiveEvent();
+}
+
+bool ServerFramework::GameUpdate() {
+	for (auto inst : instances) {
+		inst->OnUpdate(FRAME_TIME);
+	}
+
+	return true;
 }
 
 SOCKET ServerFramework::AcceptClient() {
@@ -155,16 +168,17 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
 void ServerFramework::ProceedContinuation() {
-	player_process_index++;
-
-	if (players_number <= player_process_index) {
+	if (players_number <= player_process_index++) {
 		player_process_index = 0;
 
 		CastUpdateEvent();
+	} else {
+		CastReceiveEvent();
 	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
+	return false;
 }
 
 void ServerFramework::CreatePlayerCharacters() {
@@ -253,6 +267,17 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 
 	AtomicPrintLn("렌더링 정보 전송 (크기: ", render_size, ")");
 	SendData(client_socket, SERVER_RENDER_INFO, renderings, render_size);
+}
+
+void ServerFramework::SendGameInfosToAll() {
+	auto sz = players.size();
+	for (int i = 0; i < sz; ++i) {
+		auto player = players.at(i);
+		int player_socket = player->my_socket;
+
+		SendRenderingInfos(player_socket);
+		SendGameStatus(player);
+	}
 }
 
 void ServerFramework::SetConnectProcess() {

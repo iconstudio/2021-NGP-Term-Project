@@ -72,7 +72,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				}
 				
 				CCharacter* player_ch = client->player_character;
-				if (player_ch) {
+				if (player_ch && !player_ch->dead) {
 					const auto player_velocity = PLAYER_MOVE_SPEED * FRAME_TIME;
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
@@ -110,8 +110,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 								auto bullet = framework.Instantiate<CBullet>(player_x, player_y);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
-								bullet->SetDirection(player_ch->direction);
-								bullet->SetSpeed(SNOWBALL_SPEED);
+								//bullet->SetDirection(player_ch->direction);
+								//bullet->SetSpeed(SNOWBALL_SPEED);
 							}
 							break;
 
@@ -140,23 +140,31 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		if (client_data)
 			AtomicPrintLn("받은 패킷 내용: ", client_data);
 
-		// 3. 게임 처리
-
-		// 4. 렌더링 정보 작성
-		framework.CreateRenderingInfos();
-
-		// 5. 렌더링 정보 전송
-		framework.SendRenderingInfos(client_socket);
-		framework.SendGameStatus(client);
-
-		// 6. 대기
-		Sleep(FRAME_TIME);
+		framework.ProceedContinuation();
 	}
 
 	return 0;
 }
 
 DWORD WINAPI GameUpdateProcess(LPVOID arg) {
+	while (true) {
+		framework.AwaitUpdateEvent();
+
+		// 3. 게임 처리
+		framework.GameUpdate();
+		
+		// 4. 렌더링 정보 작성
+		framework.CreateRenderingInfos();
+
+		// 5. 렌더링 정보 전송
+		framework.SendGameInfosToAll();
+
+		// 6. 대기
+		Sleep(FRAME_TIME);
+
+		framework.CastReceiveEvent();
+	}
+
 	return 0;
 }
 
