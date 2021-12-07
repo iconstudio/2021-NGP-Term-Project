@@ -29,6 +29,11 @@ ServerFramework::ServerFramework()
 		return;
 	}
 
+	if (NULL == (event_game_update = CreateEvent(NULL, FALSE, FALSE, NULL))) {
+		ErrorAbort("CreateEvent[event_game_update]");
+		return;
+	}
+
 	if (NULL == (event_quit = CreateEvent(NULL, FALSE, FALSE, NULL))) {
 		ErrorAbort("CreateEvent[event_quit]");
 		return;
@@ -37,8 +42,10 @@ ServerFramework::ServerFramework()
 
 ServerFramework::~ServerFramework() {
 	DeleteCriticalSection(&client_permission);
+
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
+	CloseHandle(event_game_update);
 	CloseHandle(event_quit);
 
 	closesocket(my_socket);
@@ -131,6 +138,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
 		ErrorDisplay("CreateThread[GameProcess]");
+		LeaveCriticalSection(&client_permission);
 		return;
 	}
 	CloseHandle(th);
@@ -147,10 +155,16 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
 void ServerFramework::ProceedContinuation() {
+	player_process_index++;
 
+	if (players_number <= player_process_index) {
+		player_process_index = 0;
+
+		CastUpdateEvent();
+	}
 }
 
-void ServerFramework::ValidateSocketMessage(int socket_state) {
+bool ServerFramework::ValidateSocketMessage(int socket_state) {
 }
 
 void ServerFramework::CreatePlayerCharacters() {
@@ -171,9 +185,9 @@ void ServerFramework::CreateRenderingInfos() {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
-			rendering_infos_last.resize(RENDER_INST_COUNT);
-			//rendering_infos_last.shrink_to_fit();
-			//rendering_infos_last.reserve(RENDER_INST_COUNT);
+			//rendering_infos_last.resize(RENDER_INST_COUNT);
+			rendering_infos_last.shrink_to_fit();
+			rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
 
 		auto CopyList = vector<GameInstance*>(instances);
@@ -199,9 +213,9 @@ void ServerFramework::CreateRenderingInfos() {
 	}
 	else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
-		rendering_infos_last.resize(RENDER_INST_COUNT);
-		//rendering_infos_last.shrink_to_fit();
-		//rendering_infos_last.reserve(RENDER_INST_COUNT);
+		//rendering_infos_last.resize(RENDER_INST_COUNT);
+		rendering_infos_last.shrink_to_fit();
+		rendering_infos_last.reserve(RENDER_INST_COUNT);
 	}
 }
 
@@ -247,6 +261,10 @@ void ServerFramework::SetConnectProcess() {
 
 void ServerFramework::CastReceiveEvent() {
 	SetEvent(event_game_communicate);
+}
+
+void ServerFramework::CastUpdateEvent() {
+	SetEvent(event_game_update);
 }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
