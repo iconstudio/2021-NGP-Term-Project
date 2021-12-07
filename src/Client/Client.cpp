@@ -261,10 +261,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 
         if (SERVER_RENDER_INFO == packet)
         {
-            int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * 40, MSG_WAITALL);
+            int result = recv((SOCKET)arg, reinterpret_cast<char*>(framework.last_render_info), sizeof(RenderInstance) * RENDER_INST_COUNT, MSG_WAITALL);
             if (result == SOCKET_ERROR) {
             }
-        }	
+
+        }
 
         if (SERVER_PLAYER_COUNT == packet)
         {

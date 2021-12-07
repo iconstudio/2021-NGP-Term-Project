@@ -3,7 +3,9 @@
 #include "Resource.h"
 
 GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
-GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 0, 0);
+GameSprite player_rightsprite(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
+GameSprite player_backsprite(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
+GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 
 WindowsClient::WindowsClient(LONG cw, LONG ch)
@@ -148,7 +150,7 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if (GetAsyncKeyState('A') & 0x8000 && bulletcooldown == 0)
+	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0)
 	{
 		key_checkers[4] = 'A';
 		bulletcooldown = FRAMERATE / 5;
@@ -192,10 +194,6 @@ void ClientFramework::Render(HWND window) {
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
-	//각자작업한코드봄
-	//스레드 뭐썼는지
-	//충돌처리는 서버에서
-
 	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
 
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++)
@@ -224,6 +222,7 @@ void ClientFramework::Render(HWND window) {
 		}
 	}
 
+	TextOut(surface_double, VIEW_W / 2, 0, TEXT(""), 12);
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
