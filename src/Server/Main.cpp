@@ -107,7 +107,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 							case 'A': // 총알
 							{
-								auto bullet = framework.Instantiate<CBullet>(player_x, player_y);
+								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
 								//bullet->SetDirection(player_ch->direction);
@@ -122,7 +122,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							break;
 						}
 					}
-					player_ch->AssignRenderingInfo(0);
 				} // IF (player_ch)
 			} // CASE PACKETS::CLIENT_KEY_INPUT
 			break;
@@ -179,7 +178,7 @@ CCharacter::CCharacter()
 void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
-	if (collide_bullet) {
+	if (collide_bullet && collide_bullet->owner != owner) {
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 

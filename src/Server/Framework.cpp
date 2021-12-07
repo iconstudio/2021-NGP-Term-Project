@@ -123,6 +123,7 @@ void ServerFramework::GameReady() {
 bool ServerFramework::GameUpdate() {
 	for (auto inst : instances) {
 		inst->OnUpdate(FRAME_TIME);
+		inst->AssignRenderingInfo(inst->direction);
 	}
 
 	return true;
@@ -168,6 +169,8 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
 void ServerFramework::ProceedContinuation() {
+	//
+
 	if (players_number <= player_process_index++) {
 		player_process_index = 0;
 
@@ -208,7 +211,7 @@ void ServerFramework::CreateRenderingInfos() {
 
 		// 플레이어 개체를 맨 위로
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
-			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+			return (strcmp(inst->GetIdentifier(), "Player") != 0);
 		});
 
 		int index = 0;
