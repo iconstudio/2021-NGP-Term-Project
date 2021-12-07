@@ -7,6 +7,7 @@
 /* 스레드 선언 */
 DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드
 DWORD WINAPI GameProcess(LPVOID arg); // 단일, 송신 스레드
+DWORD WINAPI GameUpdateProcess(LPVOID arg); // 단일, 송신 스레드
 
 class CCharacter : public GameInstance {
 public:
@@ -70,8 +71,10 @@ public:
 	void SendGameStatus(ClientSession* client);
 	void SendRenderingInfos(SOCKET client_socket); // 렌더링 정보 전송
 
-	void SetConnectProcess();			// accept 이벤트 활성화
-	void CastReceiveEvent();			    // 게임 프로세스 이벤트 활성화
+	void SetConnectProcess();			// 클라이언트 접속 객체 신호
+	void CastReceiveEvent();			    // 게임 프로세스 이벤트 객체 신호
+	void CastUpdateEvent();			    // 게임 프로세스 이벤트 객체 신호
+
 	const int GetPlayerNumber() const;
 	
 	inline DWORD WINAPI AwaitClientAcceptEvent();
@@ -105,7 +108,8 @@ private:
 
 	/* 다중 스레드 속성 */
 	HANDLE event_accept; // 클라이언트 수용 신호
-	HANDLE event_game_communicate; // 게임 처리 신호
+	HANDLE event_game_communicate; // 입력 수신 신호
+	HANDLE event_game_update; // 게임 처리 신호
 	HANDLE event_quit; // 종료 신호
 	CRITICAL_SECTION permission_client, permission_;
 

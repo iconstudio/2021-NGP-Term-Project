@@ -146,9 +146,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 6. 대기
 		Sleep(FRAME_TIME);
-		framework.CastReceiveEvent();
 	}
 
+	return 0;
+}
+
+DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 	return 0;
 }
 
