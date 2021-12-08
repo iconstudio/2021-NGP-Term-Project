@@ -9,13 +9,13 @@ GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 
 
-ClientFramework::ClientFramework(int vw, int vh, int pw, int ph)
+ClientFramework::ClientFramework()
 	: painter{}
-	, view{ 0, 0, vw, vh }, port{ 0, 0, pw, ph }
+	, view{ 0, 0, VIEW_W, VIEW_H }, port{ 0, 0, PORT_W, PORT_H }
 	, view_track_enabled(false), view_target_player(-1) {
-	view.xoff = vw * 0.5;
-	view.yoff = vh * 0.5;
-	port.x = (CLIENT_W - pw) * 0.5;
+	view.xoff = VIEW_W * 0.5;
+	view.yoff = VIEW_H * 0.5;
+	port.x = (CLIENT_W - PORT_W) * 0.5;
 }
 
 ClientFramework::~ClientFramework() {

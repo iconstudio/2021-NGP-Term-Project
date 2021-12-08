@@ -28,7 +28,7 @@ struct SockInfo {
 
 class ClientFramework {
 public:
-	ClientFramework(int vw, int vh, int pw, int ph);
+	ClientFramework();
 	~ClientFramework();
 
 	void Initialize();
