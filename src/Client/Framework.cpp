@@ -82,7 +82,7 @@ void ClientFramework::Update() {
 		key_checkers[3] = VK_RIGHT;
 	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = FRAMERATE;
+		bulletcooldown = 0.2;
 		--bulletleft;
 	}
 
