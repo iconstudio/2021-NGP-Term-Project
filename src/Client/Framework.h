@@ -3,8 +3,8 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-#define SERVER_IP "192.168.123.101"
-//#define SERVER_IP "127.0.0.1"
+//#define SERVER_IP "192.168.123.101"
+#define SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
 
@@ -28,72 +28,55 @@ struct SockInfo {
 
 class ClientFramework {
 public:
-	COLORREF background_color = COLOR_WHITE;
-	const int world_w, world_h;
-
-	ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph);
+	ClientFramework(int vw, int vh, int pw, int ph);
 	~ClientFramework();
-
-	void OnMouseDown(WPARAM button, LPARAM cursor);
-	void OnMouseUp(WPARAM button, LPARAM cursor);
 
 	void Initialize();
 	void Update();
 	void Render(HWND window);
 
 	PACKETS RecvPacket(SOCKET sock);
+	friend DWORD WINAPI CommunicateProcess(LPVOID arg);	// 서버와의 통신용 스레드 함수
 
-	friend DWORD WINAPI CommunicateProcess(LPVOID arg);	//스레드 함수
+	void OnMouseDown(WPARAM button, LPARAM cursor);
+	void OnMouseUp(WPARAM button, LPARAM cursor);
 
 	// 마지막에 수신한 렌더링 정보
-	RenderInstance last_render_info[40];
+	RenderInstance last_render_info[RENDER_INST_COUNT];
+
+	COLORREF background_color = COLOR_WHITE;
+	
+	int mouse_x;
+	int mouse_y;
 
 private:
+	CLIENT_STATES status;
+
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	HDC surface_double;
 
-	struct { int x, y, w, h, xoff, yoff; } view, port;
-	bool view_track_enabled;
-	int view_target_player;
-
-	CLIENT_STATES status;
-	int terrain_seed = 0;
-
 	PAINTSTRUCT painter;
 	vector<GameSprite*> sprites;
+
+	int terrain_seed = 0;
+	HDC map_surface;				// 맵 HDC
+	HBITMAP map_bitmap;				// 맵 HBITMAP
+	vector<int> mapdata{ 6400 };	// 타일 vectoraa
+
+	char key_checkers[SEND_INPUT_COUNT];	 // 입력중인 키
+
 	int player_num;
-	
-	HDC map_surface;				//맵 HDC
-	HBITMAP map_bitmap;				//맵 HBITMAP
-	vector<int> mapdata{ 6400 };	//타일 vectoraa
-
-	char key_checkers[8];			//입력중인 키
-	int mouse_x;
-	int mouse_y;
-
 	GameUpdateMessage playerinfo;
 	int cooldown = 0;
 	int bulletleft = 3;
 	int bulletcooldown = 0;
 	double hp = 100;
 
+	struct { int x, y, w, h, xoff, yoff; } view, port;
+	bool view_track_enabled;
+	int view_target_player;
+
 };
 
-typedef LRESULT(CALLBACK* WindowProcedure)(HWND, UINT, WPARAM, LPARAM);
-
-class WindowsClient {
-public:
-	WindowsClient(LONG width, LONG height);
-	~WindowsClient();
-
-	BOOL initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR title, LPCWSTR id, INT cmd_show);
-
-	HINSTANCE instance;						// 프로세스 인스턴스
-	HWND hwindow;							// 창 인스턴스
-	WindowProcedure procedure;				// 창 처리기
-	WNDCLASSEX properties;					// 창 등록정보
-	LPCWSTR title_caption, class_id;		// 창 식별자
-	LONG width, height;						// 창 크기
-};
 

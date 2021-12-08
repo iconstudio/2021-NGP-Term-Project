@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 
 class GameSprite {
@@ -14,19 +14,19 @@ public:
 	const int get_width() const;
 	const int get_height() const;
 
-	const u_int number; // ÀÌ¹ÌÁö Àå¼ö
-	const int xoffset, yoffset; // ½ºÇÁ¶óÀÌÆ®ÀÇ Áß½ÉÁ¡
+	const u_int number; // ì´ë¯¸ì§€ ì¥ìˆ˜
+	const int xoffset, yoffset; // ìŠ¤í”„ë¼ì´íŠ¸ì˜ ì¤‘ì‹¬ì 
 	RECT bbox;
 
 private:
 	bool __process_image(CImage&, const size_t = 0, const size_t = 0);
 	void __draw_single(HDC, CImage&, double, double, double = 0.0, double = 1.0, double = 1.0, double = 1.0);
 
-	CImage raw; // ¿øº» ±×¸².
-	int raw_width, raw_height; // ¿øº» Å©±â
+	::CImage raw; // ì›ë³¸ ê·¸ë¦¼.
+	int raw_width, raw_height; // ì›ë³¸ í¬ê¸°
 
-	vector<unique_ptr<CImage>> frames; // Àß¸° ±×¸². ºñ¾îÀÖÀ» ¼öµµ ÀÖ´Ù.
-	int width, height; // ÇÁ·¹ÀÓ Å©±â
+	vector<unique_ptr<CImage>> frames; // ì˜ë¦° ê·¸ë¦¼. ë¹„ì–´ìˆì„ ìˆ˜ë„ ìˆë‹¤.
+	int width, height; // í”„ë ˆì„ í¬ê¸°
 };
 
 shared_ptr<GameSprite> make_sprite(HINSTANCE instance, UINT resource, UINT number = 1, int xoff = 0, int yoff = 0);

@@ -2,8 +2,9 @@
 #include "stdafx.h"
 
 
-enum ClinetInfo {
-	COMMON_PORT = 15000,
+const unsigned short COMMON_PORT = 15000;
+
+enum CLIENT_INFO {
 	WORLD_W = 1280,
 	WORLD_H = 1280,
 	CLIENT_W = 960,
