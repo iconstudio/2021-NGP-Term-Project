@@ -123,7 +123,6 @@ void ServerFramework::GameReady() {
 bool ServerFramework::GameUpdate() {
 	for (auto inst : instances) {
 		inst->OnUpdate(FRAME_TIME);
-		inst->AssignRenderingInfo(inst->direction);
 	}
 
 	return true;
@@ -147,6 +146,8 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
 	EnterCriticalSection(&client_permission);
+
+
 	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
@@ -165,7 +166,9 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
+	EnterCriticalSection(&client_permission);
 	players_number--;
+	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::ProceedContinuation() {
@@ -188,7 +191,7 @@ void ServerFramework::CreatePlayerCharacters() {
 	auto sz = players.size();
 	for (int i = 0; i < sz; ++i) {
 		auto player = players.at(i);
-		int places[2] = { 80, 80 };//PLAYER_SPAWN_PLACES[i];
+		auto places = PLAYER_SPAWN_PLACES[i];
 		auto character = Instantiate<CCharacter>(places[0], places[1]);
 
 		player->player_character = character;
@@ -202,7 +205,6 @@ void ServerFramework::CreateRenderingInfos() {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
-			//rendering_infos_last.resize(RENDER_INST_COUNT);
 			rendering_infos_last.shrink_to_fit();
 			rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
@@ -220,7 +222,6 @@ void ServerFramework::CreateRenderingInfos() {
 
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
 			if (!(*it)->dead) {
-				auto dest = (rendering_infos_last.data() + index);
 				auto src = render_infos;
 
 				rendering_infos_last.push_back(src);
@@ -230,7 +231,6 @@ void ServerFramework::CreateRenderingInfos() {
 	}
 	else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
-		//rendering_infos_last.resize(RENDER_INST_COUNT);
 		rendering_infos_last.shrink_to_fit();
 		rendering_infos_last.reserve(RENDER_INST_COUNT);
 	}
