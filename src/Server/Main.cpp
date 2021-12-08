@@ -75,7 +75,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				if (player_ch && !player_ch->dead) {
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
-					
+
 					player_ch->SetSpeed(0);
 					for (int i = 0; i < client_data_size; ++i) {
 						char input = client_data[i];
@@ -151,7 +151,7 @@ DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 
 		// 3. 게임 처리
 		framework.GameUpdate();
-		
+
 		// 4. 렌더링 정보 작성
 		framework.CreateRenderingInfos();
 
@@ -207,8 +207,7 @@ void CCharacter::GetHurt(int dmg) {
 		if (health <= 0) {
 			cout << "플레이어 " << owner << " 사망." << endl;
 			Die();
-		}
-		else {
+		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
 	}
