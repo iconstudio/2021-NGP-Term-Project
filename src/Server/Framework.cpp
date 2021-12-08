@@ -167,47 +167,43 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&client_permission);
-  
-	auto iter = std::find(players.begin(), players.end(), client);
-	players.erase(iter);
 
-	players_number--;
+	auto iter = std::find(players.begin(), players.end(), client);
+	if (iter != players.end()) {
+		players_number--;
+		AtomicPrintLn("클라이언트 종료: ", client->my_socket, ", 수: ", players_number);
+
+		players.erase(iter);
+	}
+
 	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::ProceedContinuation() {
-	if (players_number <= player_process_index++) { // 플레이어 업데이트
-    //int dead_players = 0;
-    auto dead_players(players);
+	if (players_number <= player_process_index++) {
 
-    // 플레이어 사망 확인
-    for (auto player : players) {
-      if (player->player_character->dead) {
-        //++dead_players;
-        dead_players.push_back(player);
-      }
-    }
+		//auto dead_players(players);
 
-    // 플레이어 사망
-    if (!dead_players.empty()) {
-      for (auto client : dead_players) {
-        DisconnectClient(client);
-      }
-    }
-    
-		player_process_index = 0;
+		// 플레이어 사망 확인
+		for (auto player : players) {
+			if (player->player_character->dead) { // 플레이어 사망
+				DisconnectClient(player);
+				//dead_players.push_back(player);
+			}
+		}
+
+		player_process_index = 0; // 플레이어 업데이트 신호
 
 		CastUpdateEvent();
-	} else {	// 이벤트 recv
-		CastReceiveEvent();
+	} else {
+		CastReceiveEvent(); // 수신 신호
 	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
 	if (SOCKET_ERROR == socket_state) {
 		return false;
-	}
-	else if (0 == socket_state) {
+	} else if (0 == socket_state) {
 		return false;
 	}
 
@@ -255,8 +251,7 @@ void ServerFramework::CreateRenderingInfos() {
 				index++;
 			}
 		}
-	}
-	else if (!rendering_infos_last.empty()) {
+	} else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
 		rendering_infos_last.shrink_to_fit();
 		rendering_infos_last.reserve(RENDER_INST_COUNT);
@@ -324,8 +319,7 @@ void ServerFramework::CastUpdateEvent() {
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)
-	, player_index(id), player_character(nullptr) {
-}
+	, player_index(id), player_character(nullptr) {}
 
 ClientSession::~ClientSession() {
 	closesocket(my_socket);
