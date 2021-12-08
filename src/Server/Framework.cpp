@@ -167,24 +167,51 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&client_permission);
+  
+	auto iter = std::find(players.begin(), players.end(), client);
+	players.erase(iter);
+
 	players_number--;
 	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::ProceedContinuation() {
-	//
+	if (players_number <= player_process_index++) { // 플레이어 업데이트
+    //int dead_players = 0;
+    auto dead_players(players);
 
-	if (players_number <= player_process_index++) {
+    // 플레이어 사망 확인
+    for (auto player : players) {
+      if (player->player_character->dead) {
+        //++dead_players;
+        dead_players.push_back(player);
+      }
+    }
+
+    // 플레이어 사망
+    if (!dead_players.empty()) {
+      for (auto client : dead_players) {
+        DisconnectClient(client);
+      }
+    }
+    
 		player_process_index = 0;
 
 		CastUpdateEvent();
-	} else {
+	} else {	// 이벤트 recv
 		CastReceiveEvent();
 	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
-	return false;
+	if (SOCKET_ERROR == socket_state) {
+		return false;
+	}
+	else if (0 == socket_state) {
+		return false;
+	}
+
+	return true;
 }
 
 void ServerFramework::CreatePlayerCharacters() {
