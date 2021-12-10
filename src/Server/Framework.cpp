@@ -195,7 +195,6 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
 void ServerFramework::ProceedContinuation() {
-	if (players_number <= player_process_index++) {
 	for (auto player : players)
 	{
 		if (player->player_character->dead)
@@ -204,11 +203,14 @@ void ServerFramework::ProceedContinuation() {
 		}
 	}
 
-		player_process_index = 0; // 플레이어 업데이트 신호
 	if (players.empty())		// 종료
 	{
 		CastQuitEvent();
 	}
+	else if (players_number <= player_process_index)		// 렌더링
+	{
+		// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
+		player_process_index = 0;
 
 		CastUpdateEvent();
 	}
