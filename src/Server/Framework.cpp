@@ -196,16 +196,13 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 
 void ServerFramework::ProceedContinuation() {
 	if (players_number <= player_process_index++) {
-
-		//auto dead_players(players);
-
-		// 플레이어 사망 확인
-		for (auto player : players) {
-			if (player->player_character->dead) { // 플레이어 사망
-				DisconnectClient(player);
-				//dead_players.push_back(player);
-			}
+	for (auto player : players)
+	{
+		if (player->player_character->dead)
+		{
+			DisconnectClient(player);
 		}
+	}
 
 		player_process_index = 0; // 플레이어 업데이트 신호
 
