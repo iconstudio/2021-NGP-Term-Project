@@ -205,6 +205,10 @@ void ServerFramework::ProceedContinuation() {
 	}
 
 		player_process_index = 0; // 플레이어 업데이트 신호
+	if (players.empty())		// 종료
+	{
+		CastQuitEvent();
+	}
 
 		CastUpdateEvent();
 	} else {
