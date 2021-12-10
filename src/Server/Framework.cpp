@@ -332,6 +332,11 @@ void ServerFramework::CastUpdateEvent() {
 	SetEvent(event_game_update);
 }
 
+void ServerFramework::CastQuitEvent()
+{
+	SetEvent(event_quit);
+}
+
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)
 	, player_index(id), player_character(nullptr) {}

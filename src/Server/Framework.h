@@ -85,6 +85,7 @@ public:
 	void SetConnectProcess();			// 클라이언트 접속 객체 신호
 	void CastReceiveEvent();			    // 게임 프로세스 이벤트 객체 신호
 	void CastUpdateEvent();			    // 게임 프로세스 이벤트 객체 신호
+	void CastQuitEvent();				// 게임 종료 이벤트 객체 신호
 
 	const int GetPlayerNumber() const;
 	
