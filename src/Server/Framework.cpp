@@ -41,6 +41,21 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i)
+	{
+		delete PLAYER_SPAWN_PLACES[i];
+	}
+
+	delete[] PLAYER_SPAWN_PLACES;
+
+	players.clear();
+	instances.clear();
+	rendering_infos_last.clear();
+
+	players.shrink_to_fit();
+	instances.shrink_to_fit();
+	rendering_infos_last.shrink_to_fit();
+
 	DeleteCriticalSection(&client_permission);
 
 	CloseHandle(event_accept);
