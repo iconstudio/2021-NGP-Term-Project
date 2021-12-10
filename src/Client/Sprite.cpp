@@ -160,37 +160,46 @@ bool GameSprite::__process_image(CImage& image, size_t width, size_t height) {
 	return true;
 }
 
-void GameSprite::__draw_single(HDC surface, CImage& image, double dx, double dy, double angle, const double xscale, double yscale, double alpha) {
-	int nGraphicsMode = SetGraphicsMode(surface, GM_ADVANCED);
-	float cosine = static_cast<float>(lengthdir_x(1, angle));
-	float sine = static_cast<float>(lengthdir_y(1, angle));
-
-	// 실제와는 달리 y 좌표가 뒤집힘
-	XFORM xform;
+void GameSprite::__draw_single(HDC surface, CImage& image, const double dx, const double dy, const double angle, const double xscale, const double yscale, const double alpha) {
 	if (0.0 != angle) {
-		xform.eM11 = cosine * xscale;
+		float cosine = (float)lengthdir_x(1, angle);
+		float sine = (float)lengthdir_y(1, angle);
+
+		int center_x = dx, center_y = dy;
+
+		int nGraphicsMode = SetGraphicsMode(surface, GM_ADVANCED);
+
+		// 실제와는 달리 y 좌표가 뒤집힘
+		XFORM xform;
+		xform.eM11 = cosine;
 		xform.eM12 = sine;
 		xform.eM21 = -sine;
-		xform.eM22 = cosine * yscale;
+		xform.eM22 = cosine;
+		xform.eDx = (center_x - cosine * center_x + sine * center_y);
+		xform.eDy = (center_y - cosine * center_y - sine * center_x);
+
+		Render::transform_set(surface, xform);
+
+		center_x -= xoffset * xscale;
+		center_y -= yoffset * yscale;
+
+		if (alpha != 1.0)
+			image.AlphaBlend(surface, center_x, center_y, width * abs(xscale), height * abs(yscale), 0, 0, width, height, (BYTE)(255 * alpha));
+		else
+			image.Draw(surface, center_x, center_y, width * abs(xscale), height * abs(yscale), 0, 0, width, height);
+
+		Render::transform_set_identity(surface);
+		SetGraphicsMode(surface, nGraphicsMode);
 	}
 	else {
-		xform.eM11 = xscale;
-		xform.eM12 = 0.0f;
-		xform.eM21 = 0.0f;
-		xform.eM22 = yscale;
+		int tx = (int)(dx - xoffset * xscale);
+		int ty = (int)(dy - yoffset * yscale);
+
+		if (alpha != 1.0)
+			image.AlphaBlend(surface, tx, ty, width * abs(xscale), height * abs(yscale), 0, 0, width, height, (BYTE)(255 * alpha));
+		else
+			image.Draw(surface, tx, ty, width * abs(xscale), height * abs(yscale), 0, 0, width, height);
 	}
-	xform.eDx = floor(dx - xoffset * xscale);
-	xform.eDy = floor(dy - yoffset * yscale);
-
-	Render::transform_set(surface, xform);
-
-	if (alpha != 1.0)
-		image.AlphaBlend(surface, 0, 0, width * abs(xscale), height * abs(yscale), 0, 0, width, height, static_cast<BYTE>(255 * alpha));
-	else
-		image.Draw(surface, 0, 0, width * abs(xscale), height * abs(yscale), 0, 0, width, height);
-
-	Render::transform_set_identity(surface);
-	SetGraphicsMode(surface, nGraphicsMode);
 }
 
 shared_ptr<GameSprite> make_sprite(HINSTANCE instance, UINT resource, UINT number, int xoff, int yoff) {

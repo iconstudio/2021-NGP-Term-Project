@@ -146,6 +146,8 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
 	EnterCriticalSection(&client_permission);
+
+
 	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
@@ -164,43 +166,44 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 }
 
 void ServerFramework::DisconnectClient(ClientSession* client) {
+	EnterCriticalSection(&client_permission);
+
 	auto iter = std::find(players.begin(), players.end(), client);
-	players.erase(iter);
-	players_number--;
+	if (iter != players.end()) {
+		players_number--;
+		AtomicPrintLn("클라이언트 종료: ", client->my_socket, ", 수: ", players_number);
+
+		players.erase(iter);
+	}
+
+	LeaveCriticalSection(&client_permission);
 }
 
 void ServerFramework::ProceedContinuation() {
-	player_process_index++;
+	if (players_number <= player_process_index++) {
 
-	//int dead_players = 0;
-	std::vector<ClientSession*> dead_players;
+		//auto dead_players(players);
 
-	// 플레이어 사망 확인
-	for (auto player : players) {
-		if (player->player_character->dead) {
-			//++dead_players;
-			dead_players.push_back(player);
+		// 플레이어 사망 확인
+		for (auto player : players) {
+			if (player->player_character->dead) { // 플레이어 사망
+				DisconnectClient(player);
+				//dead_players.push_back(player);
+			}
 		}
-	}
 
-	if (!dead_players.empty()) {	// 플레이어 사망
-		for (auto client : dead_players) {
-			DisconnectClient(client);
-		}
-	} else if (players_number <= player_process_index) {	// 플레이어 업데이트
-		player_process_index = 0;
+		player_process_index = 0; // 플레이어 업데이트 신호
 
 		CastUpdateEvent();
-	} else {	// 이벤트 recv
-		CastReceiveEvent();
+	} else {
+		CastReceiveEvent(); // 수신 신호
 	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
 	if (SOCKET_ERROR == socket_state) {
 		return false;
-	}
-	else if (0 == socket_state) {
+	} else if (0 == socket_state) {
 		return false;
 	}
 
@@ -211,7 +214,7 @@ void ServerFramework::CreatePlayerCharacters() {
 	auto sz = players.size();
 	for (int i = 0; i < sz; ++i) {
 		auto player = players.at(i);
-		int places[2] = { 80, 80 };//PLAYER_SPAWN_PLACES[i];
+		auto places = PLAYER_SPAWN_PLACES[i];
 		auto character = Instantiate<CCharacter>(places[0], places[1]);
 
 		player->player_character = character;
@@ -225,7 +228,6 @@ void ServerFramework::CreateRenderingInfos() {
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
-			//rendering_infos_last.resize(RENDER_INST_COUNT);
 			rendering_infos_last.shrink_to_fit();
 			rendering_infos_last.reserve(RENDER_INST_COUNT);
 		}
@@ -234,7 +236,7 @@ void ServerFramework::CreateRenderingInfos() {
 
 		// 플레이어 개체를 맨 위로
 		std::partition(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
-			return (strcmp(inst->GetIdentifier(), "Player") == 0);
+			return (strcmp(inst->GetIdentifier(), "Player") != 0);
 		});
 
 		int index = 0;
@@ -243,17 +245,14 @@ void ServerFramework::CreateRenderingInfos() {
 
 			// 인스턴스가 살아있는 경우에만 렌더링 메세지 전송
 			if (!(*it)->dead) {
-				auto dest = (rendering_infos_last.data() + index);
 				auto src = render_infos;
 
 				rendering_infos_last.push_back(src);
 				index++;
 			}
 		}
-	}
-	else if (!rendering_infos_last.empty()) {
+	} else if (!rendering_infos_last.empty()) {
 		rendering_infos_last.clear();
-		//rendering_infos_last.resize(RENDER_INST_COUNT);
 		rendering_infos_last.shrink_to_fit();
 		rendering_infos_last.reserve(RENDER_INST_COUNT);
 	}
@@ -320,8 +319,7 @@ void ServerFramework::CastUpdateEvent() {
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	: my_socket(sk), my_thread(th)
-	, player_index(id), player_character(nullptr) {
-}
+	, player_index(id), player_character(nullptr) {}
 
 ClientSession::~ClientSession() {
 	closesocket(my_socket);

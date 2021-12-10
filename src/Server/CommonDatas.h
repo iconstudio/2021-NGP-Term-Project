@@ -2,8 +2,9 @@
 #include "stdafx.h"
 
 
-enum ClinetInfo {
-	COMMON_PORT = 15000,
+const unsigned short COMMON_PORT = 15000;
+
+enum CLIENT_INFO {
 	WORLD_W = 1280,
 	WORLD_H = 1280,
 	CLIENT_W = 960,
@@ -27,7 +28,7 @@ const double EWALL_CLOSE_PERIOD = 300.0;			// 자기장 완료 시간
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
 const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
-const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
+const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
 const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
@@ -45,11 +46,6 @@ const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
 const int CLIENT_NUMBER_MIN = 1;
 const int RENDER_INST_COUNT = 40;
 
-constexpr int LERP_MIN = 50;
-constexpr int LERP_MAX = 200;
-
-// 다중 스레드 설정
-constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
 
 enum PACKETS : int {
 	// 클라이언트 -> 서버

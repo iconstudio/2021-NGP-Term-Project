@@ -3,6 +3,15 @@
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
+/* 서버 상태 */
+enum SERVER_STATES : int {
+	LISTEN = 0			// 클라이언트 접속 대기
+	, LOBBY				// 로비
+	, GAME				// 게임
+	, GAME_OVER			// 게임 완료
+	, GAME_RESTART		// 게임 다시 시작
+	, EXIT				// 서버 종료
+};
 
 /* 스레드 선언 */
 DWORD WINAPI ConnectProcess(LPVOID arg); // 다중, 수신 스레드

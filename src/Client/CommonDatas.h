@@ -1,20 +1,19 @@
 ﻿#pragma once
-#include "pch.h"
+#include "stdafx.h"
 
 
-//#define SERVER_IP "192.168.120.35"
-#define SERVER_IP "127.0.0.1"
-#define COMMON_PORT 15000
+const unsigned short COMMON_PORT = 15000;
 
-#define WORLD_W 1280
-#define WORLD_H 1280
-#define CLIENT_W 800
-#define CLIENT_H 600
-#define VIEW_W 400
-#define VIEW_H 300
-#define PORT_W 800
-#define PORT_H 600
-
+enum CLIENT_INFO {
+	WORLD_W = 1280,
+	WORLD_H = 1280,
+	CLIENT_W = 960,
+	CLIENT_H = 540,
+	VIEW_W = 320,
+	VIEW_H = 240,
+	PORT_W = 640,
+	PORT_H = 480
+};
 
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;
@@ -29,7 +28,7 @@ const double EWALL_CLOSE_PERIOD = 300.0;			// 자기장 완료 시간
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
 const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
-const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
+const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
 const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
@@ -38,20 +37,14 @@ const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 
 // 프레임 수
-constexpr int FRAMERATE = 60;
+constexpr double FRAMERATE = 100.0;
 constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
-/* 송수신 설정 */
+// 송수신 설정
 const int SEND_INPUT_COUNT = 8;
 const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
-const int CLIENT_NUMBER_MIN = 2;
+const int CLIENT_NUMBER_MIN = 1;
 const int RENDER_INST_COUNT = 40;
-
-constexpr int LERP_MIN = 50;
-constexpr int LERP_MAX = 200;
-
-/* 다중 스레드 설정 */
-constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
 
 
 enum PACKETS : int {
@@ -72,6 +65,8 @@ enum PACKETS : int {
 	, SERVER_GAME_DONE			// 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 게임을 다시 시작함을 알려주는 메시지
 };
+
+constexpr int HEADER_SIZE = sizeof(PACKETS);
 
 struct GameUpdateMessage {
 	int players_count;
@@ -105,6 +100,6 @@ struct RenderInstance {
 	double x, y, angle;		// 이미지 회전 각도/방향
 };
 
-void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
+int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);

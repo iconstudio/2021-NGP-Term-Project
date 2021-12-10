@@ -65,44 +65,44 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				if (framework.ValidateSocketMessage(result)) {
 					framework.DisconnectClient(client);
 				}
-				
+
 				CCharacter* player_ch = client->player_character;
 				if (player_ch && !player_ch->dead) {
-					const auto player_velocity = PLAYER_MOVE_SPEED * FRAME_TIME;
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
 
+					player_ch->SetSpeed(0);
 					for (int i = 0; i < client_data_size; ++i) {
 						char input = client_data[i];
 
 						switch (input) {
 							case VK_LEFT:
 							{
-								player_x -= player_velocity;
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 180);
 							}
 							break;
 
 							case VK_UP:
 							{
-								player_y -= player_velocity;
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 90);
 							}
 							break;
 
 							case VK_RIGHT:
 							{
-								player_x += player_velocity;
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 0);
 							}
 							break;
 
 							case VK_DOWN:
 							{
-								player_y += player_velocity;
+								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 270);
 							}
 							break;
 
 							case 'A': // 총알
 							{
-								auto bullet = framework.Instantiate<CBullet>(player_x, player_y);
+								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
 								//bullet->SetDirection(player_ch->direction);
@@ -117,7 +117,6 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							break;
 						}
 					}
-					player_ch->AssignRenderingInfo(0);
 				} // IF (player_ch)
 			} // CASE PACKETS::CLIENT_KEY_INPUT
 			break;
@@ -147,7 +146,7 @@ DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 
 		// 3. 게임 처리
 		framework.GameUpdate();
-		
+
 		// 4. 렌더링 정보 작성
 		framework.CreateRenderingInfos();
 
@@ -168,13 +167,15 @@ CCharacter::CCharacter()
 	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -6, -6, 6, 6 });
+	SetBoundBox(RECT{ -8, -8, 8, 8 });
+
+	image_speed = 0.4;
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
-	if (collide_bullet) {
+	if (collide_bullet && collide_bullet->owner != owner) {
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 
@@ -183,6 +184,10 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (hspeed != 0.0 || vspeed != 0.0)
 		direction = point_direction(0, 0, hspeed, vspeed);
+
+	if (0 < inv_time) {
+		inv_time -= frame_advance;
+	}
 
 	AssignRenderingInfo(direction);
 
@@ -197,13 +202,9 @@ void CCharacter::GetHurt(int dmg) {
 		if (health <= 0) {
 			cout << "플레이어 " << owner << " 사망." << endl;
 			Die();
-		}
-		else {
+		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
-	}
-	else {
-		inv_time -= FRAME_TIME;
 	}
 }
 
