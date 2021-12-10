@@ -211,8 +211,12 @@ void ServerFramework::ProceedContinuation() {
 	}
 
 		CastUpdateEvent();
-	} else {
-		CastReceiveEvent(); // 수신 신호
+	}
+	else		// 수신
+	{
+		++player_process_index;
+
+		CastReceiveEvent();
 	}
 }
 
