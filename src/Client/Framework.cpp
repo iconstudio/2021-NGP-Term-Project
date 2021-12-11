@@ -68,7 +68,7 @@ void ClientFramework::Update() {
 	background_color = COLOR_YELLOW;
 
 	auto address_size = sizeof(server_address);
-	while (connectstatus == false)
+	while (connect_status == false)
 	{
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 		if (SOCKET_ERROR == result) {
@@ -77,7 +77,7 @@ void ClientFramework::Update() {
 			return;
 		}
 		else {
-			connectstatus = true;
+			connect_status = true;
 			CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 		}
 
@@ -93,64 +93,68 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0 && reloadcooldown <= 0) {
+	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bullet_cool_down <= 0 && bullet_left > 0 && reload_cool_down <= 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = 0.5;
-		if (getbuffed <= 0)
+		bullet_cool_down = 0.5;
+		if (get_buffed <= 0)
 		{
-			--bulletleft;
+			--bullet_left;
 		}
 	}
-	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
+	if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flashcooltime <= 0.0)	{
 		key_checkers[5] = 'S';
-	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
-	{
-		if (QTEtime > 0)
+		flash_cooltime = 3.0;
+	}
+	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001) {
+		if (QTE_time > 0)
 		{
-			getbuffed = 5.0;
+			get_buffed = 5.0;
 		}
 	}
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) {
 		key_checkers[7] = 'F';
-		reloadcooldown = 2.0;
+		reload_cool_down = 2.0;
 		reloading = true;
 	}
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
-	if (0 < bulletcooldown) {
-		bulletcooldown -= FRAME_TIME;
+	if (0 < bullet_cool_down) {
+		bullet_cool_down -= FRAME_TIME;
 	}
 
-	if (reloading == true && reloadcooldown <= 0)	{
-		bulletleft = 3;
+	if (flash_cooltime > 0)
+		flash_cooltime -= FRAME_TIME;
+
+	if (reloading == true && reload_cool_down <= 0)	{
+		bullet_left = 3;
 		reloading = false;
 	}
 
-	if (reloadcooldown > 0)
+	if (reload_cool_down > 0)
 	{
-		reloadcooldown -= FRAME_TIME;
+		reload_cool_down -= FRAME_TIME;
 	}
 
 	if (QTE == true)
 	{
-		QTEtime = 1.0;
+		QTE_time = 1.0;
 		QTE = false;
 	}
 
-	if (QTEtime >= 0)
+	if (QTE_time >= 0)
 	{
-		QTEtime -= FRAME_TIME;
+		QTE_time -= FRAME_TIME;
 	}
 
-	if (getbuffed >= 0)
+	if (get_buffed >= 0)
 	{
-		getbuffed -= FRAME_TIME;
+		get_buffed -= FRAME_TIME;
 	}
 
 	sprintf(buffer, "%d", player_num);
 	int nLen = (int)strlen(buffer) + 1;
-	mbstowcs(strforplayernum, buffer, nLen);
+	mbstowcs(str_for_player_num, buffer, nLen);
 }
 
 void ClientFramework::Render(HWND window) {
@@ -181,30 +185,44 @@ void ClientFramework::Render(HWND window) {
 				case CHARACTER:
 				{
 					auto angle = static_cast<int>(it->angle);
-					if (playerinfo.player_inv == true)
+					switch (angle)
 					{
-						player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0);
-					}
-					else {
-						switch (angle)
-						{
-						case 0:
-							player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
-							break;
-						case 90:
-							player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
-							break;
-						case 180:
-							player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
-							break;
-						case -90:
-							player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
-							break;
-						}
+					case 0:
+						player_right.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case 90:
+						player_up.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case 180:
+						player_left.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case -90:
+						player_down.draw(surface_double, it->x, it->y, 0, 0);
+						break;
 					}
 				}
 				break;
-
+				case CHARACTER_WALK:
+					auto angle = static_cast<int>(it->angle);
+					switch (angle)
+					{
+					case 0:
+						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 90:
+						player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 180:
+						player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case -90:
+						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					}
+					break;
+				case CHARACTER_HURT:
+					player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0);
+					break;
 				case BULLET:
 				{
 					bullet_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
@@ -226,17 +244,17 @@ void ClientFramework::Render(HWND window) {
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
 	// UI
-	if (connectstatus == true)
+	if (connect_status == true)
 	{
-		health_sprite.draw(surface_back, 0, 0, 3 - playerinfo.player_hp / 32, 0, 0.5, 0.5);		//체력
+		health_sprite.draw(surface_back, 0, 0, 3 - player_info.player_hp / 32, 0, 0.5, 0.5);		//체력
 
-		TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
+		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
 
-		for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
+		for (int curbullet = 0; curbullet < bullet_left; ++curbullet) {			//남은 총알 수
 			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
 		}
 
-		if (QTEtime > 0)
+		if (QTE_time > 0)
 		{
 			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
 		}

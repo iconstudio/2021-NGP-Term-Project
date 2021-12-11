@@ -149,11 +149,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		}
 
 		if (SERVER_GAME_STATUS == packet) {
-			int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.playerinfo), sizeof(GameUpdateMessage), MSG_WAITALL);
+			int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.player_info), sizeof(GameUpdateMessage), MSG_WAITALL);
 			if (result == SOCKET_ERROR) {
 			}
-			framework.view.x = max(0, min(WORLD_W - framework.view.w, framework.playerinfo.player_x - framework.view.xoff));
-			framework.view.y = max(0, min(WORLD_H - framework.view.h, framework.playerinfo.player_y - framework.view.yoff));
+			framework.view.x = max(0, min(WORLD_W - framework.view.w, framework.player_info.player_x - framework.view.xoff));
+			framework.view.y = max(0, min(WORLD_H - framework.view.h, framework.player_info.player_y - framework.view.yoff));
 		}
 
 		if (SERVER_RENDER_INFO == packet) {
@@ -174,16 +174,16 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			int tiley = WORLD_H / tile_sprite.get_height();     //y축 타일 갯수
 
 			int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.terrain_seed), sizeof(int), MSG_WAITALL);
-			framework.mapdata.resize(tilex * tiley);
-			fill(framework.mapdata.begin(), framework.mapdata.end(), 0);
-			fill_n(framework.mapdata.begin(), 100, 1);
+			framework.map_data.resize(tilex * tiley);
+			fill(framework.map_data.begin(), framework.map_data.end(), 0);
+			fill_n(framework.map_data.begin(), 100, 1);
 
 			std::default_random_engine rng(framework.terrain_seed);
-			shuffle(framework.mapdata.begin(), framework.mapdata.end(), rng);
+			shuffle(framework.map_data.begin(), framework.map_data.end(), rng);
 
 			for (int ty = 0; ty < tilex; ++ty) {
 				for (int tx = 0; tx < tiley; ++tx) {
-					tile_sprite.draw(framework.map_surface, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), framework.mapdata[(ty * tilex) + tx], 0);
+					tile_sprite.draw(framework.map_surface, tx * tile_sprite.get_width(), ty * tile_sprite.get_height(), framework.map_data[(ty * tilex) + tx], 0);
 				}
 			}
 
