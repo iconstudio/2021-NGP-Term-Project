@@ -171,7 +171,7 @@ CCharacter::CCharacter()
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -8, -8, 8, 8 });
 
-	image_speed = 0.4;
+	image_speed = 0.15;
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
