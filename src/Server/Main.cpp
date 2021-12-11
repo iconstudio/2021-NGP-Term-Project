@@ -113,7 +113,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 							case VK_SPACE: // 특수 능력
 							{
-
+								
 							}
 							break;
 						}
