@@ -116,6 +116,18 @@ public:
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
+	// cout으로 출력하기
+	template<typename Ty>
+	void AtomicPrint(Ty caption);
+
+	// 여러 개의 값을 함수 하나로 cout으로 출력하기
+	template<typename Ty1, typename... Ty2>
+	void AtomicPrint(Ty1 caption, Ty2... args);
+
+	// cout으로 출력하고 한줄 띄우기
+	template<typename... Ty>
+	void AtomicPrintLn(Ty... args);
+
 private:
 	/* 서버 속성 */
 	SERVER_STATES status;
@@ -224,4 +236,22 @@ _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const cha
 		}
 	}
 	return nullptr;
+}
+
+template<typename Ty>
+inline void ServerFramework::AtomicPrint(Ty caption) {
+	EnterCriticalSection(&permission_print);
+	cout << caption;
+	LeaveCriticalSection(&permission_print);
+}
+
+template<typename Ty1, typename ...Ty2>
+inline void ServerFramework::AtomicPrint(Ty1 caption, Ty2 ...args) {
+	AtomicPrint(caption);
+	AtomicPrint(args...);
+}
+
+template<typename ...Ty>
+inline void ServerFramework::AtomicPrintLn(Ty ...args) {
+	AtomicPrint(args..., "\n");
 }

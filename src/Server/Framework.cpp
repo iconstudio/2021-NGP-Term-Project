@@ -6,6 +6,7 @@ ServerFramework::ServerFramework()
 	: game_started(false)
 	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&permission_client);
+	InitializeCriticalSection(&permission_print);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
@@ -56,6 +57,7 @@ ServerFramework::~ServerFramework() {
 	rendering_infos_last.shrink_to_fit();
 
 	DeleteCriticalSection(&permission_client);
+	DeleteCriticalSection(&permission_print);
 
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
@@ -199,7 +201,7 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 
 		iter = players.erase(iter);
 	}
-	LeaveCriticalSection(&client_permission);
+	LeaveCriticalSection(&permission_client);
 
 	return iter;
 }

@@ -49,7 +49,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 			framework.DisconnectClient(client);
 			break;
 		}
-		AtomicPrintLn("받은 패킷 헤더: ", header);
+		framework.AtomicPrintLn("받은 패킷 헤더: ", header);
 
 		char* client_data = nullptr;
 		int client_data_size = 0;
@@ -134,7 +134,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 2. 게임 진행
 		if (client_data)
-			AtomicPrintLn("받은 패킷 내용: ", client_data);
+			framework.AtomicPrintLn("받은 패킷 내용: ", client_data);
 
 		framework.ProceedContinuation();
 	}
