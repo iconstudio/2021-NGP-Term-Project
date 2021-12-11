@@ -57,18 +57,28 @@ void ClientFramework::Initialize() {
 
 	Render::draw_clear(map_surface, WORLD_W, WORLD_H, COLOR_BLACK);
 
-	int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
 
-	if (SOCKET_ERROR == result) {
-		// 오류
-		ErrorAbort("connect error");
-	}
 
-	CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 }
 
 void ClientFramework::Update() {
 	background_color = COLOR_YELLOW;
+
+	auto address_size = sizeof(server_address);
+	while (connectstatus == false)
+	{
+		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+		if (SOCKET_ERROR == result) {
+			// 오류
+			ErrorAbort("connect error");
+			return;
+		}
+		else {
+			connectstatus = true;
+			CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
+		}
+
+	}
 
 	ZeroMemory(key_checkers, sizeof(key_checkers));
 
@@ -80,9 +90,9 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0) {
+	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = 0.2;
+		bulletcooldown = 10.0;
 		--bulletleft;
 	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)

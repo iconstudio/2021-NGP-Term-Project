@@ -52,6 +52,8 @@ public:
 	char buffer[80];	//플레이어 수 표기용 배열
 	wchar_t strforplayernum[80];
 
+	bool connectstatus = false;
+
 private:
 	CLIENT_STATES status;
 
