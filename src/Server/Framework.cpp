@@ -220,15 +220,21 @@ void ServerFramework::ProceedContinuation() {
 				if (0 == players_number) {
 					CastQuitEvent();
 					break;
-				} else if (1 == players_number) {
+				//} else if (1 == players_number) {
 					// 승리!
 
-					break;
+				//	break;
 				}
 			}
 		}
 
-		if (players.empty()) {
+		//if (1 == players_number) {
+			// 승리
+		//	auto winner = players.at(0);
+
+
+		//} else
+			if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else {
@@ -318,6 +324,7 @@ void ServerFramework::SendGameStatus(ClientSession* client) {
 	GameUpdateMessage state;
 	state.players_count = GetPlayerNumber();
 	state.player_hp = player_character->health;
+	state.player_inv = (0 < player_character->inv_time);
 	state.player_x = player_character->x;
 	state.player_y = player_character->y;
 	state.player_direction = player_character->direction;

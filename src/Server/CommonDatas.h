@@ -37,7 +37,7 @@ const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
 const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
 
-const double SNOWBALL_DAMAGE = 33.0;				// 투사체 피해량
+const double SNOWBALL_DAMAGE = 34.0;				// 투사체 피해량
 const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 
@@ -55,6 +55,7 @@ enum PACKETS : int {
 	, CLIENT_GAME_START			// 서버에게 게임 시작을 요청하는 메시지
 	, CLIENT_PLAY_CONTINUE		// 게임을 다시 시작하기 위해 재접속을 요청하는 메시지
 	, CLIENT_PLAY_DENY			// 게임을 다시하지 않는다고 알려주는 메시지
+	, CLIENT_QTE
 
 	// 서버 -> 클라이언트
 	, SERVER_SET_CAPATIN		// 방장임을 알려주는 메시지
@@ -62,6 +63,8 @@ enum PACKETS : int {
 	, SERVER_TERRAIN_SEED		// 지형 생성 씨앗값
 	, SERVER_PLAYER_COUNT		// 플레이어가 몇 명인지 알려주는 메시지
 	, SERVER_GAME_STATUS		// 게임 상태를 알려주는 메시지
+	, SERVER_EWALL_PERCENT
+	, SERVER_QTE
 	, SERVER_RENDER_INFO		// 렌더링 정보를 보내주는 메시지
 	, SERVER_GAME_DONE			// 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 게임을 다시 시작함을 알려주는 메시지
@@ -74,6 +77,7 @@ struct GameUpdateMessage {
 
 	int target_player;
 	double player_hp;
+	bool player_inv; // 무적 시간 중인가
 	double player_x, player_y, player_direction;
 };
 

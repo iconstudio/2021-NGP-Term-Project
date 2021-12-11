@@ -46,7 +46,7 @@ void ClientFramework::Initialize() {
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(COMMON_PORT);
-
+	
 	for (int t = 0; t < 40; ++t) {
 		last_render_info[t].instance_type = BLANK;
 	}
@@ -194,7 +194,7 @@ void ClientFramework::Render(HWND window) {
 	// UI
 	if (connectstatus == true)
 	{
-		health_sprite.draw(surface_back, 0, 0, 2 - hp / 35, 0, 0.5, 0.5);		//체력
+		health_sprite.draw(surface_back, 0, 0, 3 - hp / 32, 0, 0.5, 0.5);		//체력
 
 		TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
 

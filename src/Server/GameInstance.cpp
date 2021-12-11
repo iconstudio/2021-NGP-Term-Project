@@ -21,7 +21,7 @@ void GameInstance::OnUpdate(double frame_advance) {
 		y += vspeed * frame_advance;
 	}
 
-	if (image_speed != 0.0) {
+	if (image_speed != 0.0) { //  && 1.0 < image_number
 		image_index += image_speed;
 	}
 }

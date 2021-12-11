@@ -3,6 +3,7 @@
 #include "CommonDatas.h"
 #include "Main.h"
 
+
 ServerFramework framework;
 
 int main() {
@@ -107,14 +108,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
-								//bullet->SetDirection(player_ch->direction);
-								//bullet->SetSpeed(SNOWBALL_SPEED);
 							}
 							break;
 
 							case VK_SPACE: // 특수 능력
 							{
-
+								
 							}
 							break;
 						}
@@ -191,9 +190,9 @@ void CCharacter::OnUpdate(double frame_advance) {
 		inv_time -= frame_advance;
 	}
 
-	AssignRenderingInfo(direction);
-
 	GameInstance::OnUpdate(frame_advance);
+
+	AssignRenderingInfo(direction);
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
@@ -229,9 +228,10 @@ void CBullet::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
-	AssignRenderingInfo(image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
+
+	AssignRenderingInfo(image_angle);
 }
 
 const char* CBullet::GetIdentifier() const { return "Bullet"; }
