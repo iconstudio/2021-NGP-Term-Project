@@ -88,6 +88,7 @@ private:
 	bool reloading = false;
 	double hp = 100;
 	int me = 0;
+	double sendstart = 10.0;
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
 	bool view_track_enabled;
