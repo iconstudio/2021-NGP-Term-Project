@@ -49,6 +49,9 @@ public:
 	int mouse_x;
 	int mouse_y;
 
+	char buffer[80];	//플레이어 수 표기용 배열
+	wchar_t strforplayernum[80];
+
 private:
 	CLIENT_STATES status;
 
