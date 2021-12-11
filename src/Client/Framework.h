@@ -80,8 +80,8 @@ private:
 	GameUpdateMessage player_info;
 	int cool_down = 0;
 	int bullet_left = 3;
-	double bullet_cool_down = 0;
-	double reload_cool_down = 0;
+	double bullet_cooldown = 0;
+	double reload_cooldown = 0;
 	bool reloading = false;
 	double hp = 100;
 
