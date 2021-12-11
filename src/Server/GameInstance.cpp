@@ -22,6 +22,9 @@ void GameInstance::OnUpdate(double frame_advance) {
 
 	if (image_speed != 0.0) { //  && 1.0 < image_number
 		image_index += image_speed;
+
+		if (100 <= image_index)
+			image_index -= 100.0;
 	}
 }
 
@@ -118,11 +121,10 @@ bool GameInstance::IsCollideWith(GameInstance* other) {
 }
 
 RenderInstance& GameInstance::AssignRenderingInfo(double angle) {
-	my_renders.x = x;
-	my_renders.y = y;
-
-	my_renders.image_index = static_cast<int>(image_index);
-	my_renders.angle = angle;
+	my_renders.image_index = static_cast<short>(image_index);
+	my_renders.x = static_cast<int>(x);
+	my_renders.y = static_cast<int>(y);
+	my_renders.angle = static_cast<int>(angle);
 
 	return my_renders;
 }

@@ -33,7 +33,7 @@ public:
 	bool IsCollideWith(GameInstance* other);
 
 	bool dead;
-	int owner;
+	char owner;
 	double x, y, hspeed, vspeed, direction;
 	double image_angle, image_index, image_speed, image_number;
 
