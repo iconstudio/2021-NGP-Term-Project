@@ -147,7 +147,6 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 	EnterCriticalSection(&client_permission);
 
-
 	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
@@ -165,7 +164,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	LeaveCriticalSection(&client_permission);
 }
 
-void ServerFramework::DisconnectClient(ClientSession* client) {
+vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&client_permission);
 
 	auto iter = std::find(players.begin(), players.end(), client);
@@ -173,10 +172,11 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 		players_number--;
 		AtomicPrintLn("클라이언트 종료: ", client->my_socket, ", 수: ", players_number);
 
-		players.erase(iter);
+		iter = players.erase(iter);
 	}
-
 	LeaveCriticalSection(&client_permission);
+
+	return iter;
 }
 
 void ServerFramework::ProceedContinuation() {
@@ -185,9 +185,11 @@ void ServerFramework::ProceedContinuation() {
 		//auto dead_players(players);
 
 		// 플레이어 사망 확인
-		for (auto player : players) {
+		for (auto it = players.begin(); it != players.end(); ++it) {
+			auto player = *it;
+
 			if (player->player_character->dead) { // 플레이어 사망
-				DisconnectClient(player);
+				it = DisconnectClient(player);
 				//dead_players.push_back(player);
 			}
 		}
@@ -216,9 +218,9 @@ void ServerFramework::CreatePlayerCharacters() {
 		auto player = players.at(i);
 		auto places = PLAYER_SPAWN_PLACES[i];
 		auto character = Instantiate<CCharacter>(places[0], places[1]);
+		character->owner = player->player_index;
 
 		player->player_character = character;
-		player->player_character->owner = player->player_index;
 		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
 	}
 }

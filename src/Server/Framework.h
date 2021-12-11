@@ -26,7 +26,7 @@ public:
 
 	virtual const char* GetIdentifier() const;
 
-	void GetHurt(int dmg);
+	void GetHurt(double dmg);
 	void Die();
 
 	double health;
@@ -69,7 +69,7 @@ public:
 
 	SOCKET AcceptClient();
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
-	void DisconnectClient(ClientSession* client); // 플레이어 종료
+	vector<ClientSession*>::iterator DisconnectClient(ClientSession* client); // 플레이어 종료
 
 	void ProceedContinuation();							// 게임 진행 확인
 	bool ValidateSocketMessage(int socket_state);		// 받은 소켓 메시지 검증

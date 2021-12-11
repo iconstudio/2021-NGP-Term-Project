@@ -35,7 +35,7 @@ DWORD WINAPI ConnectProcess(LPVOID arg) {
 DWORD WINAPI GameProcess(LPVOID arg) {
 	ClientSession* client = reinterpret_cast<ClientSession*>(arg);
 	SOCKET client_socket = client->my_socket;
-	int player_index = client->player_index;
+	int& player_index = client->player_index;
 
 	while (true) {
 		framework.AwaitReceiveEvent();
@@ -47,6 +47,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, MSG_WAITALL);
 		if (!framework.ValidateSocketMessage(result)) {
 			framework.DisconnectClient(client);
+			break;
 		}
 		AtomicPrintLn("받은 패킷 헤더: ", header);
 
@@ -64,6 +65,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
 				if (!framework.ValidateSocketMessage(result)) {
 					framework.DisconnectClient(client);
+					break;
 				}
 
 				CCharacter* player_ch = client->player_character;
@@ -179,7 +181,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 		framework.Kill(collide_bullet);
 		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
 
-		GetHurt(1);
+		GetHurt(SNOWBALL_DAMAGE);
 	}
 
 	if (hspeed != 0.0 || vspeed != 0.0)
@@ -196,7 +198,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
 
-void CCharacter::GetHurt(int dmg) {
+void CCharacter::GetHurt(double dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
