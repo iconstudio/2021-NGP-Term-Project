@@ -182,7 +182,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 	EnterCriticalSection(&permission_client);
 
-	auto client = new ClientSession(client_socket, NULL, players_number);
+	auto client = new ClientSession(client_socket, NULL, player_index_last);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
@@ -194,9 +194,10 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 	players.push_back(client);
 	SendData(client_socket, PACKETS::SERVER_SET_INDEX
-			 , reinterpret_cast<char*>(&players_number), sizeof(players_number));
+			 , reinterpret_cast<char*>(&player_index_last), sizeof(player_index_last));
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", ++players_number);
+	player_index_last++;
 
 	LeaveCriticalSection(&permission_client);
 }

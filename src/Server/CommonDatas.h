@@ -5,8 +5,8 @@
 const unsigned short COMMON_PORT = 15000;
 
 enum CLIENT_INFO {
-	WORLD_W = 1280,
-	WORLD_H = 1280,
+	WORLD_W = 800,
+	WORLD_H = 800,
 	CLIENT_W = 960,
 	CLIENT_H = 540,
 	VIEW_W = 320,
@@ -35,7 +35,7 @@ const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
 const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
-const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
+const double PLAYER_BLINK_DISTANCE = 100.0;			// 플레이어 점멸 거리
 const double PLAYER_ANIMATION_SPEED = 0.15;			// 플레이어 애니메이션 재생 속도
 
 const double SNOWBALL_DAMAGE = 34.0;				// 투사체 피해량

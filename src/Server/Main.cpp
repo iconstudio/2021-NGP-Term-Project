@@ -75,40 +75,60 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 					auto& player_y = player_ch->y;
 
 					player_ch->SetSpeed(0);
-					player_ch->SetRenderType(RENDER_TYPES::CHARACTER);
+
+					if (player_ch->dead || !player_ch->invincible) {
+						player_ch->SetRenderType(RENDER_TYPES::CHARACTER);
+					}
+
 					for (int i = 0; i < client_data_size; ++i) {
 						char input = client_data[i];
 
 						switch (input) {
 							case VK_LEFT:
 							{
-								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 180);
-								if (!player_ch->invincible)
-									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								if (!player_ch->dead) {
+									player_ch->SetVelocity(PLAYER_MOVE_SPEED, 180);
+									if (!player_ch->invincible)
+										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								} else {
+									player_ch->AddPosition(-30.0, 0.0);
+								}
 							}
 							break;
 
 							case VK_UP:
 							{
-								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 90);
-								if (!player_ch->invincible)
-									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								if (!player_ch->dead) {
+									player_ch->SetVelocity(PLAYER_MOVE_SPEED, 90);
+									if (!player_ch->invincible)
+										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								} else {
+									player_ch->AddPosition(0.0, -30.0);
+								}
 							}
 							break;
 
 							case VK_RIGHT:
 							{
-								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 0);
-								if (!player_ch->invincible)
-									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								if (!player_ch->dead) {
+									player_ch->SetVelocity(PLAYER_MOVE_SPEED, 0);
+									if (!player_ch->invincible)
+										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								} else {
+									player_ch->AddPosition(30.0, 0.0);
+								}
 							}
 							break;
 
 							case VK_DOWN:
 							{
-								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 270);
-								if (!player_ch->invincible)
-									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								if (!player_ch->dead) {
+									player_ch->SetVelocity(PLAYER_MOVE_SPEED, 270);
+									if (!player_ch->invincible)
+										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
+								} else {
+									player_ch->AddPosition(0.0, 30.0);
+								}
 							}
 							break;
 
