@@ -4,6 +4,7 @@
 
 GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
 GameSprite player_rightsprite(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
+GameSprite player_leftsprite(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
 GameSprite player_backsprite(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
@@ -90,9 +91,9 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0) {
+	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0 && reloadcooldown <= 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = 10.0;
+		bulletcooldown = 1.0;
 		--bulletleft;
 	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
@@ -101,7 +102,8 @@ void ClientFramework::Update() {
 		key_checkers[6] = 'D';
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) {
 		key_checkers[7] = 'F';
-		bulletleft = 3;
+		reloadcooldown = 3.0;
+		reloading = true;
 	}
 
 	if (key_checkers) {
@@ -110,6 +112,11 @@ void ClientFramework::Update() {
 
 	if (0 < bulletcooldown) {
 		bulletcooldown -= FRAME_TIME;
+	}
+
+	if (reloading == true && reloadcooldown <= 0)	{
+		bulletleft = 3;
+		reloading = false;
 	}
 
 	sprintf(buffer, "%d", player_num);
@@ -169,12 +176,15 @@ void ClientFramework::Render(HWND window) {
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
 	// UI
-	health_sprite.draw(surface_back, 0, 0, 2 - hp / 35, 0, 0.5, 0.5);		//체력
+	if (connectstatus == true)
+	{
+		health_sprite.draw(surface_back, 0, 0, 2 - hp / 35, 0, 0.5, 0.5);		//체력
 
-	TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
+		TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
 
-	for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
-		bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3), 0, 0, 0.8, 0.8, 0.5);
+		for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
+			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3), 0, 0, 0.8, 0.8, 0.5);
+		}
 	}
 
 	// 백 버퍼 -> 화면 버퍼
