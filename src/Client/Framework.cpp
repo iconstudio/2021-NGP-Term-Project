@@ -101,7 +101,7 @@ void ClientFramework::Update() {
 			--bulletleft;
 		}
 	}
-	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001 && flashcooltime <= 0)	{
+	if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flashcooltime <= 0.0)	{
 		key_checkers[5] = 'S';
 		flashcooltime = 3.0;
 	}
@@ -188,6 +188,25 @@ void ClientFramework::Render(HWND window) {
 					switch (angle)
 					{
 					case 0:
+						player_right.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case 90:
+						player_up.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case 180:
+						player_left.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					case -90:
+						player_down.draw(surface_double, it->x, it->y, 0, 0);
+						break;
+					}
+				}
+				break;
+				case CHARACTER_WALK:
+					auto angle = static_cast<int>(it->angle);
+					switch (angle)
+					{
+					case 0:
 						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
 						break;
 					case 90:
@@ -200,9 +219,10 @@ void ClientFramework::Render(HWND window) {
 						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
 						break;
 					}
-				}
-				break;
-
+					break;
+				case CHARACTER_HURT:
+					player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0);
+					break;
 				case BULLET:
 				{
 					bullet_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
