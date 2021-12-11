@@ -221,6 +221,9 @@ void ServerFramework::ProceedContinuation() {
 	EnterCriticalSection(&permission_client);
 	if (players_number <= player_process_index++) {
 		// 플레이어 사망 확인
+		int player_alives = 0;
+		ClientSession* survivor;
+
 		for (auto it = players.begin(); it != players.end(); ++it) { // ++ 오류
 			auto player = *it;
 
@@ -229,7 +232,8 @@ void ServerFramework::ProceedContinuation() {
 				if (player->player_character && player->player_character->dead) {
 					//it = DisconnectClient(player);
 				} else {
-
+					survivor = player;
+					player_alives++;
 				}
 			}
 
@@ -238,8 +242,10 @@ void ServerFramework::ProceedContinuation() {
 					CastQuitEvent();
 					break;
 				} else if (1 == players_number) {
+					// 부전승!
+					break;
+				} else if (1 == player_alives) {
 					// 승리!
-
 					break;
 				}
 			}
@@ -248,10 +254,13 @@ void ServerFramework::ProceedContinuation() {
 		 if (players.empty()) {
 			// 종료
 			CastQuitEvent();
-		} else if(1 == players_number) {
-			// 승리
+		} else if (1 == players_number) {
+			// 부전승
 			auto winner = players.at(0);
 			SendNotificationToTheWinner(winner->my_socket);
+		} else if (1 == player_alives) {
+			//승리
+			SendNotificationToTheWinner(survivor->my_socket);
 		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
 			CastUpdateEvent(true);
