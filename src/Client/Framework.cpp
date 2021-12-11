@@ -156,6 +156,12 @@ void ClientFramework::Update() {
 	{
 		dead = true;
 	}
+	else
+	{
+		dead = false;
+		ghost = 1.0;
+	}
+
 	sprintf(buffer, "%d", player_num);
 	int nLen = (int)strlen(buffer) + 1;
 	mbstowcs(str_for_player_num, buffer, nLen);
@@ -203,7 +209,7 @@ void ClientFramework::Render(HWND window) {
 						player_up.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
 						break;
 					case 180:
-						player_left.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
+						player_left.draw(surface_double, it->x, it->y, 3, 0, 1.0, 1.0, ghost);
 						break;
 					case -90:
 						player_down.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
@@ -253,7 +259,7 @@ void ClientFramework::Render(HWND window) {
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
 	// UI
-	if (connect_status == true)
+	if (connect_status == true && dead == false)
 	{
 		health_sprite.draw(surface_back, 0, 0, 4 - player_info.player_hp / 31, 0, 0.5, 0.5);		//체력
 
