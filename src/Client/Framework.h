@@ -87,6 +87,7 @@ private:
 	double reload_cooldown = 0;
 	bool reloading = false;
 	double hp = 100;
+	int me = 0;
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
 	bool view_track_enabled;

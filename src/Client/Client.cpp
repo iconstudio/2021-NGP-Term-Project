@@ -148,6 +148,11 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			framework.QTE = true;
 		}
 
+		if (SERVER_SET_INDEX == packet)
+		{
+			int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.me), sizeof(int), MSG_WAITALL);
+		}
+
 		if (SERVER_GAME_STATUS == packet) {
 			int result = recv((SOCKET)arg, reinterpret_cast<char*>(&framework.player_info), sizeof(GameUpdateMessage), MSG_WAITALL);
 			if (result == SOCKET_ERROR) {

@@ -188,7 +188,6 @@ void ClientFramework::Render(HWND window) {
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
-	int me = 0;
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++) {
 		ghost = 1.0;
 		if (it->target_player == me && dead == true)

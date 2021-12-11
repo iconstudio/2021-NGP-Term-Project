@@ -5,8 +5,8 @@
 const unsigned short COMMON_PORT = 15000;
 
 enum CLIENT_INFO {
-	WORLD_W = 1280,
-	WORLD_H = 1280,
+	WORLD_W = 800,
+	WORLD_H = 800,
 	CLIENT_W = 960,
 	CLIENT_H = 540,
 	VIEW_W = 320,
