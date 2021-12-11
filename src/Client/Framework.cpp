@@ -9,6 +9,7 @@ GameSprite player_up(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
 GameSprite player_damaged(L"../../res/PlayerGetDamaged_strip3.png", 3, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
+GameSprite QTEbutton_sprite(L"../../res/QTEbutton.png", 1, 0, 0);
 
 
 ClientFramework::ClientFramework()
@@ -94,22 +95,28 @@ void ClientFramework::Update() {
 		key_checkers[3] = VK_RIGHT;
 	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0 && reloadcooldown <= 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = 1.0;
-		--bulletleft;
+		bulletcooldown = 0.5;
+		if (getbuffed <= 0)
+		{
+			--bulletleft;
+		}
 	}
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
-		key_checkers[6] = 'D';
+	{
+		if (QTEtime > 0)
+		{
+			getbuffed = 5.0;
+		}
+	}
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) {
 		key_checkers[7] = 'F';
-		reloadcooldown = 3.0;
+		reloadcooldown = 2.0;
 		reloading = true;
 	}
 
-	if (key_checkers) {
-		SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
-	}
+	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
 	if (0 < bulletcooldown) {
 		bulletcooldown -= FRAME_TIME;
@@ -118,6 +125,27 @@ void ClientFramework::Update() {
 	if (reloading == true && reloadcooldown <= 0)	{
 		bulletleft = 3;
 		reloading = false;
+	}
+
+	if (reloadcooldown > 0)
+	{
+		reloadcooldown -= FRAME_TIME;
+	}
+
+	if (QTE == true)
+	{
+		QTEtime = 1.0;
+		QTE = false;
+	}
+
+	if (QTEtime >= 0)
+	{
+		QTEtime -= FRAME_TIME;
+	}
+
+	if (getbuffed >= 0)
+	{
+		getbuffed -= FRAME_TIME;
 	}
 
 	sprintf(buffer, "%d", player_num);
@@ -153,21 +181,26 @@ void ClientFramework::Render(HWND window) {
 				case CHARACTER:
 				{
 					auto angle = static_cast<int>(it->angle);
-
-					switch (angle)
+					if (playerinfo.player_inv == true)
 					{
-					case 0:
-						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
-						break;
-					case 90:
-						player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
-						break;
-					case 180:
-						player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
-						break;
-					case -90:
-						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
-						break;
+						player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0);
+					}
+					else {
+						switch (angle)
+						{
+						case 0:
+							player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
+							break;
+						case 90:
+							player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
+							break;
+						case 180:
+							player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
+							break;
+						case -90:
+							player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
+							break;
+						}
 					}
 				}
 				break;
@@ -195,12 +228,17 @@ void ClientFramework::Render(HWND window) {
 	// UI
 	if (connectstatus == true)
 	{
-		health_sprite.draw(surface_back, 0, 0, 3 - hp / 32, 0, 0.5, 0.5);		//체력
+		health_sprite.draw(surface_back, 0, 0, 3 - playerinfo.player_hp / 32, 0, 0.5, 0.5);		//체력
 
 		TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
 
 		for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
-			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3), 0, 0, 0.8, 0.8, 0.5);
+			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
+		}
+
+		if (QTEtime > 0)
+		{
+			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
 		}
 	}
 

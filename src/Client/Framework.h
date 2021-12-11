@@ -54,6 +54,10 @@ public:
 
 	bool connectstatus = false;
 
+	bool QTE = false;
+	double getbuffed = false;
+	double QTEtime = 0;
+
 private:
 	CLIENT_STATES status;
 
