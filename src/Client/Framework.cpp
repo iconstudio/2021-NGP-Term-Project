@@ -245,7 +245,7 @@ void ClientFramework::Render(HWND window) {
 	// UI
 	if (connect_status == true)
 	{
-		health_sprite.draw(surface_back, 0, 0, 3 - player_info.player_hp / 32, 0, 0.5, 0.5);		//체력
+		health_sprite.draw(surface_back, 0, 0, 4 - player_info.player_hp / 31, 0, 0.5, 0.5);		//체력
 
 		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
 
