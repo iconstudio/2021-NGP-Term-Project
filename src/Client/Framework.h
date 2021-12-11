@@ -3,15 +3,15 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-//#define SERVER_IP "192.168.123.101"
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "192.168.120.47"
+//#define SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
 
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
 	, LOBBY			// 로비
-	, GAME			// 게임
+	, GAME			// 게임 
 	, SPECTATOR		// 게임 관전
 	, GAME_OVER		// 게임 완료
 	, GAME_RESTART	// 게임 다시 참가
