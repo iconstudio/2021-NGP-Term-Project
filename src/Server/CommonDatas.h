@@ -58,7 +58,7 @@ enum PACKETS : int {
 	, CLIENT_QTE
 
 	// 서버 -> 클라이언트
-	, SERVER_SET_CAPATIN		// 방장임을 알려주는 메시지
+	, SERVER_SET_CAPATIN = 100	// 방장임을 알려주는 메시지
 	, SERVER_GAME_START			// 게임이 시작되었음을 알려주는 메시지
 	, SERVER_TERRAIN_SEED		// 지형 생성 씨앗값
 	, SERVER_PLAYER_COUNT		// 플레이어가 몇 명인지 알려주는 메시지
