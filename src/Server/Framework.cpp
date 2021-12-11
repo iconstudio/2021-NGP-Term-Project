@@ -119,12 +119,12 @@ void ServerFramework::Startup() {
 		ErrorAbort("CreateThread[ConnectProcess]");
 	}
 
-	Sleep(8000);
-	GameReady();
+	CastReceiveEvent(true);
 }
 
 void ServerFramework::GameReady() {
 	CreatePlayerCharacters();
+	SendGameBeginMsgToAll();
 
 	auto sz = players.size();
 	for (int i = 0; i < sz; ++i) {
@@ -136,7 +136,6 @@ void ServerFramework::GameReady() {
 	}
 
 	SetStatus(SERVER_STATES::GAME);
-	CastReceiveEvent(true);
 }
 
 bool ServerFramework::GameUpdate() {
@@ -322,6 +321,15 @@ void ServerFramework::CreateRenderingInfos() {
 		rendering_infos_last.clear();
 		rendering_infos_last.shrink_to_fit();
 		rendering_infos_last.reserve(RENDER_INST_COUNT);
+	}
+}
+
+void ServerFramework::SendGameBeginMsgToAll() {
+	for (int i = 0; i < players.size(); ++i) {
+		auto player = players.at(i);
+		int player_socket = player->my_socket;
+
+		SendData(player_socket, PACKETS::SERVER_GAME_START);
 	}
 }
 

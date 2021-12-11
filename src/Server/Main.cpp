@@ -41,7 +41,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitReceiveEvent();
 
-		PACKETS header;
+		PACKETS header = CLIENT_PING;
 		ZeroMemory(&header, HEADER_SIZE);
 
 		// 1-1. 패킷 헤더 수신
@@ -57,6 +57,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 1-2. 패킷 내용 수신
 		switch (header) {
+			case PACKETS::CLIENT_GAME_START:
+			{
+				framework.GameReady();
+			}
+			break;
+
 			case PACKETS::CLIENT_KEY_INPUT:
 			{
 				client_data = new char[SEND_INPUT_COUNT];
@@ -91,7 +97,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 									if (!player_ch->invincible)
 										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 								} else {
-									player_ch->AddPosition(-30.0, 0.0);
+									player_ch->AddPosition(-15.0, 0.0);
 								}
 							}
 							break;
@@ -103,7 +109,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 									if (!player_ch->invincible)
 										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 								} else {
-									player_ch->AddPosition(0.0, -30.0);
+									player_ch->AddPosition(0.0, -15.0);
 								}
 							}
 							break;
@@ -115,7 +121,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 									if (!player_ch->invincible)
 										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 								} else {
-									player_ch->AddPosition(30.0, 0.0);
+									player_ch->AddPosition(15.0, 0.0);
 								}
 							}
 							break;
@@ -127,7 +133,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 									if (!player_ch->invincible)
 										player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 								} else {
-									player_ch->AddPosition(0.0, 30.0);
+									player_ch->AddPosition(0.0, 15.0);
 								}
 							}
 							break;
@@ -164,6 +170,9 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 						player_ch->image_speed = PLAYER_ANIMATION_SPEED;
 					}
 				} // IF (player_ch)
+
+				if (client_data)
+					framework.AtomicPrintLn("받은 입력 내용: ", client_data);
 			} // CASE PACKETS::CLIENT_KEY_INPUT
 			break;
 
@@ -177,10 +186,11 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 		}
 
 		// 2. 게임 진행
-		if (client_data)
-			framework.AtomicPrintLn("받은 패킷 내용: ", client_data);
-
-		framework.ProceedContinuation();
+		if (framework.GetStatus() == SERVER_STATES::GAME) {
+			framework.ProceedContinuation();
+		} else {
+			framework.CastReceiveEvent(true);
+		}
 	}
 
 	closesocket(client_socket);

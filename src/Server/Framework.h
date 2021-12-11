@@ -81,6 +81,7 @@ public:
 	void CreatePlayerCharacters(); // 플레이어 생성
 	void CreateRenderingInfos(); // 렌더링 정보 생성
 
+	void SendGameBeginMsgToAll();
 	void SendTerrainSeed(SOCKET client_socket);
 	void SendPlayersCount(SOCKET client_socket);
 	void SendGameStatus(ClientSession* client);
