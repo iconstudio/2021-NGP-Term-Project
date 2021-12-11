@@ -2,7 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-
 ServerFramework::ServerFramework()
 	: random_distrubution(0, INT32_MAX) {
 	InitializeCriticalSection(&client_permission);
@@ -41,6 +40,21 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i)
+	{
+		delete PLAYER_SPAWN_PLACES[i];
+	}
+
+	delete[] PLAYER_SPAWN_PLACES;
+
+	players.clear();
+	instances.clear();
+	rendering_infos_last.clear();
+
+	players.shrink_to_fit();
+	instances.shrink_to_fit();
+	rendering_infos_last.shrink_to_fit();
+
 	DeleteCriticalSection(&client_permission);
 
 	CloseHandle(event_accept);
@@ -181,25 +195,33 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 
 void ServerFramework::ProceedContinuation() {
 	if (players_number <= player_process_index++) {
-
-		//auto dead_players(players);
-
 		// 플레이어 사망 확인
 		for (auto it = players.begin(); it != players.end(); ++it) {
 			auto player = *it;
 
 			if (player->player_character->dead) { // 플레이어 사망
 				it = DisconnectClient(player);
-				//dead_players.push_back(player);
 			}
 		}
 
-		player_process_index = 0; // 플레이어 업데이트 신호
 
-		CastUpdateEvent();
-	} else {
-		CastReceiveEvent(); // 수신 신호
-	}
+		if (players.empty())		// 종료
+		{
+			CastQuitEvent();
+		} else if (players_number <= player_process_index)		// 렌더링
+		{
+			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
+			player_process_index = 0;
+
+			CastUpdateEvent();
+		}
+		else		// 수신
+		{
+			++player_process_index;
+
+			CastReceiveEvent();
+		}
+     }
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
@@ -297,8 +319,7 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 }
 
 void ServerFramework::SendGameInfosToAll() {
-	auto sz = players.size();
-	for (int i = 0; i < sz; ++i) {
+	for (int i = 0; i < players.size(); ++i) {
 		auto player = players.at(i);
 		int player_socket = player->my_socket;
 
@@ -317,6 +338,11 @@ void ServerFramework::CastReceiveEvent() {
 
 void ServerFramework::CastUpdateEvent() {
 	SetEvent(event_game_update);
+}
+
+void ServerFramework::CastQuitEvent()
+{
+	SetEvent(event_quit);
 }
 
 ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
