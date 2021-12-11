@@ -237,22 +237,21 @@ void ServerFramework::ProceedContinuation() {
 				if (0 == players_number) {
 					CastQuitEvent();
 					break;
-				//} else if (1 == players_number) {
+				} else if (1 == players_number) {
 					// 승리!
 
-				//	break;
+					break;
 				}
 			}
 		}
 
-		//if (1 == players_number) {
-			// 승리
-		//	auto winner = players.at(0);
-
-		//} else
-		if (players.empty()) {
+		 if (players.empty()) {
 			// 종료
 			CastQuitEvent();
+		} else if(1 == players_number) {
+			// 승리
+			auto winner = players.at(0);
+			SendNotificationToTheWinner(winner->my_socket);
 		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
 			CastUpdateEvent(true);
@@ -388,6 +387,10 @@ void ServerFramework::SendGameInfosToAll() {
 		SendRenderingInfos(player_socket);
 		SendGameStatus(player);
 	}
+}
+
+void ServerFramework::SendNotificationToTheWinner(SOCKET client_socket) {
+	SendData(client_socket, PACKETS::SERVER_GAME_DONE);
 }
 
 void ServerFramework::CastAcceptEvent(bool flag) {
