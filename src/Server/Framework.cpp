@@ -202,7 +202,6 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&permission_client);
 
-
 	auto iter = std::find(players.begin(), players.end(), client);
 	if (iter != players.end()) {
 		players_number--;
@@ -220,11 +219,16 @@ void ServerFramework::ProceedContinuation() {
 	EnterCriticalSection(&permission_client);
 	if (players_number <= player_process_index++) {
 		// 플레이어 사망 확인
-		for (auto it = players.begin(); it != players.end(); ++it) {
+		for (auto it = players.begin(); it != players.end(); ++it) { // ++ 오류
 			auto player = *it;
 
-			if (player->player_character->dead) { // 플레이어 사망
-				it = DisconnectClient(player);
+			if (player) {
+				// 플레이어 사망
+				if (player->player_character && player->player_character->dead) {
+					//it = DisconnectClient(player);
+				} else {
+
+				}
 			}
 
 			if (players_number <= 1) {
