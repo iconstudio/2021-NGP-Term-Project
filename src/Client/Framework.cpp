@@ -78,6 +78,7 @@ void ClientFramework::Update() {
 		}
 		if (me == 0)
 		{
+			Sleep(5000);
 			SendData(my_socket, CLIENT_GAME_START);
 		}
 		recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
@@ -173,7 +174,12 @@ void ClientFramework::Update() {
 		dead = false;
 		ghost = 1.0;
 	}
-	
+
+	if (win == true)
+	{
+		MessageBox(NULL, L"winner", L"winner", 0);
+		win = false;
+	}
 
 	sprintf(buffer, "%d", player_num);
 	int nLen = (int)strlen(buffer) + 1;
@@ -199,6 +205,7 @@ void ClientFramework::Render(HWND window) {
 	//&& player_captain == true
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
+
 
 	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++) {
@@ -285,6 +292,7 @@ void ClientFramework::Render(HWND window) {
 		{
 			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
 		}
+
 	}
 
 	// 백 버퍼 -> 화면 버퍼
