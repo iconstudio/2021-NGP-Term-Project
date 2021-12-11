@@ -101,6 +101,10 @@ void ClientFramework::Update() {
 	if (0 < bulletcooldown) {
 		bulletcooldown -= FRAME_TIME;
 	}
+
+	sprintf(buffer, "%d", player_num);
+	int nLen = (int)strlen(buffer) + 1;
+	mbstowcs(strforplayernum, buffer, nLen);
 }
 
 void ClientFramework::Render(HWND window) {
@@ -149,16 +153,17 @@ void ClientFramework::Render(HWND window) {
 		}
 	}
 
-	TextOut(surface_double, VIEW_W / 2, 0, TEXT("2"), 12);
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
 	// UI
-	health_sprite.draw(surface_back, 0, 0, 3 - hp / 33, 0, 0.5, 0.5);
+	health_sprite.draw(surface_back, 0, 0, 2 - hp / 35, 0, 0.5, 0.5);		//체력
 
-	for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {
+	TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
+
+	for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
 		bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3), 0, 0, 0.8, 0.8, 0.5);
 	}
 
