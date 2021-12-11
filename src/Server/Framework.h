@@ -5,7 +5,7 @@
 
 
 /* 서버 상태 */
-enum SERVER_STATES : int {
+enum class SERVER_STATES : int {
 	LOBBY = 0			// 로비
 	, GAME				// 게임
 	, GAME_OVER			// 게임 완료
@@ -156,6 +156,7 @@ private:
 	bool game_started;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE = 300; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
+	double QTE_time;
 
 private:
 	vector<GameInstance*> instances;	 // 인스턴스 목록

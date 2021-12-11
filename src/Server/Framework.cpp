@@ -3,7 +3,8 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework()
-	: game_started(false)
+	: status(SERVER_STATES::LOBBY), game_started(false)
+	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&permission_client);
 	InitializeCriticalSection(&permission_print);
@@ -133,6 +134,8 @@ void ServerFramework::GameReady() {
 		SendTerrainSeed(player_socket);
 		SendPlayersCount(player_socket);
 	}
+
+	SetStatus(SERVER_STATES::GAME);
 	CastReceiveEvent(true);
 }
 
@@ -140,13 +143,14 @@ bool ServerFramework::GameUpdate() {
 	for (auto inst : instances) {
 		inst->OnUpdate(FRAME_TIME);
 	}
+	QTE_time -= FRAME_TIME;
 
 	return true;
 }
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		AtomicPrintLn("서버의 상태 변경: ", status, " → ", state);
+		AtomicPrintLn("서버의 상태 변경: ", (int)status, " → ", (int)state);
 		status = state;
 	}
 }
@@ -166,9 +170,13 @@ SOCKET ServerFramework::AcceptClient() {
 }
 
 void ServerFramework::ConnectClient(SOCKET client_socket) {
-	SetEvent(event_accept);
+	if (GetStatus() == SERVER_STATES::LOBBY) {
+		CastAcceptEvent(true);
+	} else {
 
-	BOOL option = FALSE;
+	}
+
+	BOOL option = TRUE; // Nagle 알고리즘
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
@@ -194,12 +202,14 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&permission_client);
 
+
 	auto iter = std::find(players.begin(), players.end(), client);
 	if (iter != players.end()) {
 		players_number--;
 		AtomicPrintLn("클라이언트 종료: ", client->my_socket, ", 수: ", players_number);
 
 		iter = players.erase(iter);
+		closesocket(client->my_socket);
 	}
 	LeaveCriticalSection(&permission_client);
 
@@ -207,6 +217,7 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 }
 
 void ServerFramework::ProceedContinuation() {
+	EnterCriticalSection(&permission_client);
 	if (players_number <= player_process_index++) {
 		// 플레이어 사망 확인
 		for (auto it = players.begin(); it != players.end(); ++it) {
@@ -232,19 +243,21 @@ void ServerFramework::ProceedContinuation() {
 			// 승리
 		//	auto winner = players.at(0);
 
-
 		//} else
-			if (players.empty()) {
+		if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
 			CastUpdateEvent(true);
 		}
+
+		player_process_index = 0;
 	} else {
 		// 수신
 		CastReceiveEvent(true);
 	}
+	LeaveCriticalSection(&permission_client);
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
@@ -343,6 +356,17 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 }
 
 void ServerFramework::SendGameInfosToAll() {
+	if (QTE_time <= 0) {
+		uniform_int_distribution<> qte_distrubution(0, players.size() - 1);
+
+		auto player_pos = qte_distrubution(randomizer);
+		auto player = players.at(player_pos);
+		auto client_socket = player->my_socket;
+		SendData(client_socket, PACKETS::SERVER_QTE);
+
+		QTE_time = QTE_PERIOD_MAX;
+	}
+
 	for (int i = 0; i < players.size(); ++i) {
 		auto player = players.at(i);
 		int player_socket = player->my_socket;
@@ -355,11 +379,15 @@ void ServerFramework::SendGameInfosToAll() {
 void ServerFramework::CastAcceptEvent(bool flag) {
 	if (flag)
 		SetEvent(event_accept);
+	else
+		ResetEvent(event_accept);
 }
 
 void ServerFramework::CastReceiveEvent(bool flag) {
 	if (flag)
 		SetEvent(event_game_communicate);
+	else
+		ResetEvent(event_game_communicate);
 }
 
 void ServerFramework::CastUpdateEvent(bool flag) {
@@ -376,9 +404,6 @@ ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
 	, player_index(id), player_character(nullptr) {}
 
 ClientSession::~ClientSession() {
-	closesocket(my_socket);
-	CloseHandle(my_thread);
-
 	player_index = -1;
 
 	if (player_character) {

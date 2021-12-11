@@ -108,6 +108,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
+								bullet->hspeed += player_ch->hspeed;
+								bullet->vspeed += player_ch->vspeed;
 							}
 							break;
 
@@ -117,6 +119,13 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							}
 							break;
 						}
+					}
+					
+					if (player_ch->hspeed == 0.0 && player_ch->vspeed == 0.0) {
+						player_ch->image_speed = 0.0;
+						player_ch->image_index = 0.0;
+					} else {
+						player_ch->image_speed = PLAYER_ANIMATION_SPEED;
 					}
 				} // IF (player_ch)
 			} // CASE PACKETS::CLIENT_KEY_INPUT
@@ -137,6 +146,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		framework.ProceedContinuation();
 	}
+
+	closesocket(client_socket);
 
 	return 0;
 }
@@ -168,9 +179,9 @@ CCharacter::CCharacter()
 	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -8, -8, 8, 8 });
+	SetBoundBox(RECT{ -8, -20, 8, 9 });
 
-	image_speed = 0.15;
+	image_speed = 0.0;
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
@@ -178,7 +189,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (collide_bullet && collide_bullet->owner != owner) {
 		framework.Kill(collide_bullet);
-		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+		framework.AtomicPrintLn("플레이어 ", owner, "의 총알 충돌");
 
 		GetHurt(SNOWBALL_DAMAGE);
 	}
@@ -201,7 +212,7 @@ void CCharacter::GetHurt(double dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "플레이어 " << owner << " 사망." << endl;
+			framework.AtomicPrintLn("플레이어 ", owner, " 사망");
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
@@ -217,7 +228,7 @@ void CCharacter::Die() {
 CBullet::CBullet()
 	: GameInstance(), lifetime(SNOWBALL_DURATION) {
 	SetRenderType(RENDER_TYPES::BULLET);
-	SetBoundBox(RECT{ -2, -2, 2, 2 });
+	SetBoundBox(RECT{ -8, -8, 8, 8 });
 }
 
 void CBullet::OnUpdate(double frame_advance) {
