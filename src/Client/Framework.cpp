@@ -101,8 +101,11 @@ void ClientFramework::Update() {
 			--bulletleft;
 		}
 	}
-	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
+	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001 && flashcooltime <= 0)
+	{
 		key_checkers[5] = 'S';
+		flashcooltime = 3.0;
+	}
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
 	{
 		if (QTEtime > 0)
@@ -121,6 +124,9 @@ void ClientFramework::Update() {
 	if (0 < bulletcooldown) {
 		bulletcooldown -= FRAME_TIME;
 	}
+
+	if (flashcooltime > 0)
+		flashcooltime -= FRAME_TIME;
 
 	if (reloading == true && reloadcooldown <= 0)	{
 		bulletleft = 3;
