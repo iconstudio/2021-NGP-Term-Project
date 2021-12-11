@@ -193,9 +193,11 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	CloseHandle(th);
 
 	players.push_back(client);
-	players_number++;
+	SendData(client_socket, PACKETS::SERVER_SET_INDEX
+			 , reinterpret_cast<char*>(&players_number), sizeof(players_number));
 
-	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
+	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", ++players_number);
+
 	LeaveCriticalSection(&permission_client);
 }
 
