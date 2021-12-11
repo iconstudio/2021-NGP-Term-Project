@@ -75,6 +75,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 					auto& player_y = player_ch->y;
 
 					player_ch->SetSpeed(0);
+					player_ch->SetRenderType(RENDER_TYPES::CHARACTER);
 					for (int i = 0; i < client_data_size; ++i) {
 						char input = client_data[i];
 
@@ -82,24 +83,32 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							case VK_LEFT:
 							{
 								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 180);
+								if (!player_ch->invincible)
+									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 							}
 							break;
 
 							case VK_UP:
 							{
 								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 90);
+								if (!player_ch->invincible)
+									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 							}
 							break;
 
 							case VK_RIGHT:
 							{
 								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 0);
+								if (!player_ch->invincible)
+									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 							}
 							break;
 
 							case VK_DOWN:
 							{
 								player_ch->SetVelocity(PLAYER_MOVE_SPEED, 270);
+								if (!player_ch->invincible)
+									player_ch->SetRenderType(RENDER_TYPES::CHARACTER_WALK);
 							}
 							break;
 
@@ -113,9 +122,12 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							}
 							break;
 
-							case VK_SPACE: // 특수 능력
+							case 'S': // 특수 능력
 							{
-								
+								auto pd = player_ch->direction;
+								auto ax = lengthdir_x(PLAYER_BLINK_DISTANCE, pd);
+								auto ay = lengthdir_y(PLAYER_BLINK_DISTANCE, pd);
+								player_ch->AddPosition(ax, ay);
 							}
 							break;
 						}
@@ -176,8 +188,8 @@ DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 
 CCharacter::CCharacter()
 	: GameInstance()
-	, attack_cooltime(0.0), inv_time(0.0)
-	, health(PLAYER_HEALTH) {
+	, attack_cooltime(0.0)
+	, health(PLAYER_HEALTH), inv_time(0.0), invincible(false) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -8, -20, 8, 9 });
 
@@ -199,6 +211,9 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (0 < inv_time) {
 		inv_time -= frame_advance;
+	} else if (invincible) {
+		SetRenderType(RENDER_TYPES::CHARACTER);
+		invincible = false;
 	}
 
 	GameInstance::OnUpdate(frame_advance);
@@ -215,6 +230,8 @@ void CCharacter::GetHurt(double dmg) {
 			framework.AtomicPrintLn("플레이어 ", owner, " 사망");
 			Die();
 		} else {
+			SetRenderType(RENDER_TYPES::CHARACTER_HURT);
+			invincible = true;
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
 	}

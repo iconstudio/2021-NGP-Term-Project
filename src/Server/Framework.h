@@ -31,6 +31,8 @@ public:
 
 	double health;
 	double attack_cooltime;
+
+	bool invincible;
 	double inv_time;
 };
 
