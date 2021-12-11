@@ -17,8 +17,7 @@ GameInstance::~GameInstance() {
 
 void GameInstance::OnUpdate(double frame_advance) {
 	if (hspeed != 0.0 || vspeed != 0.0) {
-		x += hspeed * frame_advance;
-		y += vspeed * frame_advance;
+		AddPosition(hspeed * frame_advance, vspeed * frame_advance);
 	}
 
 	if (image_speed != 0.0) { //  && 1.0 < image_number
@@ -89,6 +88,25 @@ int GameInstance::GetBoundBT() const {
 
 const char* GameInstance::GetIdentifier() const {
 	return "Instance";
+}
+
+void GameInstance::SetPosition(double dx, double dy) {
+	x = dx;
+	y = dy;
+}
+
+void GameInstance::AddPosition(double ax, double ay) {
+	x += ax;
+	if (x < -GetBoundLT())
+		x = (-box.left);
+	else if (CLIENT_INFO::WORLD_W < GetBoundRT())
+		x = CLIENT_INFO::WORLD_W - (box.right);
+
+	y += ay;
+	if (y < -GetBoundTP())
+		y = (-box.top);
+	else if (CLIENT_INFO::WORLD_H < GetBoundBT())
+		y = CLIENT_INFO::WORLD_H - (box.bottom);
 }
 
 bool GameInstance::IsCollideWith(GameInstance* other) {

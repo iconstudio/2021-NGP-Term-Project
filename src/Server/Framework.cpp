@@ -337,11 +337,10 @@ void ServerFramework::SendGameStatus(ClientSession* client) {
 	GameUpdateMessage state;
 	state.players_count = GetPlayerNumber();
 	state.player_hp = player_character->health;
-	state.player_inv = (0 < player_character->inv_time);
+	state.player_inv = player_character->invincible;
 	state.player_x = player_character->x;
 	state.player_y = player_character->y;
 	state.player_direction = player_character->direction;
-	state.target_player = 0;
 
 	SendData(client_socket, SERVER_GAME_STATUS
 			 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));

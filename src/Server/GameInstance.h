@@ -19,6 +19,9 @@ public:
 	void SetVelocity(double speed, double dir);
 	virtual const char* GetIdentifier() const;
 
+	void SetPosition(double dx, double dy);
+	void AddPosition(double ax, double ay);
+
 	RenderInstance& AssignRenderingInfo(double angle);
 	RenderInstance& GetRenderInstance();
 
