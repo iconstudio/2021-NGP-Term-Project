@@ -67,6 +67,9 @@ public:
 	void GameReady(); // 게임 준비
 	bool GameUpdate(); // 게임 갱신, 접속한 플레이어가 없으면 false 반환
 
+	void SetStatus(SERVER_STATES state);
+	SERVER_STATES GetStatus() const;
+
 	SOCKET AcceptClient();
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
 	vector<ClientSession*>::iterator DisconnectClient(ClientSession* client); // 플레이어 종료
@@ -145,7 +148,7 @@ private:
 	vector<GameInstance*> instances;	 // 인스턴스 목록
 	vector<RenderInstance> rendering_infos_last;		// 렌더링 정보
 
-	uniform_int<> random_distrubution; // 서버의 무작위 분포 범위
+	uniform_int_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 	default_random_engine randomizer;
 };
 
