@@ -3,7 +3,8 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework()
-	: random_distrubution(0, INT32_MAX) {
+	: game_started(false)
+	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&client_permission);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
@@ -204,9 +205,12 @@ void ServerFramework::ProceedContinuation() {
 
 			if (players_number <= 1) {
 				if (0 == players_number) {
-
+					CastQuitEvent();
+					break;
 				} else if (1 == players_number) {
+					// 승리!
 
+					break;
 				}
 			}
 		}
