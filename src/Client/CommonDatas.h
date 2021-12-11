@@ -16,8 +16,8 @@ enum CLIENT_INFO {
 };
 
 // 프레임 수
-constexpr double FRAME_RATE = 100.0;
-constexpr double FRAME_TIME = (1.0 / FRAME_RATE);
+constexpr double FRAMERATE = 100.0;
+constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;

@@ -93,58 +93,58 @@ void ClientFramework::Update() {
 		key_checkers[2] = VK_LEFT;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
 		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bullet_cool_down <= 0 && bullet_left > 0 && reload_cool_down <= 0) {
+	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bullet_cooldown <= 0 && bullet_left > 0 && reload_cooldown <= 0) {
 		key_checkers[4] = 'A';
-		bullet_cool_down = 0.5;
+		bullet_cooldown = 0.5;
 		if (get_buffed <= 0)
 		{
 			--bullet_left;
 		}
 	}
-	if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flashcooltime <= 0.0)	{
+	if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flash_cooltime <= 0.0)	{
 		key_checkers[5] = 'S';
 		flash_cooltime = 3.0;
 	}
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001) {
-		if (QTE_time > 0)
+		if (QTEtime > 0)
 		{
 			get_buffed = 5.0;
 		}
 	}
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) {
 		key_checkers[7] = 'F';
-		reload_cool_down = 2.0;
+		reload_cooldown = 2.0;
 		reloading = true;
 	}
 
 	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
 
-	if (0 < bullet_cool_down) {
-		bullet_cool_down -= FRAME_TIME;
+	if (0 < bullet_cooldown) {
+		bullet_cooldown -= FRAME_TIME;
 	}
 
 	if (flash_cooltime > 0)
 		flash_cooltime -= FRAME_TIME;
 
-	if (reloading == true && reload_cool_down <= 0)	{
+	if (reloading == true && reload_cooldown <= 0)	{
 		bullet_left = 3;
 		reloading = false;
 	}
 
-	if (reload_cool_down > 0)
+	if (reload_cooldown > 0)
 	{
-		reload_cool_down -= FRAME_TIME;
+		reload_cooldown -= FRAME_TIME;
 	}
 
 	if (QTE == true)
 	{
-		QTE_time = 1.0;
+		QTEtime = 1.0;
 		QTE = false;
 	}
 
-	if (QTE_time >= 0)
+	if (QTEtime >= 0)
 	{
-		QTE_time -= FRAME_TIME;
+		QTEtime -= FRAME_TIME;
 	}
 
 	if (get_buffed >= 0)
@@ -181,10 +181,10 @@ void ClientFramework::Render(HWND window) {
 
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++) {
 		if (it) {
+			auto angle = static_cast<int>(it->angle);
 			switch (it->instance_type) {
 				case CHARACTER:
 				{
-					auto angle = static_cast<int>(it->angle);
 					switch (angle)
 					{
 					case 0:
@@ -203,7 +203,6 @@ void ClientFramework::Render(HWND window) {
 				}
 				break;
 				case CHARACTER_WALK:
-					auto angle = static_cast<int>(it->angle);
 					switch (angle)
 					{
 					case 0:
@@ -254,7 +253,7 @@ void ClientFramework::Render(HWND window) {
 			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
 		}
 
-		if (QTE_time > 0)
+		if (QTEtime > 0)
 		{
 			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
 		}
