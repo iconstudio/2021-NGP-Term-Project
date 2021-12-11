@@ -21,14 +21,14 @@ void GameInstance::OnUpdate(double frame_advance) {
 		y += vspeed * frame_advance;
 	}
 
-	if (image_speed != 0.0 && 1.0 < image_number) {
+	if (image_speed != 0.0) { //  && 1.0 < image_number
 		image_index += image_speed;
 
-		if (image_index < 0) {
-			image_index += image_number;
-		} else if (image_number <= image_index) {
-			image_index -= image_number;
-		}
+		//if (image_index < 0) {
+		//	image_index += image_number;
+		//} else if (image_number <= image_index) {
+		//	image_index -= image_number;
+		//}
 	}
 }
 

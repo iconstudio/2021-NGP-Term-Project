@@ -80,7 +80,7 @@ GameSprite::~GameSprite() {
 
 void GameSprite::draw(HDC surface, double x, double y, double index, double angle, double xscale, double yscale, double alpha) {
 	if (1 < number) {
-		auto frame = frames.at(static_cast<u_int>(index)).get();
+		auto frame = frames.at((static_cast<u_int>(index) % number)).get();
 		__draw_single(surface, *frame, x, y, angle, xscale, yscale, alpha);
 	}
 	else {

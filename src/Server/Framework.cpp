@@ -220,15 +220,21 @@ void ServerFramework::ProceedContinuation() {
 				if (0 == players_number) {
 					CastQuitEvent();
 					break;
-				} else if (1 == players_number) {
+				//} else if (1 == players_number) {
 					// 승리!
 
-					break;
+				//	break;
 				}
 			}
 		}
 
-		if (players.empty()) {
+		//if (1 == players_number) {
+			// 승리
+		//	auto winner = players.at(0);
+
+
+		//} else
+			if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else {

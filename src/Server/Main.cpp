@@ -192,9 +192,9 @@ void CCharacter::OnUpdate(double frame_advance) {
 		inv_time -= frame_advance;
 	}
 
-	AssignRenderingInfo(direction);
-
 	GameInstance::OnUpdate(frame_advance);
+
+	AssignRenderingInfo(direction);
 }
 
 const char* CCharacter::GetIdentifier() const { return "Player"; }
@@ -230,9 +230,10 @@ void CBullet::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
-	AssignRenderingInfo(image_angle);
 
 	GameInstance::OnUpdate(frame_advance);
+
+	AssignRenderingInfo(image_angle);
 }
 
 const char* CBullet::GetIdentifier() const { return "Bullet"; }
