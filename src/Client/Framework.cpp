@@ -66,19 +66,30 @@ void ClientFramework::Initialize() {
 
 void ClientFramework::Update() {
 	background_color = COLOR_YELLOW;
-
-	auto address_size = sizeof(server_address);
 	while (connect_status == false)
 	{
+		auto address_size = sizeof(server_address);
+		PACKETS packet = CLIENT_PING;
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
+		recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+		if (packet == SERVER_SET_INDEX)
+		{
+			int result = recv((SOCKET)my_socket, reinterpret_cast<char*>(&me), sizeof(int), MSG_WAITALL);
+		}
+		if (me == 0)
+		{
+			SendData(my_socket, CLIENT_GAME_START);
+		}
+		recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+		if (packet == SERVER_GAME_START)
+		{
+			connect_status = true;
+			CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
+		}
 		if (SOCKET_ERROR == result) {
 			// 오류
 			ErrorAbort("connect error");
 			return;
-		}
-		else {
-			connect_status = true;
-			CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 		}
 
 	}
@@ -156,11 +167,13 @@ void ClientFramework::Update() {
 	{
 		dead = true;
 	}
+
 	else
 	{
 		dead = false;
 		ghost = 1.0;
 	}
+	
 
 	sprintf(buffer, "%d", player_num);
 	int nLen = (int)strlen(buffer) + 1;
