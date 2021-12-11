@@ -117,6 +117,9 @@ public:
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
 private:
+	/* 서버 속성 */
+	SERVER_STATES status;
+
 	/* 소켓 속성 */
 	SOCKET my_socket; // 서버 소켓
 	SOCKADDR_IN my_address; // 서버 주소
@@ -127,7 +130,7 @@ private:
 	HANDLE event_game_communicate; // 입력 수신 신호
 	HANDLE event_game_update; // 게임 처리 신호
 	HANDLE event_quit; // 종료 신호
-	CRITICAL_SECTION permission_client, permission_;
+	CRITICAL_SECTION permission_client, permission_print;
 
 	/* 플레이어 관련 속성 */
 	vector<ClientSession*> players; // 플레이어 목록
@@ -136,8 +139,6 @@ private:
 	int player_number_last; // 마지막에 추가된 플레이어의 번호
 	int	player_captain; // 방장 플레이어
 	int player_winner; // 승리한 플레이어
-
-	CRITICAL_SECTION client_permission, print_permission;
 
 	/* 게임 관련 속성 */
 	bool game_started;

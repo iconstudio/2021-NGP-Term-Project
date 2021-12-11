@@ -142,6 +142,17 @@ bool ServerFramework::GameUpdate() {
 	return true;
 }
 
+void ServerFramework::SetStatus(SERVER_STATES state) {
+	if (status != state) {
+		AtomicPrintLn("서버의 상태 변경: ", status, " → ", state);
+		status = state;
+	}
+}
+
+SERVER_STATES ServerFramework::GetStatus() const {
+	return status;
+}
+
 SOCKET ServerFramework::AcceptClient() {
 	SOCKADDR_IN client_address;
 	int client_addr_size = sizeof(client_address);
@@ -159,7 +170,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	EnterCriticalSection(&client_permission);
+	EnterCriticalSection(&permission_client);
 
 	auto client = new ClientSession(client_socket, NULL, players_number);
 
