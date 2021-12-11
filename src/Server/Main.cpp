@@ -18,7 +18,7 @@ int main() {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.SetConnectProcess();
+		framework.CastAcceptEvent();
 		SOCKET client_socket = framework.AcceptClient();
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");

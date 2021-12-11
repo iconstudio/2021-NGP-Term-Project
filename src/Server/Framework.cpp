@@ -352,16 +352,19 @@ void ServerFramework::SendGameInfosToAll() {
 	}
 }
 
-void ServerFramework::SetConnectProcess() {
-	SetEvent(event_accept);
+void ServerFramework::CastAcceptEvent(bool flag) {
+	if (flag)
+		SetEvent(event_accept);
 }
 
-void ServerFramework::CastReceiveEvent() {
-	SetEvent(event_game_communicate);
+void ServerFramework::CastReceiveEvent(bool flag) {
+	if (flag)
+		SetEvent(event_game_communicate);
 }
 
-void ServerFramework::CastUpdateEvent() {
-	SetEvent(event_game_update);
+void ServerFramework::CastUpdateEvent(bool flag) {
+	if (flag)
+		SetEvent(event_game_update);
 }
 
 void ServerFramework::CastQuitEvent() {
