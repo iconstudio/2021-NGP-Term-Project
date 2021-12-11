@@ -118,6 +118,13 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 							break;
 						}
 					}
+					
+					if (player_ch->hspeed == 0.0 && player_ch->vspeed == 0.0) {
+						player_ch->image_speed = 0.0;
+						player_ch->image_index = 0.0;
+					} else {
+						player_ch->image_speed = PLAYER_ANIMATION_SPEED;
+					}
 				} // IF (player_ch)
 			} // CASE PACKETS::CLIENT_KEY_INPUT
 			break;
@@ -170,7 +177,7 @@ CCharacter::CCharacter()
 	SetRenderType(RENDER_TYPES::CHARACTER);
 	SetBoundBox(RECT{ -8, -8, 8, 8 });
 
-	image_speed = 0.15;
+	image_speed = 0.0;
 }
 
 void CCharacter::OnUpdate(double frame_advance) {
@@ -178,7 +185,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (collide_bullet && collide_bullet->owner != owner) {
 		framework.Kill(collide_bullet);
-		cout << "플레이어 " << owner << "의 총알 충돌" << endl;
+		framework.AtomicPrintLn("플레이어 ", owner, "의 총알 충돌");
 
 		GetHurt(SNOWBALL_DAMAGE);
 	}
@@ -201,7 +208,7 @@ void CCharacter::GetHurt(double dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "플레이어 " << owner << " 사망." << endl;
+			framework.AtomicPrintLn("플레이어 ", owner, "사망");
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;

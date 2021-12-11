@@ -4,6 +4,7 @@
 
 ServerFramework::ServerFramework()
 	: game_started(false)
+	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&permission_client);
 	InitializeCriticalSection(&permission_print);
@@ -141,12 +142,25 @@ bool ServerFramework::GameUpdate() {
 		inst->OnUpdate(FRAME_TIME);
 	}
 
+	QTE_time -= FRAME_TIME;
+	if (QTE_time <= 0) {
+		uniform_int_distribution<> qte_distrubution(0, players.size() - 1);
+
+		auto player_pos = qte_distrubution(randomizer);
+		auto player = players.at(player_pos);
+		auto client_socket = player->my_socket;
+		SendData(client_socket, PACKETS::SERVER_QTE);
+
+		QTE_time = QTE_PERIOD_MAX;
+
+	}
+
 	return true;
 }
 
 void ServerFramework::SetStatus(SERVER_STATES state) {
 	if (status != state) {
-		AtomicPrintLn("서버의 상태 변경: ", status, " → ", state);
+		AtomicPrintLn("서버의 상태 변경: ", (int)status, " → ", (int)state);
 		status = state;
 	}
 }
@@ -168,7 +182,7 @@ SOCKET ServerFramework::AcceptClient() {
 void ServerFramework::ConnectClient(SOCKET client_socket) {
 	SetEvent(event_accept);
 
-	BOOL option = FALSE;
+	BOOL option = TRUE; // Nagle 알고리즘
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
@@ -232,15 +246,16 @@ void ServerFramework::ProceedContinuation() {
 			// 승리
 		//	auto winner = players.at(0);
 
-
 		//} else
-			if (players.empty()) {
+		if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
 			CastUpdateEvent(true);
 		}
+
+		player_process_index = 0;
 	} else {
 		// 수신
 		CastReceiveEvent(true);
@@ -360,6 +375,8 @@ void ServerFramework::CastAcceptEvent(bool flag) {
 void ServerFramework::CastReceiveEvent(bool flag) {
 	if (flag)
 		SetEvent(event_game_communicate);
+	else
+		ResetEvent(event_game_communicate);
 }
 
 void ServerFramework::CastUpdateEvent(bool flag) {

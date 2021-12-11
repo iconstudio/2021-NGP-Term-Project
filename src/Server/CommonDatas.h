@@ -36,10 +36,13 @@ const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
 const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
+const double PLAYER_ANIMATION_SPEED = 0.15;			// 플레이어 애니메이션 재생 속도
 
 const double SNOWBALL_DAMAGE = 34.0;				// 투사체 피해량
 const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
+
+const double QTE_PERIOD_MAX = 20.0;				// QTE 보내는 시간 간격
 
 // 송수신 설정
 const int SEND_INPUT_COUNT = 8;

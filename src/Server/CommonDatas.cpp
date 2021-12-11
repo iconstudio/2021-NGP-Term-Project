@@ -37,7 +37,7 @@ void ErrorDisplay(const char* msg) {
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	std::cout << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
+	std::cerr << "[" << msg << "] " << static_cast<char*>(lpMsgBuf) << std::endl;
 
 	LocalFree(lpMsgBuf);
 }
