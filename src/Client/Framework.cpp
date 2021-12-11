@@ -2,10 +2,10 @@
 #include "Framework.h"
 #include "Resource.h"
 
-GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
-GameSprite player_rightsprite(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
-GameSprite player_leftsprite(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
-GameSprite player_backsprite(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
+GameSprite player_down(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
+GameSprite player_right(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
+GameSprite player_left(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
+GameSprite player_up(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 
