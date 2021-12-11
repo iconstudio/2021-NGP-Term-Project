@@ -5,7 +5,7 @@
 ServerFramework::ServerFramework()
 	: game_started(false)
 	, randomizer(std::random_device{}()), random_distrubution() {
-	InitializeCriticalSection(&client_permission);
+	InitializeCriticalSection(&permission_client);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
@@ -55,7 +55,7 @@ ServerFramework::~ServerFramework() {
 	instances.shrink_to_fit();
 	rendering_infos_last.shrink_to_fit();
 
-	DeleteCriticalSection(&client_permission);
+	DeleteCriticalSection(&permission_client);
 
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
@@ -177,7 +177,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
 		ErrorDisplay("CreateThread[GameProcess]");
-		LeaveCriticalSection(&client_permission);
+		LeaveCriticalSection(&permission_client);
 		return;
 	}
 	CloseHandle(th);
@@ -186,11 +186,11 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	players_number++;
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
-	LeaveCriticalSection(&client_permission);
+	LeaveCriticalSection(&permission_client);
 }
 
 vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
-	EnterCriticalSection(&client_permission);
+	EnterCriticalSection(&permission_client);
 
 	auto iter = std::find(players.begin(), players.end(), client);
 	if (iter != players.end()) {

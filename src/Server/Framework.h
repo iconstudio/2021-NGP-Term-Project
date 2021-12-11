@@ -3,10 +3,10 @@
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
+
 /* 서버 상태 */
 enum SERVER_STATES : int {
-	LISTEN = 0			// 클라이언트 접속 대기
-	, LOBBY				// 로비
+	LOBBY = 0			// 로비
 	, GAME				// 게임
 	, GAME_OVER			// 게임 완료
 	, GAME_RESTART		// 게임 다시 시작
