@@ -151,7 +151,23 @@ void ClientFramework::Render(HWND window) {
 			switch (it->instance_type) {
 				case CHARACTER:
 				{
-					player_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
+					auto angle = static_cast<int>(it->angle);
+
+					switch (angle)
+					{
+					case 0:
+						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 90:
+						player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 180:
+						player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case -90:
+						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					}
 				}
 				break;
 
