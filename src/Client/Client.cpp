@@ -136,11 +136,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-	while (true) {
+		while (true) {
 
 		PACKETS packet = CLIENT_PING;
 		int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
 		if (retval == SOCKET_ERROR) {
+		}
+
+		if (SERVER_QTE == packet)
+		{
+			framework.QTE = true;
 		}
 
 		if (SERVER_GAME_STATUS == packet) {
