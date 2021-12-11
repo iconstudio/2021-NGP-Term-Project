@@ -152,6 +152,10 @@ void ClientFramework::Update() {
 		get_buffed -= FRAME_TIME;
 	}
 
+	if (player_info.player_hp <= 0)
+	{
+		dead = true;
+	}
 	sprintf(buffer, "%d", player_num);
 	int nLen = (int)strlen(buffer) + 1;
 	mbstowcs(str_for_player_num, buffer, nLen);
@@ -178,8 +182,13 @@ void ClientFramework::Render(HWND window) {
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
 	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
-
+	int me = 0;
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++) {
+		ghost = 1.0;
+		if (it->target_player == me && dead == true)
+		{
+			ghost = 0.5;
+		}
 		if (it) {
 			auto angle = static_cast<int>(it->angle);
 			switch (it->instance_type) {
@@ -188,16 +197,16 @@ void ClientFramework::Render(HWND window) {
 					switch (angle)
 					{
 					case 0:
-						player_right.draw(surface_double, it->x, it->y, 0, 0);
+						player_right.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
 						break;
 					case 90:
-						player_up.draw(surface_double, it->x, it->y, 0, 0);
+						player_up.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
 						break;
 					case 180:
-						player_left.draw(surface_double, it->x, it->y, 0, 0);
+						player_left.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
 						break;
 					case -90:
-						player_down.draw(surface_double, it->x, it->y, 0, 0);
+						player_down.draw(surface_double, it->x, it->y, 0, 0, 1.0, 1.0, ghost);
 						break;
 					}
 				}
@@ -206,21 +215,21 @@ void ClientFramework::Render(HWND window) {
 					switch (angle)
 					{
 					case 0:
-						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
+						player_right.draw(surface_double, it->x, it->y, it->image_index, 0, 1.0, 1.0, ghost);
 						break;
 					case 90:
-						player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
+						player_up.draw(surface_double, it->x, it->y, it->image_index, 0, 1.0, 1.0, ghost);
 						break;
 					case 180:
-						player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
+						player_left.draw(surface_double, it->x, it->y, it->image_index, 0, 1.0, 1.0, ghost);
 						break;
 					case -90:
-						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
+						player_down.draw(surface_double, it->x, it->y, it->image_index, 0, 1.0, 1.0, ghost);
 						break;
 					}
 					break;
 				case CHARACTER_HURT:
-					player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0);
+					player_damaged.draw(surface_double, it->x, it->y, it->image_index, 0, 1.0, 1.0, ghost);
 					break;
 				case BULLET:
 				{
@@ -235,6 +244,7 @@ void ClientFramework::Render(HWND window) {
 				break;
 			}
 		}
+		me++;
 	}
 
 
