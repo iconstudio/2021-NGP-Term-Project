@@ -139,7 +139,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	while (true) {
 
 		PACKETS packet = CLIENT_PING;
-		int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
+		int retval = recv((SOCKET)arg, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
 		if (retval == SOCKET_ERROR) {
 		}
 
@@ -166,6 +166,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			if (result == SOCKET_ERROR) {
 			}
 
+		}
+		if (SERVER_GAME_DONE == packet) {
+			framework.win = true;
+			break;
 		}
 
 		if (SERVER_PLAYER_COUNT == packet) {
