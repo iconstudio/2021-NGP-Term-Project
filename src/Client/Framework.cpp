@@ -2,11 +2,11 @@
 #include "Framework.h"
 #include "Resource.h"
 
-GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
-GameSprite player_rightsprite(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
-GameSprite player_leftsprite(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
-GameSprite player_backsprite(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
-GameSprite player_damagedsprite(L"../../res/PlayerGetDamaged_strip3.png", 3, 16, 50);
+GameSprite player_down(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
+GameSprite player_right(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
+GameSprite player_left(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
+GameSprite player_up(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
+GameSprite player_damaged(L"../../res/PlayerGetDamaged_strip3.png", 3, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 
@@ -152,11 +152,23 @@ void ClientFramework::Render(HWND window) {
 			switch (it->instance_type) {
 				case CHARACTER:
 				{
-					if (playerinfo.player_inv == true)
+					auto angle = static_cast<int>(it->angle);
+
+					switch (angle)
 					{
-						player_damagedsprite.draw(surface_double, it->x, it->y, it->image_index, 0);
+					case 0:
+						player_right.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 90:
+						player_up.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case 180:
+						player_left.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
+					case -90:
+						player_down.draw(surface_double, it->x, it->y, it->image_index, 0);
+						break;
 					}
-					player_sprite.draw(surface_double, it->x, it->y, it->image_index, 0);
 				}
 				break;
 
