@@ -2,7 +2,6 @@
 #include "CommonDatas.h"
 #include "Framework.h"
 
-
 ServerFramework::ServerFramework()
 	: random_distrubution(0, INT32_MAX) {
 	InitializeCriticalSection(&client_permission);
@@ -317,8 +316,7 @@ void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
 }
 
 void ServerFramework::SendGameInfosToAll() {
-	auto sz = players.size();
-	for (int i = 0; i < sz; ++i) {
+	for (int i = 0; i < players.size(); ++i) {
 		auto player = players.at(i);
 		int player_socket = player->my_socket;
 
