@@ -133,7 +133,7 @@ void ServerFramework::GameReady() {
 		SendTerrainSeed(player_socket);
 		SendPlayersCount(player_socket);
 	}
-	CastReceiveEvent();
+	CastReceiveEvent(true);
 }
 
 bool ServerFramework::GameUpdate() {
@@ -239,11 +239,11 @@ void ServerFramework::ProceedContinuation() {
 			CastQuitEvent();
 		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
-			CastUpdateEvent();
+			CastUpdateEvent(true);
 		}
 	} else {
 		// 수신
-		CastReceiveEvent();
+		CastReceiveEvent(true);
 	}
 }
 

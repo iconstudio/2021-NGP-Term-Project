@@ -18,7 +18,7 @@ int main() {
 
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
-		framework.CastAcceptEvent();
+		framework.CastAcceptEvent(true);
 		SOCKET client_socket = framework.AcceptClient();
 		if (INVALID_SOCKET == client_socket) {
 			ErrorDisplay("connect()");
@@ -157,7 +157,7 @@ DWORD WINAPI GameUpdateProcess(LPVOID arg) {
 		// 6. 대기
 		Sleep(FRAME_TIME);
 
-		framework.CastReceiveEvent();
+		framework.CastReceiveEvent(true);
 	}
 
 	return 0;
