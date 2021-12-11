@@ -70,7 +70,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				}
 
 				CCharacter* player_ch = client->player_character;
-				if (player_ch && !player_ch->dead) {
+				if (player_ch) {
 					auto& player_x = player_ch->x;
 					auto& player_y = player_ch->y;
 
@@ -114,20 +114,24 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 							case 'A': // 총알
 							{
-								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
-								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
-								bullet->SetOwner(player_index);
-								bullet->hspeed += player_ch->hspeed;
-								bullet->vspeed += player_ch->vspeed;
+								if (!player_ch->dead) {
+									auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
+									bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
+									bullet->SetOwner(player_index);
+									bullet->hspeed += player_ch->hspeed;
+									bullet->vspeed += player_ch->vspeed;
+								}
 							}
 							break;
 
 							case 'S': // 특수 능력
 							{
-								auto pd = player_ch->direction;
-								auto ax = lengthdir_x(PLAYER_BLINK_DISTANCE, pd);
-								auto ay = lengthdir_y(PLAYER_BLINK_DISTANCE, pd);
-								player_ch->AddPosition(ax, ay);
+								if (!player_ch->dead) {
+									auto pd = player_ch->direction;
+									auto ax = lengthdir_x(PLAYER_BLINK_DISTANCE, pd);
+									auto ay = lengthdir_y(PLAYER_BLINK_DISTANCE, pd);
+									player_ch->AddPosition(ax, ay);
+								}
 							}
 							break;
 						}
@@ -199,7 +203,7 @@ CCharacter::CCharacter()
 void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
-	if (collide_bullet && collide_bullet->owner != owner) {
+	if (!dead && collide_bullet && collide_bullet->owner != owner) {
 		framework.Kill(collide_bullet);
 		framework.AtomicPrintLn("플레이어 ", owner, "의 총알 충돌");
 
@@ -239,7 +243,7 @@ void CCharacter::GetHurt(double dmg) {
 
 void CCharacter::Die() {
 	dead = true;
-	framework.Kill(this);
+	//framework.Kill(this);
 }
 
 CBullet::CBullet()

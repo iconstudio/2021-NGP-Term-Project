@@ -29,6 +29,7 @@ void GameInstance::OnDestroy() {}
 
 void GameInstance::SetOwner(int player_index) {
 	owner = player_index;
+	my_renders.target_player = owner;
 }
 
 void GameInstance::SetRenderType(RENDER_TYPES sprite) {

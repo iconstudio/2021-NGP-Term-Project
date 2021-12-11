@@ -59,6 +59,9 @@ public:
 	double QTEtime = 0;
 
 	double flash_cooltime = 0;		//점멸 쿨타임	
+
+	bool dead = false;
+	double ghost = 1.0;
 private:
 	CLIENT_STATES status;
 
