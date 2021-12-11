@@ -3,15 +3,15 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-//#define SERVER_IP "192.168.123.101"
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "192.168.120.47"
+//#define SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
 
 enum CLIENT_STATES : int {
 	TITLE = 0		// 타이틀 화면
 	, LOBBY			// 로비
-	, GAME			// 게임
+	, GAME			// 게임 
 	, SPECTATOR		// 게임 관전
 	, GAME_OVER		// 게임 완료
 	, GAME_RESTART	// 게임 다시 참가
@@ -49,6 +49,11 @@ public:
 	int mouse_x;
 	int mouse_y;
 
+	char buffer[80];	//플레이어 수 표기용 배열
+	wchar_t strforplayernum[80];
+
+	bool connectstatus = false;
+
 private:
 	CLIENT_STATES status;
 
@@ -70,7 +75,9 @@ private:
 	GameUpdateMessage playerinfo;
 	int cooldown = 0;
 	int bulletleft = 3;
-	int bulletcooldown = 0;
+	double bulletcooldown = 0;
+	double reloadcooldown = 0;
+	bool reloading = false;
 	double hp = 100;
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;

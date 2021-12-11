@@ -3,8 +3,10 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework()
-	: random_distrubution(0, INT32_MAX) {
-	InitializeCriticalSection(&client_permission);
+	: game_started(false)
+	, randomizer(std::random_device{}()), random_distrubution() {
+	InitializeCriticalSection(&permission_client);
+	InitializeCriticalSection(&permission_print);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
 
@@ -40,8 +42,7 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
-	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i)
-	{
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
 		delete PLAYER_SPAWN_PLACES[i];
 	}
 
@@ -55,7 +56,8 @@ ServerFramework::~ServerFramework() {
 	instances.shrink_to_fit();
 	rendering_infos_last.shrink_to_fit();
 
-	DeleteCriticalSection(&client_permission);
+	DeleteCriticalSection(&permission_client);
+	DeleteCriticalSection(&permission_print);
 
 	CloseHandle(event_accept);
 	CloseHandle(event_game_communicate);
@@ -142,6 +144,17 @@ bool ServerFramework::GameUpdate() {
 	return true;
 }
 
+void ServerFramework::SetStatus(SERVER_STATES state) {
+	if (status != state) {
+		AtomicPrintLn("서버의 상태 변경: ", status, " → ", state);
+		status = state;
+	}
+}
+
+SERVER_STATES ServerFramework::GetStatus() const {
+	return status;
+}
+
 SOCKET ServerFramework::AcceptClient() {
 	SOCKADDR_IN client_address;
 	int client_addr_size = sizeof(client_address);
@@ -159,15 +172,14 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	EnterCriticalSection(&client_permission);
-
+	EnterCriticalSection(&permission_client);
 
 	auto client = new ClientSession(client_socket, NULL, players_number);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
 		ErrorDisplay("CreateThread[GameProcess]");
-		LeaveCriticalSection(&client_permission);
+		LeaveCriticalSection(&permission_client);
 		return;
 	}
 	CloseHandle(th);
@@ -176,46 +188,55 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	players_number++;
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", players_number);
-	LeaveCriticalSection(&client_permission);
+	LeaveCriticalSection(&permission_client);
 }
 
 vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
-	EnterCriticalSection(&client_permission);
+	EnterCriticalSection(&permission_client);
 
 	auto iter = std::find(players.begin(), players.end(), client);
 	if (iter != players.end()) {
 		players_number--;
 		AtomicPrintLn("클라이언트 종료: ", client->my_socket, ", 수: ", players_number);
 
-		players.erase(iter);
+		iter = players.erase(iter);
 	}
+	LeaveCriticalSection(&permission_client);
 
-	LeaveCriticalSection(&client_permission);
+	return iter;
 }
 
 void ServerFramework::ProceedContinuation() {
-	for (auto iter = players.begin(); iter != players.end(); ++iter)
-	{
-		if ((*iter)->player_character->dead)
-		{
-			iter = DisconnectClient(*iter);
+	if (players_number <= player_process_index++) {
+		// 플레이어 사망 확인
+		for (auto it = players.begin(); it != players.end(); ++it) {
+			auto player = *it;
+
+			if (player->player_character->dead) { // 플레이어 사망
+				it = DisconnectClient(player);
+			}
+
+			if (players_number <= 1) {
+				if (0 == players_number) {
+					CastQuitEvent();
+					break;
+				} else if (1 == players_number) {
+					// 승리!
+
+					break;
+				}
+			}
 		}
-	}
 
-	if (players.empty())		// 종료
-	{
-		CastQuitEvent();
-	}
-	else if (players_number <= player_process_index)		// 렌더링
-	{
-		player_process_index = 0;
-
-		CastUpdateEvent();
-	}
-	else		// 수신
-	{
-		++player_process_index;
-
+		if (players.empty()) {
+			// 종료
+			CastQuitEvent();
+		} else {
+			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
+			CastUpdateEvent();
+		}
+	} else {
+		// 수신
 		CastReceiveEvent();
 	}
 }
@@ -236,9 +257,9 @@ void ServerFramework::CreatePlayerCharacters() {
 		auto player = players.at(i);
 		auto places = PLAYER_SPAWN_PLACES[i];
 		auto character = Instantiate<CCharacter>(places[0], places[1]);
+		character->owner = player->player_index;
 
 		player->player_character = character;
-		player->player_character->owner = player->player_index;
 		//SendData(player->my_socket, PACKETS::SERVER_GAME_START);
 	}
 }
@@ -336,8 +357,7 @@ void ServerFramework::CastUpdateEvent() {
 	SetEvent(event_game_update);
 }
 
-void ServerFramework::CastQuitEvent()
-{
+void ServerFramework::CastQuitEvent() {
 	SetEvent(event_quit);
 }
 

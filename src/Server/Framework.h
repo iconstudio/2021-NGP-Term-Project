@@ -3,10 +3,10 @@
 #include "CommonDatas.h"
 #include "GameInstance.h"
 
+
 /* 서버 상태 */
 enum SERVER_STATES : int {
-	LISTEN = 0			// 클라이언트 접속 대기
-	, LOBBY				// 로비
+	LOBBY = 0			// 로비
 	, GAME				// 게임
 	, GAME_OVER			// 게임 완료
 	, GAME_RESTART		// 게임 다시 시작
@@ -26,7 +26,7 @@ public:
 
 	virtual const char* GetIdentifier() const;
 
-	void GetHurt(int dmg);
+	void GetHurt(double dmg);
 	void Die();
 
 	double health;
@@ -67,6 +67,9 @@ public:
 	void GameReady(); // 게임 준비
 	bool GameUpdate(); // 게임 갱신, 접속한 플레이어가 없으면 false 반환
 
+	void SetStatus(SERVER_STATES state);
+	SERVER_STATES GetStatus() const;
+
 	SOCKET AcceptClient();
 	void ConnectClient(SOCKET client_socket); // 플레이어 접속
 	vector<ClientSession*>::iterator DisconnectClient(ClientSession* client); // 플레이어 종료
@@ -88,7 +91,7 @@ public:
 	void CastQuitEvent();				// 게임 종료 이벤트 객체 신호
 
 	const int GetPlayerNumber() const;
-	
+
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
 	inline DWORD WINAPI AwaitUpdateEvent();
@@ -113,7 +116,22 @@ public:
 	template<class _GameClassTarget, class _GameClassSelf>
 	_GameClassTarget* SeekCollision(_GameClassSelf* self, const char* fid);
 
+	// cout으로 출력하기
+	template<typename Ty>
+	void AtomicPrint(Ty caption);
+
+	// 여러 개의 값을 함수 하나로 cout으로 출력하기
+	template<typename Ty1, typename... Ty2>
+	void AtomicPrint(Ty1 caption, Ty2... args);
+
+	// cout으로 출력하고 한줄 띄우기
+	template<typename... Ty>
+	void AtomicPrintLn(Ty... args);
+
 private:
+	/* 서버 속성 */
+	SERVER_STATES status;
+
 	/* 소켓 속성 */
 	SOCKET my_socket; // 서버 소켓
 	SOCKADDR_IN my_address; // 서버 주소
@@ -124,7 +142,7 @@ private:
 	HANDLE event_game_communicate; // 입력 수신 신호
 	HANDLE event_game_update; // 게임 처리 신호
 	HANDLE event_quit; // 종료 신호
-	CRITICAL_SECTION permission_client, permission_;
+	CRITICAL_SECTION permission_client, permission_print;
 
 	/* 플레이어 관련 속성 */
 	vector<ClientSession*> players; // 플레이어 목록
@@ -133,8 +151,6 @@ private:
 	int player_number_last; // 마지막에 추가된 플레이어의 번호
 	int	player_captain; // 방장 플레이어
 	int player_winner; // 승리한 플레이어
-
-	CRITICAL_SECTION client_permission, print_permission;
 
 	/* 게임 관련 속성 */
 	bool game_started;
@@ -145,7 +161,7 @@ private:
 	vector<GameInstance*> instances;	 // 인스턴스 목록
 	vector<RenderInstance> rendering_infos_last;		// 렌더링 정보
 
-	uniform_int<> random_distrubution; // 서버의 무작위 분포 범위
+	uniform_int_distribution<> random_distrubution; // 서버의 무작위 분포 범위
 	default_random_engine randomizer;
 };
 
@@ -208,18 +224,34 @@ inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClas
 template<class _GameClassTarget, class _GameClassSelf>
 _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
 	if (self && !instances.empty()) {
-		auto CopyList = vector<GameInstance*>(instances);
-
-		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
+		auto it = std::find_if(instances.begin(), instances.end(), [&](GameInstance* inst) {
 			auto iid = inst->GetIdentifier();
 			auto id_check = strcmp(iid, fid);
 
-			return (0 == id_check);
-			});
+			return (CheckCollision(inst, self) && 0 == id_check);
+		});
 
-		if (it != CopyList.end()) {
+		if (it != instances.end()) {
 			return dynamic_cast<_GameClassTarget*>(*it);
 		}
 	}
 	return nullptr;
+}
+
+template<typename Ty>
+inline void ServerFramework::AtomicPrint(Ty caption) {
+	EnterCriticalSection(&permission_print);
+	cout << caption;
+	LeaveCriticalSection(&permission_print);
+}
+
+template<typename Ty1, typename ...Ty2>
+inline void ServerFramework::AtomicPrint(Ty1 caption, Ty2 ...args) {
+	AtomicPrint(caption);
+	AtomicPrint(args...);
+}
+
+template<typename ...Ty>
+inline void ServerFramework::AtomicPrintLn(Ty ...args) {
+	AtomicPrint(args..., "\n");
 }
