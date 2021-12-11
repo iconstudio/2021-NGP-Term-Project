@@ -54,7 +54,6 @@ enum PACKETS : int {
 	, CLIENT_GAME_START			// 서버에게 게임 시작을 요청하는 메시지
 	, CLIENT_PLAY_CONTINUE		// 게임을 다시 시작하기 위해 재접속을 요청하는 메시지
 	, CLIENT_PLAY_DENY			// 게임을 다시하지 않는다고 알려주는 메시지
-	, CLIENT_QTE
 
 	// 서버 -> 클라이언트
 	, SERVER_SET_CAPATIN = 100	// 방장임을 알려주는 메시지

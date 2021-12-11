@@ -95,8 +95,8 @@ void ClientFramework::Update() {
 		key_checkers[3] = VK_RIGHT;
 	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bulletcooldown <= 0 && bulletleft > 0 && reloadcooldown <= 0) {
 		key_checkers[4] = 'A';
-		bulletcooldown = 1.0;
-		if (QTE == false)
+		bulletcooldown = 0.5;
+		if (getbuffed <= 0)
 		{
 			--bulletleft;
 		}
@@ -104,10 +104,15 @@ void ClientFramework::Update() {
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
-		key_checkers[6] = 'D';
+	{
+		if (QTEtime > 0)
+		{
+			getbuffed = 5.0;
+		}
+	}
 	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) {
 		key_checkers[7] = 'F';
-		reloadcooldown = 3.0;
+		reloadcooldown = 2.0;
 		reloading = true;
 	}
 
@@ -122,9 +127,25 @@ void ClientFramework::Update() {
 		reloading = false;
 	}
 
-	if (QTE = true)
+	if (reloadcooldown > 0)
+	{
+		reloadcooldown -= FRAME_TIME;
+	}
+
+	if (QTE == true)
 	{
 		QTEtime = 1.0;
+		QTE = false;
+	}
+
+	if (QTEtime >= 0)
+	{
+		QTEtime -= FRAME_TIME;
+	}
+
+	if (getbuffed >= 0)
+	{
+		getbuffed -= FRAME_TIME;
 	}
 
 	sprintf(buffer, "%d", player_num);
@@ -207,17 +228,17 @@ void ClientFramework::Render(HWND window) {
 	// UI
 	if (connectstatus == true)
 	{
-		health_sprite.draw(surface_back, 0, 0, 3 - hp / 32, 0, 0.5, 0.5);		//체력
+		health_sprite.draw(surface_back, 0, 0, 3 - playerinfo.player_hp / 32, 0, 0.5, 0.5);		//체력
 
 		TextOut(surface_back, VIEW_W / 2, 0, strforplayernum, 1);				//플레이어 수
 
 		for (int curbullet = 0; curbullet < bulletleft; ++curbullet) {			//남은 총알 수
-			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - 40, VIEW_H - (bullet_sprite.get_height() / 2 * 3), 0, 0, 0.8, 0.8, 0.5);
+			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
 		}
 
 		if (QTEtime > 0)
 		{
-			//QTEbutton_sprite
+			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
 		}
 	}
 
