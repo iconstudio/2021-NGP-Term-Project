@@ -179,7 +179,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	LeaveCriticalSection(&client_permission);
 }
 
-void ServerFramework::DisconnectClient(ClientSession* client) {
+vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
 	EnterCriticalSection(&client_permission);
 
 	auto iter = std::find(players.begin(), players.end(), client);
@@ -194,11 +194,11 @@ void ServerFramework::DisconnectClient(ClientSession* client) {
 }
 
 void ServerFramework::ProceedContinuation() {
-	for (auto player : players)
+	for (auto iter = players.begin(); iter != players.end(); ++iter)
 	{
-		if (player->player_character->dead)
+		if ((*iter)->player_character->dead)
 		{
-			DisconnectClient(player);
+			iter = DisconnectClient(*iter);
 		}
 	}
 
@@ -208,7 +208,6 @@ void ServerFramework::ProceedContinuation() {
 	}
 	else if (players_number <= player_process_index)		// 렌더링
 	{
-		// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
 		player_process_index = 0;
 
 		CastUpdateEvent();
