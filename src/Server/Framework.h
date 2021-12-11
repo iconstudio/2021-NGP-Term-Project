@@ -81,11 +81,13 @@ public:
 	void CreatePlayerCharacters(); // 플레이어 생성
 	void CreateRenderingInfos(); // 렌더링 정보 생성
 
+	void SendGameBeginMsgToAll();
 	void SendTerrainSeed(SOCKET client_socket);
 	void SendPlayersCount(SOCKET client_socket);
 	void SendGameStatus(ClientSession* client);
 	void SendRenderingInfos(SOCKET client_socket); // 렌더링 정보 전송
 	void SendGameInfosToAll();
+	void SendNotificationToTheWinner(SOCKET client_socket); // 승리 메시지
 
 	void CastAcceptEvent(bool flag);			// 클라이언트 접속 객체 신호
 	void CastReceiveEvent(bool flag);			    // 게임 프로세스 이벤트 객체 신호
