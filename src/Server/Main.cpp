@@ -108,6 +108,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 								auto bullet = framework.Instantiate<CBullet>(player_x, player_y - 20);
 								bullet->SetVelocity(SNOWBALL_SPEED, player_ch->direction);
 								bullet->SetOwner(player_index);
+								bullet->hspeed += player_ch->hspeed;
+								bullet->vspeed += player_ch->vspeed;
 							}
 							break;
 
@@ -144,6 +146,8 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		framework.ProceedContinuation();
 	}
+
+	closesocket(client_socket);
 
 	return 0;
 }
@@ -208,7 +212,7 @@ void CCharacter::GetHurt(double dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			framework.AtomicPrintLn("플레이어 ", owner, "사망");
+			framework.AtomicPrintLn("플레이어 ", owner, " 사망");
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;

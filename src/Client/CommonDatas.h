@@ -15,6 +15,10 @@ enum CLIENT_INFO {
 	PORT_H = 480
 };
 
+// 프레임 수
+constexpr double FRAMERATE = 100.0;
+constexpr double FRAME_TIME = (1.0 / FRAMERATE);
+
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;
 constexpr double KPH_TO_PPS = (1000.0 * METER_TO_PIXELS / HOUR_TO_SECONDS);
@@ -32,13 +36,13 @@ const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
 const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
+const double PLAYER_ANIMATION_SPEED = 0.15;			// 플레이어 애니메이션 재생 속도
 
+const double SNOWBALL_DAMAGE = 34.0;				// 투사체 피해량
 const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
 const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 
-// 프레임 수
-constexpr double FRAMERATE = 100.0;
-constexpr double FRAME_TIME = (1.0 / FRAMERATE);
+const double QTE_PERIOD_MAX = 20.0;				// QTE 보내는 시간 간격
 
 // 송수신 설정
 const int SEND_INPUT_COUNT = 8;
@@ -54,6 +58,7 @@ enum PACKETS : int {
 	, CLIENT_GAME_START			// 서버에게 게임 시작을 요청하는 메시지
 	, CLIENT_PLAY_CONTINUE		// 게임을 다시 시작하기 위해 재접속을 요청하는 메시지
 	, CLIENT_PLAY_DENY			// 게임을 다시하지 않는다고 알려주는 메시지
+	, CLIENT_QTE
 
 	// 서버 -> 클라이언트
 	, SERVER_SET_CAPATIN = 100	// 방장임을 알려주는 메시지
@@ -72,7 +77,6 @@ constexpr int HEADER_SIZE = sizeof(PACKETS);
 
 struct GameUpdateMessage {
 	int players_count;
-	int target_player;
 
 	double player_hp;
 	bool player_inv; // 무적 시간 중인가
@@ -82,6 +86,8 @@ struct GameUpdateMessage {
 enum RENDER_TYPES : int {
 	BLANK = 0
 	, CHARACTER
+	, CHARACTER_WALK
+	, CHARACTER_HURT
 	, BULLET
 };
 
@@ -106,3 +112,4 @@ struct RenderInstance {
 int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
 void ErrorAbort(const char*);
 void ErrorDisplay(const char*);
+

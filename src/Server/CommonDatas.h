@@ -78,7 +78,6 @@ constexpr int HEADER_SIZE = sizeof(PACKETS);
 struct GameUpdateMessage {
 	int players_count;
 
-	int target_player;
 	double player_hp;
 	bool player_inv; // 무적 시간 중인가
 	double player_x, player_y, player_direction;
@@ -87,6 +86,8 @@ struct GameUpdateMessage {
 enum RENDER_TYPES : int {
 	BLANK = 0
 	, CHARACTER
+	, CHARACTER_WALK
+	, CHARACTER_HURT
 	, BULLET
 };
 
