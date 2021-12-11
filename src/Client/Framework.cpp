@@ -101,13 +101,11 @@ void ClientFramework::Update() {
 			--bulletleft;
 		}
 	}
-	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001 && flashcooltime <= 0)
-	{
+	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001 && flashcooltime <= 0)	{
 		key_checkers[5] = 'S';
 		flashcooltime = 3.0;
 	}
-	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
-	{
+	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001) {
 		if (QTEtime > 0)
 		{
 			getbuffed = 5.0;

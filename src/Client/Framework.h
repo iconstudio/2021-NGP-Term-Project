@@ -52,12 +52,13 @@ public:
 	char buffer[80];	//플레이어 수 표기용 배열
 	wchar_t strforplayernum[80];
 
-	bool connectstatus = false;
+	bool connectstatus = false;		//접속 상황 확인
 
-	bool QTE = false;
+	bool QTE = false;				//QTE관련 변수
 	double getbuffed = false;
 	double QTEtime = 0;
 
+	double flashcooltime = 0;		//점멸 쿨타임	
 private:
 	CLIENT_STATES status;
 
