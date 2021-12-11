@@ -85,7 +85,6 @@ void ClientFramework::Update() {
 		bulletcooldown = 0.2;
 		--bulletleft;
 	}
-
 	if (GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001)
 		key_checkers[5] = 'S';
 	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001)
@@ -150,7 +149,7 @@ void ClientFramework::Render(HWND window) {
 		}
 	}
 
-	TextOut(surface_double, VIEW_W / 2, 0, TEXT(""), 12);
+	TextOut(surface_double, VIEW_W / 2, 0, TEXT("2"), 12);
 
 	// 이중 버퍼 -> 백 버퍼
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
