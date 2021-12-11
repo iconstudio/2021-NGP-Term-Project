@@ -175,7 +175,7 @@ CCharacter::CCharacter()
 	, attack_cooltime(0.0), inv_time(0.0)
 	, health(PLAYER_HEALTH) {
 	SetRenderType(RENDER_TYPES::CHARACTER);
-	SetBoundBox(RECT{ -8, -8, 8, 8 });
+	SetBoundBox(RECT{ -8, -20, 8, 9 });
 
 	image_speed = 0.0;
 }
@@ -224,7 +224,7 @@ void CCharacter::Die() {
 CBullet::CBullet()
 	: GameInstance(), lifetime(SNOWBALL_DURATION) {
 	SetRenderType(RENDER_TYPES::BULLET);
-	SetBoundBox(RECT{ -2, -2, 2, 2 });
+	SetBoundBox(RECT{ -8, -8, 8, 8 });
 }
 
 void CBullet::OnUpdate(double frame_advance) {
