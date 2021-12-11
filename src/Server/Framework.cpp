@@ -40,8 +40,7 @@ ServerFramework::ServerFramework()
 }
 
 ServerFramework::~ServerFramework() {
-	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i)
-	{
+	for (int i = 0; i < CLIENT_NUMBER_MAX; ++i) {
 		delete PLAYER_SPAWN_PLACES[i];
 	}
 
@@ -202,26 +201,27 @@ void ServerFramework::ProceedContinuation() {
 			if (player->player_character->dead) { // 플레이어 사망
 				it = DisconnectClient(player);
 			}
+
+			if (players_number <= 1) {
+				if (0 == players_number) {
+
+				} else if (1 == players_number) {
+
+				}
+			}
 		}
 
-
-		if (players.empty())		// 종료
-		{
+		if (players.empty()) {
+			// 종료
 			CastQuitEvent();
-		} else if (players_number <= player_process_index)		// 렌더링
-		{
+		} else {
 			// 모든 플레이어의 수신이 종료되면 렌더링으로 이벤트 전환
-			player_process_index = 0;
-
 			CastUpdateEvent();
 		}
-		else		// 수신
-		{
-			++player_process_index;
-
-			CastReceiveEvent();
-		}
-     }
+	} else {
+		// 수신
+		CastReceiveEvent();
+	}
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {
@@ -340,8 +340,7 @@ void ServerFramework::CastUpdateEvent() {
 	SetEvent(event_game_update);
 }
 
-void ServerFramework::CastQuitEvent()
-{
+void ServerFramework::CastQuitEvent() {
 	SetEvent(event_quit);
 }
 

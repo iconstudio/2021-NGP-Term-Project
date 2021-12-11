@@ -88,7 +88,7 @@ public:
 	void CastQuitEvent();				// 게임 종료 이벤트 객체 신호
 
 	const int GetPlayerNumber() const;
-	
+
 	inline DWORD WINAPI AwaitClientAcceptEvent();
 	inline DWORD WINAPI AwaitReceiveEvent();
 	inline DWORD WINAPI AwaitUpdateEvent();
@@ -208,16 +208,14 @@ inline _GameClass2* ServerFramework::CheckCollision(_GameClass1* self, _GameClas
 template<class _GameClassTarget, class _GameClassSelf>
 _GameClassTarget* ServerFramework::SeekCollision(_GameClassSelf* self, const char* fid) {
 	if (self && !instances.empty()) {
-		auto CopyList = vector<GameInstance*>(instances);
-
-		auto it = std::find_if(CopyList.begin(), CopyList.end(), [&](GameInstance* inst) {
+		auto it = std::find_if(instances.begin(), instances.end(), [&](GameInstance* inst) {
 			auto iid = inst->GetIdentifier();
 			auto id_check = strcmp(iid, fid);
 
-			return (0 == id_check);
-			});
+			return (CheckCollision(inst, self) && 0 == id_check);
+		});
 
-		if (it != CopyList.end()) {
+		if (it != instances.end()) {
 			return dynamic_cast<_GameClassTarget*>(*it);
 		}
 	}
