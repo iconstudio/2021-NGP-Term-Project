@@ -111,7 +111,7 @@ void ClientFramework::Update() {
 			get_buffed = 5.0;
 		}
 	}
-	if (GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001 && reloading == false) {
+	if ((GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) && reloading == false) {
 		key_checkers[7] = 'F';
 		reload_cooldown = 2.0;
 		reloading = true;
