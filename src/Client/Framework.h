@@ -52,6 +52,8 @@ public:
 	char buffer[80];	//플레이어 수 표기용 배열
 	wchar_t strforplayernum[80];
 
+	bool connectstatus = false;
+
 private:
 	CLIENT_STATES status;
 
@@ -73,7 +75,9 @@ private:
 	GameUpdateMessage playerinfo;
 	int cooldown = 0;
 	int bulletleft = 3;
-	int bulletcooldown = 0;
+	double bulletcooldown = 0;
+	double reloadcooldown = 0;
+	bool reloading = false;
 	double hp = 100;
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
