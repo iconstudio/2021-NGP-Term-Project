@@ -20,9 +20,9 @@ WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-					 _In_opt_ HINSTANCE hPrevInstance,
-					 _In_ LPWSTR    lpCmdLine,
-					 _In_ int       nCmdShow) {
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR    lpCmdLine,
+	_In_ int       nCmdShow) {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -55,88 +55,88 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 		// 창 생성
-		case WM_CREATE:
-		{
-			SetTimer(hwnd, RENDER_TIMER_ID, FRAME_TIME * 1000, NULL);
-		}
-		break;
+	case WM_CREATE:
+	{
+		SetTimer(hwnd, RENDER_TIMER_ID, FRAME_TIME * 1000, NULL);
+	}
+	break;
 
-		// 렌더링 타이머
-		case WM_TIMER:
-		{
-			framework.Update();
-			InvalidateRect(hwnd, NULL, FALSE);
-		}
-		break;
+	// 렌더링 타이머
+	case WM_TIMER:
+	{
+		framework.Update();
+		InvalidateRect(hwnd, NULL, FALSE);
+	}
+	break;
 
-		// 마우스 왼쪽 누름
-		case WM_LBUTTONDOWN:
-		{
-			//mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
-			//mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
-			framework.OnMouseDown(MK_LBUTTON, lParam);
-		}
-		break;
+	// 마우스 왼쪽 누름
+	case WM_LBUTTONDOWN:
+	{
+		//mouse_x = LOWORD(lParam) * ((float)VIEW_W / (float)CLIENT_W);
+		//mouse_y = HIWORD(lParam) * ((float)VIEW_H / (float)CLIENT_H);
+		framework.OnMouseDown(MK_LBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 왼쪽 뗌
-		case WM_LBUTTONUP:
-		{
-			framework.OnMouseUp(MK_LBUTTON, lParam);
-		}
-		break;
+	// 마우스 왼쪽 뗌
+	case WM_LBUTTONUP:
+	{
+		framework.OnMouseUp(MK_LBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 오른쪽 누름
-		case WM_RBUTTONDOWN:
-		{
-			framework.OnMouseDown(MK_RBUTTON, lParam);
-		}
-		break;
+	// 마우스 오른쪽 누름
+	case WM_RBUTTONDOWN:
+	{
+		framework.OnMouseDown(MK_RBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 오른쪽 뗌
-		case WM_RBUTTONUP:
-		{
-			framework.OnMouseUp(MK_RBUTTON, lParam);
-		}
-		break;
+	// 마우스 오른쪽 뗌
+	case WM_RBUTTONUP:
+	{
+		framework.OnMouseUp(MK_RBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 휠 누름
-		case WM_MBUTTONDOWN:
-		{
-			framework.OnMouseDown(MK_MBUTTON, lParam);
-		}
-		break;
+	// 마우스 휠 누름
+	case WM_MBUTTONDOWN:
+	{
+		framework.OnMouseDown(MK_MBUTTON, lParam);
+	}
+	break;
 
-		// 마우스 휠 뗌
-		case WM_MBUTTONUP:
-		{
-			framework.OnMouseUp(MK_MBUTTON, lParam);
-		}
-		break;
+	// 마우스 휠 뗌
+	case WM_MBUTTONUP:
+	{
+		framework.OnMouseUp(MK_MBUTTON, lParam);
+	}
+	break;
 
-		// 렌더링
-		case WM_PAINT:
-		{
-			WaitForSingleObject(event_render, INFINITE);
-			framework.Render(hwnd);
-		}
-		break;
+	// 렌더링
+	case WM_PAINT:
+	{
+		WaitForSingleObject(event_render, INFINITE);
+		framework.Render(hwnd);
+	}
+	break;
 
-		// 창 종료
-		case WM_DESTROY:
-		{
-			KillTimer(hwnd, RENDER_TIMER_ID);
-			PostQuitMessage(0);
-		}
-		break;
+	// 창 종료
+	case WM_DESTROY:
+	{
+		KillTimer(hwnd, RENDER_TIMER_ID);
+		PostQuitMessage(0);
+	}
+	break;
 
-		default:
+	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
 	return 0;
 }
 
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
-		while (true) {
+	while (true) {
 
 		PACKETS packet = CLIENT_PING;
 		int retval = recv((SOCKET)arg, (char*)&packet, sizeof(PACKETS), MSG_WAITALL);
@@ -217,8 +217,7 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 	HWND hWnd = CreateWindow(reinterpret_cast<LPCWSTR>(id), reinterpret_cast<LPCWSTR>(title), window_attributes
-		, CW_USEDEFAULT, 0, width, height
-		, nullptr, nullptr, instance, nullptr);
+		, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, instance, nullptr);
 	instance = handle;
 	title_caption = title;
 	class_id = id;
