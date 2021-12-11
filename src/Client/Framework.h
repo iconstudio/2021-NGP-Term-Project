@@ -67,7 +67,7 @@ private:
 	int terrain_seed = 0;
 	HDC map_surface;				// 맵 HDC
 	HBITMAP map_bitmap;				// 맵 HBITMAP
-	vector<int> mapdata{ 6400 };	// 타일 vectoraa
+	vector<int> mapdata{ 6400 };	// 타일 vector
 
 	char key_checkers[SEND_INPUT_COUNT];	 // 입력중인 키
 
