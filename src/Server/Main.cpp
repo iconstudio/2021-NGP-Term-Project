@@ -45,7 +45,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 
 		// 1-1. 패킷 헤더 수신
 		int result = recv(client_socket, reinterpret_cast<char*>(&header), HEADER_SIZE, MSG_WAITALL);
-		if (framework.ValidateSocketMessage(result)) {
+		if (!framework.ValidateSocketMessage(result)) {
 			framework.DisconnectClient(client);
 		}
 		AtomicPrintLn("받은 패킷 헤더: ", header);
@@ -62,7 +62,7 @@ DWORD WINAPI GameProcess(LPVOID arg) {
 				ZeroMemory(client_data, client_data_size);
 
 				int result = recv(client_socket, client_data, client_data_size, MSG_WAITALL);
-				if (framework.ValidateSocketMessage(result)) {
+				if (!framework.ValidateSocketMessage(result)) {
 					framework.DisconnectClient(client);
 				}
 
