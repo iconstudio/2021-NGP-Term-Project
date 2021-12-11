@@ -50,15 +50,15 @@ public:
 	int mouse_y;
 
 	char buffer[80];	//플레이어 수 표기용 배열
-	wchar_t strforplayernum[80];
+	wchar_t str_for_player_num[80];
 
-	bool connectstatus = false;		//접속 상황 확인
+	bool connect_status = false;		//접속 상황 확인
 
 	bool QTE = false;				//QTE관련 변수
-	double getbuffed = false;
+	double get_buffed = false;
 	double QTEtime = 0;
 
-	double flashcooltime = 0;		//점멸 쿨타임	
+	double flash_cooltime = 0;		//점멸 쿨타임	
 private:
 	CLIENT_STATES status;
 
@@ -72,16 +72,16 @@ private:
 	int terrain_seed = 0;
 	HDC map_surface;				// 맵 HDC
 	HBITMAP map_bitmap;				// 맵 HBITMAP
-	vector<int> mapdata{ 6400 };	// 타일 vector
+	vector<int> map_data{ 6400 };	// 타일 vector
 
 	char key_checkers[SEND_INPUT_COUNT];	 // 입력중인 키
 
 	int player_num;
-	GameUpdateMessage playerinfo;
-	int cooldown = 0;
-	int bulletleft = 3;
-	double bulletcooldown = 0;
-	double reloadcooldown = 0;
+	GameUpdateMessage player_info;
+	int cool_down = 0;
+	int bullet_left = 3;
+	double bullet_cool_down = 0;
+	double reload_cool_down = 0;
 	bool reloading = false;
 	double hp = 100;
 
