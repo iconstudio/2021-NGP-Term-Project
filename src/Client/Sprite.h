@@ -19,8 +19,8 @@ public:
 	RECT bbox;
 
 private:
-	bool __process_image(CImage&, const size_t = 0, const size_t = 0);
-	void __draw_single(HDC, CImage&, double, double, double = 0.0, double = 1.0, double = 1.0, double = 1.0);
+	bool __process_image(CImage& image, const size_t width = 0, const size_t height = 0);
+	void __draw_single(HDC surface, CImage& image, double dx, double dy, double angle = 0.0, double xscale = 1.0, double yscale = 1.0, double alpha = 1.0);
 
 	::CImage raw; // 원본 그림.
 	int raw_width, raw_height; // 원본 크기
