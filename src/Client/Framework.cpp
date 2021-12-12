@@ -87,7 +87,6 @@ void ClientFramework::Update() {
 		SendGamestart == false)
 	{
 		SendData(my_socket, CLIENT_GAME_START);
-		SendGamestart = true;
 	}
 
 	if (SendGamestart == true)

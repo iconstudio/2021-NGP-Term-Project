@@ -208,6 +208,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 		if (SERVER_GAME_START == packet)
 		{
 			framework.connect_status = true;
+			framework.SendGamestart = true;
 		}
 	}
 	return 0;
