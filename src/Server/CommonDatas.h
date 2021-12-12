@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "stdafx.h"
 
-
 const unsigned short COMMON_PORT = 15000;
 
 enum CLIENT_INFO {
