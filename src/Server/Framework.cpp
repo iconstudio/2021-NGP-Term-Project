@@ -191,9 +191,14 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	}
 	CloseHandle(th);
 
-	players.push_back(client);
 	SendData(client_socket, PACKETS::SERVER_SET_INDEX
 			 , reinterpret_cast<char*>(&player_index_last), sizeof(player_index_last));
+
+	if (0 == GetPlayerNumber()) {
+		SendData(client_socket, PACKETS::SERVER_SET_CAPTAIN);
+	}
+
+	players.push_back(client);
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", ++players_number);
 	player_index_last++;

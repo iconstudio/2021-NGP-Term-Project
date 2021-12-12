@@ -8,9 +8,6 @@
 enum class SERVER_STATES : int {
 	LOBBY = 0			// 로비
 	, GAME				// 게임
-	, GAME_OVER			// 게임 완료
-	, GAME_RESTART		// 게임 다시 시작
-	, EXIT				// 서버 종료
 };
 
 /* 스레드 선언 */
