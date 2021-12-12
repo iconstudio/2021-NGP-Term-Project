@@ -238,7 +238,7 @@ void ServerFramework::ProceedContinuation() {
 	if (players_number <= player_process_index++) {
 		// 플레이어 사망 확인
 		int player_alives = 0;
-		ClientSession* survivor;
+		ClientSession* survivor = nullptr;
 
 		for (auto it = players.begin(); it != players.end(); ++it) { // ++ 오류
 			auto player = *it;
@@ -274,7 +274,7 @@ void ServerFramework::ProceedContinuation() {
 			// 부전승
 			auto winner = players.at(0);
 			SendNotificationToTheWinner(winner->my_socket);
-		} else if (1 == player_alives) {
+		} else if (survivor && 1 == player_alives) {
 			//승리
 			SendNotificationToTheWinner(survivor->my_socket);
 		} else {

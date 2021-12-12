@@ -172,9 +172,10 @@ void ClientFramework::Update() {
 			ghost = 1.0;
 		}
 
-		sprintf(buffer, "%d", player_num);
+		sprintf_s(buffer, "%d", player_num);
 		int nLen = (int)strlen(buffer) + 1;
-		mbstowcs(str_for_player_num, buffer, nLen);
+		size_t nSize = 0;
+		mbstowcs_s(&nSize, str_for_player_num, buffer, nLen);
 	}
 }
 
