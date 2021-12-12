@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "stdafx.h"
 
-
 const unsigned short COMMON_PORT = 15000;
 
 enum CLIENT_INFO {
@@ -16,8 +15,8 @@ enum CLIENT_INFO {
 };
 
 // 프레임 수
-constexpr double FRAMERATE = 60.0;
-constexpr double FRAME_TIME = (1.0 / FRAMERATE);
+constexpr double FRAME_RATE = 60;
+constexpr double FRAME_TIME = (1.0 / FRAME_RATE);
 
 constexpr double METER_TO_PIXELS = 16.;
 constexpr double HOUR_TO_SECONDS = 3600.;
@@ -32,10 +31,10 @@ const double EWALL_CLOSE_PERIOD = 300.0;			// 자기장 완료 시간
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
 const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
-const double PLAYER_MOVE_SPEED = km_per_hr(18);		// 플레이어 이동 속도
+const double PLAYER_MOVE_SPEED = km_per_hr(21);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
-const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
+const double PLAYER_BLINK_DISTANCE = 100.0;			// 플레이어 점멸 거리
 const double PLAYER_ANIMATION_SPEED = 0.15;			// 플레이어 애니메이션 재생 속도
 
 const double SNOWBALL_DAMAGE = 34.0;				// 투사체 피해량
@@ -58,17 +57,16 @@ enum PACKETS : int {
 	, CLIENT_GAME_START			// 서버에게 게임 시작을 요청하는 메시지
 	, CLIENT_PLAY_CONTINUE		// 게임을 다시 시작하기 위해 재접속을 요청하는 메시지
 	, CLIENT_PLAY_DENY			// 게임을 다시하지 않는다고 알려주는 메시지
-	, CLIENT_QTE
+	, CLIENT_QTE				// QTE 입력을 알려주는 메시지
 
 	// 서버 -> 클라이언트
-	, SERVER_SET_CAPATIN = 100	// 방장임을 알려주는 메시지
+	, SERVER_SET_CAPTAIN = 100	// 방장임을 알려주는 메시지
 	, SERVER_SET_INDEX	        // 플레이어 번호를 알려주는 메시지
 	, SERVER_GAME_START			// 게임이 시작되었음을 알려주는 메시지
 	, SERVER_TERRAIN_SEED		// 지형 생성 씨앗값
 	, SERVER_PLAYER_COUNT		// 플레이어가 몇 명인지 알려주는 메시지
 	, SERVER_GAME_STATUS		// 게임 상태를 알려주는 메시지
-	, SERVER_EWALL_PERCENT
-	, SERVER_QTE
+	, SERVER_QTE				// QTE 타이밍을 알려주는 메시지
 	, SERVER_RENDER_INFO		// 렌더링 정보를 보내주는 메시지
 	, SERVER_GAME_DONE			// 게임이 끝났음을 알려주는 메시지
 	, SERVER_REPLAY				// 게임을 다시 시작함을 알려주는 메시지
@@ -77,19 +75,19 @@ enum PACKETS : int {
 constexpr int HEADER_SIZE = sizeof(PACKETS);
 
 struct GameUpdateMessage {
-	int players_count;
+	int players_count;								// 플레이어 수
 
-	double player_hp;
-	bool player_inv; // 무적 시간 중인가
-	double player_x, player_y, player_direction;
+	double player_hp;								// 플레이어 체력
+	bool player_inv;								// 플레이어 무적 여부
+	double player_x, player_y, player_direction;	// 플레이어 x, y좌표 및 이동 방향
 };
 
 enum RENDER_TYPES : int {
-	BLANK = 0
-	, CHARACTER
-	, CHARACTER_WALK
-	, CHARACTER_HURT
-	, BULLET
+	BLANK = 0			   // 빈 번호
+	, CHARACTER			   // 플레이어
+	, CHARACTER_WALK	   // 플레이어 이동 애니메이션
+	, CHARACTER_HURT	   // 플레이어 데미지 받은 애니메이션
+	, BULLET			   // 눈덩이
 };
 
 enum INPUT_TYPES : int {
@@ -104,11 +102,12 @@ struct InputStream {
 };
 
 struct RenderInstance {
-	RENDER_TYPES instance_type;
+	RENDER_TYPES instance_type;	// 그려질 인스턴스 종류
 
-	char target_player;
-	short image_index;		// 몇 번째 이미지를 스프라이트에서 사용할지
-	int x, y, angle;		// 이미지 회전 각도/방향
+	char target_player;			// 그림을 그릴 플레이어 번호
+	short image_index;			// 몇 번째 이미지를 스프라이트에서 사용할지
+	int x, y;					// 인스턴스의 x, y좌표
+	int angle;					// 이미지 회전 각도/방향
 };
 
 int WINAPI SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);
