@@ -8,16 +8,6 @@
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
 
-enum CLIENT_STATES : int {
-	TITLE = 0		// 타이틀 화면
-	, LOBBY			// 로비
-	, GAME			// 게임 
-	, SPECTATOR		// 게임 관전
-	, GAME_OVER		// 게임 완료
-	, GAME_RESTART	// 게임 다시 참가
-	, EXIT			// 클라이언트 종료
-
-};
 
 struct SockInfo {
 	SOCKET client_socket;
@@ -66,7 +56,6 @@ public:
 	bool SendGamestart = false;
 	bool captain = false;
 private:
-	CLIENT_STATES status;
 
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
