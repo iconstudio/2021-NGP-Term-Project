@@ -316,6 +316,7 @@ void ServerFramework::CreatePlayerCharacters() {
 void ServerFramework::CreateRenderingInfos() {
 	if (!instances.empty()) {
 		players_survived = 0;
+		auto sz = players.size();
 		for (int i = 0; i < sz; ++i) {
 			auto player = players.at(i);
 			auto places = PLAYER_SPAWN_PLACES[i];
