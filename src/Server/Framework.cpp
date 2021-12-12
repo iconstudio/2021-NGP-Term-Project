@@ -4,6 +4,7 @@
 
 ServerFramework::ServerFramework()
 	: status(SERVER_STATES::LOBBY), game_started(false)
+	, players_survived(0)
 	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&permission_client);
@@ -218,6 +219,10 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 		iter = players.erase(iter);
 		closesocket(client->my_socket);
 
+		if (client->player_character) {
+			Kill(client->player_character);
+		}
+
 		if (1 < players_number) {
 			CastUpdateEvent(true);
 		}
@@ -310,6 +315,16 @@ void ServerFramework::CreatePlayerCharacters() {
 
 void ServerFramework::CreateRenderingInfos() {
 	if (!instances.empty()) {
+		players_survived = 0;
+		for (int i = 0; i < sz; ++i) {
+			auto player = players.at(i);
+			auto places = PLAYER_SPAWN_PLACES[i];
+			auto character = player->player_character;
+			if (character && !character->dead) {
+				players_survived++;
+			}
+		}
+
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
@@ -369,7 +384,7 @@ void ServerFramework::SendGameStatus(ClientSession* client) {
 	auto player_character = client->player_character;
 
 	GameUpdateMessage state;
-	state.players_count = GetPlayerNumber();
+	state.players_count = players_survived;
 	state.player_hp = player_character->health;
 	state.player_inv = player_character->invincible;
 	state.player_x = player_character->x;
