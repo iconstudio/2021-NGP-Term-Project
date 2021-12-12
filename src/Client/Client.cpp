@@ -159,6 +159,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			}
 			framework.view.x = max(0, min(WORLD_W - framework.view.w, framework.player_info.player_x - framework.view.xoff));
 			framework.view.y = max(0, min(WORLD_H - framework.view.h, framework.player_info.player_y - framework.view.yoff));
+			framework.player_num = framework.player_info.players_count;
 		}
 
 		if (SERVER_RENDER_INFO == packet) {

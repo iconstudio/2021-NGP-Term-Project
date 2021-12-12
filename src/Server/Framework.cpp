@@ -217,7 +217,12 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 
 		iter = players.erase(iter);
 		closesocket(client->my_socket);
+
+		if (1 < players_number) {
+			CastUpdateEvent(true);
+		}
 	}
+
 	LeaveCriticalSection(&permission_client);
 
 	return iter;
