@@ -11,6 +11,7 @@ GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 GameSprite QTEbutton_sprite(L"../../res/QTEbutton.png", 1, 0, 0);
 GameSprite Startbutton_sprite(L"../../res/Start_button.png", 1, 0, 0);
+GameSprite Victory_sprite(L"../../res/Victory.png", 1, 0, 0);
 
 
 ClientFramework::ClientFramework()
@@ -171,12 +172,6 @@ void ClientFramework::Update() {
 			ghost = 1.0;
 		}
 
-		if (win == true)
-		{
-			MessageBox(NULL, L"winner", L"winner", 0);
-			win = false;
-		}
-
 		sprintf(buffer, "%d", player_num);
 		int nLen = (int)strlen(buffer) + 1;
 		mbstowcs(str_for_player_num, buffer, nLen);
@@ -302,6 +297,10 @@ void ClientFramework::Render(HWND window) {
 	{
 		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
 	} 
+	if(win == true)
+	{
+		Victory_sprite.draw(surface_back, VIEW_W / 2 - Victory_sprite.get_width() / 2, VIEW_H / 2 - Victory_sprite.get_height() / 2, 0, 0, 1.0, 1.0);
+	}
 	///////////////
 	
 	// 백 버퍼 -> 화면 버퍼
