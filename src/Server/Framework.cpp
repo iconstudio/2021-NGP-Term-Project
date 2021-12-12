@@ -131,7 +131,6 @@ void ServerFramework::GameReady() {
 		auto player = players.at(i);
 		int player_socket = player->my_socket;
 
-		SendTerrainSeed(player_socket);
 		SendPlayersCount(player_socket);
 	}
 
