@@ -150,8 +150,7 @@ private:
 	int player_process_index; // 현재 처리 중인 플레이어의 순번 [0~client_number)
 	int	players_number; // 지금 접속한 플레이어의 수
 	int player_index_last; // 마지막에 추가된 플레이어의 번호
-	int	player_captain; // 방장 플레이어
-	int player_winner; // 승리한 플레이어
+	int	players_survived; // 지금 살아있는 플레이어의 수
 
 	/* 게임 관련 속성 */
 	bool game_started;
