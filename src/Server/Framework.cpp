@@ -384,16 +384,18 @@ void ServerFramework::SendGameStatus(ClientSession* client) {
 	auto player_index = client->player_index;
 	auto player_character = client->player_character;
 
-	GameUpdateMessage state;
-	state.players_count = players_survived;
-	state.player_hp = player_character->health;
-	state.player_inv = player_character->invincible;
-	state.player_x = player_character->x;
-	state.player_y = player_character->y;
-	state.player_direction = player_character->direction;
+	if (player_character) {
+		GameUpdateMessage state;
+		state.players_count = players_survived;
+		state.player_hp = player_character->health;
+		state.player_inv = player_character->invincible;
+		state.player_x = player_character->x;
+		state.player_y = player_character->y;
+		state.player_direction = player_character->direction;
 
-	SendData(client_socket, SERVER_GAME_STATUS
-			 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
+		SendData(client_socket, SERVER_GAME_STATUS
+				 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
+	}
 }
 
 void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
