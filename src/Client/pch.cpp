@@ -9,7 +9,7 @@ void Render::transform_set_identity(HDC world) {
 	SetWorldTransform(world, &transform_identity);
 }
 
-void Render::draw_end(HDC canvas, HGDIOBJ object_old, HGDIOBJ object_new) {		
+void Render::draw_end(HDC canvas, HGDIOBJ object_old, HGDIOBJ object_new) {
 	SelectObject(canvas, object_old);
 	DeleteObject(object_new);
 }

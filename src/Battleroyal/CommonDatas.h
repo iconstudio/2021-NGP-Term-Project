@@ -1,9 +1,13 @@
 #pragma once
 #include "pch.h"
 
+
+//#define SERVER_IP "192.168.120.35"
+#define SERVER_IP "127.0.0.1"
 #define COMMON_PORT 15000
-#define GAME_SCENE_W 1280
-#define GAME_SCENE_H 1280
+
+#define WORLD_W 1280
+#define WORLD_H 1280
 #define CLIENT_W 960
 #define CLIENT_H 540
 #define VIEW_W 320
@@ -24,21 +28,30 @@ const double EWALL_BEGIN_TIME = 30.0;				// 자기장 시작 시간
 const double EWALL_CLOSE_PERIOD = 300.0;			// 자기장 완료 시간
 const double EWALL_DAMAGE_PER_SECOND = 0.7;
 
-const int PLAYERS_NUMBER_MAX = 10;					// 최대 플레이어 수
 const double PLAYER_HEALTH = 100.0;					// 플레이어 최대 체력
 const double PLAYER_MOVE_SPEED = km_per_hr(20);		// 플레이어 이동 속도
 const double PLAYER_ATTACK_COOLDOWN = 0.2;			// 공격 쿨 타임
 const double PLAYER_INVINCIBLE_DURATION = 2.5;		// 무적 시간
+const double PLAYER_BLINK_DISTANCE = 64.0;			// 플레이어 점멸 거리
 
 const double SNOWBALL_DURATION = 0.6;				// 투사체 지속 시간
-const double SNOWBALL_VELOCITY = km_per_hr(50);		// 투사체 이동 속도
+const double SNOWBALL_SPEED = km_per_hr(50);		// 투사체 이동 속도
 
 // 프레임 수
-const int FRAMERATE = 60;
-const double FRAME_TIME = (1.0 / FRAMERATE);
+constexpr int FRAMERATE = 20;
+constexpr double FRAME_TIME = (1.0 / FRAMERATE);
 
-// 송수신 설정
+/* 송수신 설정 */
 const int SEND_INPUT_COUNT = 6;
+const int CLIENT_NUMBER_MAX = 10; // 최대 플레이어 수
+const int CLIENT_NUMBER_MIN = 2;
+const int RENDER_INST_COUNT = 40;
+
+constexpr int LERP_MIN = 50;
+constexpr int LERP_MAX = 200;
+
+/* 다중 스레드 설정 */
+constexpr int WAIT_FOR_INPUTS_PERIOD = LERP_MIN + FRAME_TIME * 1000;
 
 
 enum PACKETS : int {
@@ -78,18 +91,16 @@ enum INPUT_TYPES : int {
 	, RELEASE = 2
 };
 
-const WPARAM keybinding[6] = { VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, 'a', 's' };
-
 struct InputStream {
-	WPARAM code = 0;
+	int code = 0;
 	INPUT_TYPES type;
 };
 
 struct RenderInstance {
 	RENDER_TYPES instance_type;
 
-	int image_index;
-	double x, y, angle;
+	int image_index;		// 몇 번째 이미지를 스프라이트에서 사용할지
+	double x, y, angle;		// 이미지 회전 각도/방향
 };
 
 void SendData(SOCKET, PACKETS, const char* = nullptr, int = 0);

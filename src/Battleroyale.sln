@@ -1,14 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31624.102
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyal", "Battleroyal\Battleroyal.vcxproj", "{7F1C2897-4E3E-4572-B5BA-077CF40F9986}"
-	ProjectSection(ProjectDependencies) = postProject
-		{552806AC-B16B-4E58-B870-28884C3DC0C2} = {552806AC-B16B-4E58-B870-28884C3DC0C2}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyale", "Battleroyal\Battleroyal.vcxproj", "{7F1C2897-4E3E-4572-B5BA-077CF40F9986}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Battleroyale Server", "Battleroyale Server\Battleroyale Server.vcxproj", "{552806AC-B16B-4E58-B870-28884C3DC0C2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Server\Server.vcxproj", "{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Client.vcxproj", "{83EACC8B-DF57-467E-B9E9-515E392A4A8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +35,22 @@ Global
 		{552806AC-B16B-4E58-B870-28884C3DC0C2}.Release|x64.Build.0 = Release|x64
 		{552806AC-B16B-4E58-B870-28884C3DC0C2}.Release|x86.ActiveCfg = Release|Win32
 		{552806AC-B16B-4E58-B870-28884C3DC0C2}.Release|x86.Build.0 = Release|Win32
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Debug|x64.ActiveCfg = Debug|x64
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Debug|x64.Build.0 = Debug|x64
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Debug|x86.ActiveCfg = Debug|Win32
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Debug|x86.Build.0 = Debug|Win32
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Release|x64.ActiveCfg = Release|x64
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Release|x64.Build.0 = Release|x64
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Release|x86.ActiveCfg = Release|Win32
+		{F14E9B1E-EEA0-41DD-B187-DD499AEAA828}.Release|x86.Build.0 = Release|Win32
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Debug|x64.ActiveCfg = Debug|x64
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Debug|x64.Build.0 = Debug|x64
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Debug|x86.ActiveCfg = Debug|Win32
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Debug|x86.Build.0 = Debug|Win32
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Release|x64.ActiveCfg = Release|x64
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Release|x64.Build.0 = Release|x64
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Release|x86.ActiveCfg = Release|Win32
+		{83EACC8B-DF57-467E-B9E9-515E392A4A8C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

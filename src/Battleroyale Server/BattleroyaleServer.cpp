@@ -4,25 +4,28 @@
 #include "BattleroyaleServer.h"
 
 
-ServerFramework framework{ GAME_SCENE_W, GAME_SCENE_H };
+/*
+	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
 
-normal_distribution<> server_distrubution;
-default_random_engine server_randomizer{ 0 };
+	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
+	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
+*/
+ServerFramework framework{ WORLD_W, WORLD_H };
 
 int main() {
-	cout << "Hello World!\n";
+	framework.AtomicPrintLn("Hello World!\n");
 
+	framework.Instantiate<CCharacter>(80, 80);
+	framework.Instantiate<CCharacter>(180, 80);
+	framework.Instantiate<CCharacter>(280, 80);
+
+	/*
 	if (!framework.Initialize()) {
 		WSACleanup();
 		return 0;
 	}
-
-	framework.Instantiate<CCharacter>(40, 40);
-	auto a = framework.Instantiate<CBullet>(40, 40);
-	auto b = framework.Instantiate<CBullet>(40, 40);
-	auto c = framework.Instantiate<CBullet>(140, 40);
-	framework.GameUpdate();
 	framework.Startup();
+	*/
 
 	WSACleanup();
 	return 0;
@@ -31,195 +34,187 @@ int main() {
 DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	PlayerInfo* client_info = reinterpret_cast<PlayerInfo*>(arg);
 	SOCKET client_socket = client_info->client_socket;
-	int player_index = client_info->index;
-	auto& player_key_storage = client_info->key_storage;
+	int player_index = client_info->player_index;
 
-	while (true) {
-		PACKETS packet;
+	bool thread_done = false;
+	while (!thread_done) {
+		PACKETS packet = CLIENT_PING;
 		int data_size = 0;
-
-		/*
-		LPDWORD my_size = nullptr;
-		WSABUF my_data;
-		ZeroMemory(&my_data, sizeof(my_data));
-		my_data.len = sizeof(PACKETS);
-		my_data.buf = new CHAR[sizeof(PACKETS)];
-		DWORD my_flags = MSG_WAITALL;
-
-		int rr = WSARecv(client_socket, &my_data, 1, my_size, &my_flags, NULL, NULL);
-		*/
-
-		int result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-
-		if (SOCKET_ERROR == result) {
-			framework.PlayerDisconnect(client_info);
-			break;
-		} else if (0 == result) {
-			framework.PlayerDisconnect(client_info);
-			break;
-		}
+		int result = 0;
 
 		switch (framework.GetStatus()) {
 			case LOBBY:
 			{
-				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
+				if (framework.game_started)
+					break;
+
+				auto client_number = framework.GetClientNumber();
+				//SendData(client_socket, SERVER_PLAYER_COUNT, reinterpret_cast<char*>(&client_number), sizeof(int));
+
+				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+				if (!framework.ValidateSocketMessage(result)) {
+					framework.PlayerDisconnect(client_info);
+					break;
+				}
+
+				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
 				if (packet == PACKETS::CLIENT_GAME_START) {
-					if (0 < framework.GetClientCount()) {
+					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
+						framework.game_started = true;
+						Sleep(500);
 						break;
 					}
-				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
-
-				Sleep(2000);
-				framework.CastStartGame(true);
+				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
 				break;
 			} break;
 
 			case GAME:
 			{
-				// ê¾¸ì¤€í•œ í†µì‹ 
-				while (true) {
-					framework.AwaitReceiveEvent(); // event_recieves
-
-					// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
-					if (packet == PACKETS::CLIENT_KEY_INPUT) {
-						auto key_storage = new InputStream[SEND_INPUT_COUNT];
-						data_size = SEND_INPUT_COUNT * sizeof(InputStream);
-
-						result = recv(client_socket, reinterpret_cast<char*>(key_storage)
-									  , data_size, MSG_WAITALL);
-						if (SOCKET_ERROR == result) {
-							framework.PlayerDisconnect(client_info);
-							break;
-						} else if (0 == result) {
-							framework.PlayerDisconnect(client_info);
-							break;
-						}
-
-						bool check_lt = false;
-						bool check_rt = false;
-						bool check_up = false;
-						bool check_dw = false;
-						bool check_shoot = false;
-						bool check_blink = false;
-						for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
-							auto button = key_storage[i];
-							auto keycode = button.code;
-							auto keystat = button.type;
-							
-							switch (keystat) {
-								case NONE:
-								{
-									if (keycode == 'A') {
-										check_lt = false;
-									} else if (keycode == 'D') {
-										check_rt = false;
-									} else if (keycode == 'W') {
-										check_up = false;
-									} else if (keycode == 'S') {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
-										check_blink = false;
-									} else if (keycode == 'A') { // ê³µê²©
-										check_shoot = false;
-									}
-								}
-								break;
-
-								case PRESS:
-								{
-									if(keycode == 'A') {
-										check_lt = true;
-									} else if (keycode == 'D') {
-										check_rt = true;
-									} else if (keycode == 'W') {
-										check_up = true;
-									} else if (keycode == 'S') {
-										check_dw = true;
-									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
-										check_blink = true;
-									} else if (keycode == 'A') { // ê³µê²©
-										check_shoot = true;
-									}
-								}
-								break;
-
-								case RELEASE:
-								{
-									if (keycode == 'A') {
-										check_lt = false;
-									} else if (keycode == 'D') {
-										check_rt = false;
-									} else if (keycode == 'W') {
-										check_up = false;
-									} else if (keycode == 'S') {
-										check_dw = false;
-									} else if (keycode == VK_SPACE) { // íŠ¹ëŠ¥
-										check_blink = false;
-									} else if (keycode == 'A') { // ê³µê²©
-										check_shoot = false;
-									}
-								}
-								break;
-							}
-						}
-
-						auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-						if (pchar && !pchar->dead) {
-							int check_horz = check_rt - check_lt; // ì¢Œìš° ì´ë™
-							int check_vert = check_dw - check_up; // ìƒí•˜ ì´ë™
-
-							if (0 != check_horz) {
-								pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
-							}
-							
-							if (0 != check_vert) {
-								pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
-							}
-
-							if (check_blink) {
-
-							}
-
-							if (check_shoot) {
-
-							}
-
-						}
-					} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
-
-					framework.CastProcessingGame();
-
-					framework.AwaitSendRendersEvent(); // event_send_renders
-					framework.SendRenderings();
-
-					framework.CastSendRenders(false);
-
-					SleepEx(FRAME_TIME, TRUE);
-					framework.CastStartReceive(true);
+				if (!framework.CheckClientNumber()) {
+					framework.Clean();
+					framework.SetStatus(LISTEN);
+					break;
 				}
+				
+				// ²ÙÁØÇÑ Åë½Å
+				framework.AwaitReceiveEvent();
+
+				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
+				if (!framework.ValidateSocketMessage(result)) {
+					framework.PlayerDisconnect(client_info);
+					break;
+				}
+
+				framework.AtomicPrintLn("¹ŞÀº ÆĞÅ¶ Á¤º¸: ", packet, ", Å©±â: ", result);
+
+				// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
+				if (packet == PACKETS::CLIENT_KEY_INPUT) {
+					auto key_storage = new InputStream[SEND_INPUT_COUNT];
+					data_size = SEND_INPUT_COUNT * sizeof(InputStream);
+
+					result = recv(client_socket, reinterpret_cast<char*>(key_storage)
+								  , data_size, MSG_WAITALL);
+					if (!framework.ValidateSocketMessage(result)) {
+						framework.PlayerDisconnect(client_info);
+						break;
+					}
+
+					bool check_lt = false;
+					bool check_rt = false;
+					bool check_up = false;
+					bool check_dw = false;
+					bool check_shoot = false;
+					bool check_blink = false;
+					bool check_reload = false;
+					for (int i = 0; i < SEND_INPUT_COUNT; ++i) {
+						auto button = key_storage[i];
+						auto keycode = button.code;
+						auto keystat = button.type;
+
+						switch (keystat) {
+							case NONE:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = false; } break;
+									case VK_RIGHT: { check_rt = false; } break;
+									case VK_UP: { check_up = false; } break;
+									case VK_DOWN: { check_dw = false; } break;
+									case VK_SPACE: { check_blink = false; }	 break; // Æ¯´É
+									case 'A': case 'a': { check_shoot = false; } break; // °ø°İ
+									case 'R': case 'r': { check_reload = false; } break; // ÀçÀåÀü
+									default: break;
+								}
+							}
+							break;
+
+							case PRESS:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = true; } break;
+									case VK_RIGHT: { check_rt = true; } break;
+									case VK_UP: { check_up = true; } break;
+									case VK_DOWN: { check_dw = true; } break;
+									case VK_SPACE: { check_blink = true; }	 break; // Æ¯´É
+									case 'A': case 'a': { check_shoot = true; } break; // °ø°İ
+									case 'R': case 'r': { check_reload = true; } break; // ÀçÀåÀü
+									default: break;
+								}
+							}
+							break;
+
+							case RELEASE:
+							{
+								switch (keycode) {
+									case VK_LEFT: { check_lt = false; } break;
+									case VK_RIGHT: { check_rt = false; } break;
+									case VK_UP: { check_up = false; } break;
+									case VK_DOWN: { check_dw = false; } break;
+									case VK_SPACE: { check_blink = false; }	 break; // Æ¯´É
+									case 'A': case 'a': { check_shoot = false; } break; // °ø°İ
+									case 'R': case 'r': { check_reload = false; } break; // ÀçÀåÀü
+									default: break;
+								}
+							}
+							break;
+						}
+					}
+
+					auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
+					if (pchar && !pchar->dead) { // °ÔÀÓ »óÅÂ
+						int check_horz = check_rt - check_lt; // ÁÂ¿ì ÀÌµ¿
+						int check_vert = check_dw - check_up; // »óÇÏ ÀÌµ¿
+
+						if (0 != check_horz) {
+							pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
+						}
+
+						if (0 != check_vert) {
+							pchar->y += FRAME_TIME * PLAYER_MOVE_SPEED * check_vert;
+						}
+
+						if (check_blink) {
+							//TODO
+						}
+
+						if (check_shoot) {
+							auto bullet = framework.Instantiate<CBullet>(pchar->x, pchar->y);
+							bullet->SetVelocity(SNOWBALL_SPEED, pchar->direction);
+							bullet->SetOwner(player_index);
+						}
+
+						if (check_reload) {
+
+						}
+					} else if (pchar && pchar->dead) { // °üÀü »óÅÂ
+
+					}
+				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+
+				framework.ProcessGame();
 			}
 			break;
 
 			case GAME_OVER:
 			{
-				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) {
+				if (packet == PACKETS::CLIENT_PLAY_CONTINUE) { //TODO
 
 				} else if (packet == PACKETS::CLIENT_PLAY_DENY) {
-
+					framework.PlayerDisconnect(client_info);
+					thread_done = true;
 				}
 			}
 			break;
 
 			case GAME_RESTART:
 			{
-
+				//TODO
 			}
 			break;
 
 			case EXIT:
 			{
-
+				thread_done = true;
 			}
 			break;
 
@@ -232,63 +227,29 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 	return 0;
 }
 
-DWORD WINAPI GameInitializeProcess(LPVOID arg) {
-	while (true) {
-		framework.AwaitStartGameEvent();
-
-		shuffle(framework.players.begin(), framework.players.end(), server_randomizer);
-
-		auto sz = framework.players.size();
-		for (int i = 0; i < sz; ++i) {
-			auto player = framework.players.at(i);
-			auto places = framework.PLAYER_SPAWN_PLACES[i];
-			auto character = framework.Instantiate<CCharacter>(places[0], places[1]);
-
-			player->player_character = character;
-			character->owner = player->index;
-			SendData(player->client_socket, PACKETS::SERVER_GAME_START);
-		}
-
-		framework.CastStartReceive(true);
-		framework.SetStatus(GAME);
-	}
-
-	return 0;
-}
-
-/*
-	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
-
-	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
-	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
-*/
-DWORD WINAPI GameProcess(LPVOID arg) {
-	while (true) {
-		framework.AwaitProcessingGameEvent(); // event_game_process
-
-		framework.CastStartReceive(false);
-		Sleep(LERP_MIN); // ì´ í•¨ìˆ˜ë¥¼ SleepExë¡œ
-
-		if (1 < framework.GetClientCount()) {
-			// ê²Œì„ ì²˜ë¦¬
-			framework.ProceedContinuation();
-		} else {
-			// ê²Œì„ íŒì •ìŠ¹ í˜¹ì€ ê²Œì„ ê°•ì œ ì¢…ë£Œ
-		}
-	}
-
-	return 0;
-}
-
 DWORD WINAPI ConnectProcess(LPVOID arg) {
 	while (true) {
 		framework.AwaitClientAcceptEvent();
+		framework.ProcessConnect();
+	}
 
-		SOCKET new_client = framework.PlayerConnect();
-		if (INVALID_SOCKET == new_client) {
-			cerr << "accept ì˜¤ë¥˜!";
-			return 0;
-		}
+	return 0;
+}
+
+DWORD WINAPI GameReadyProcess(LPVOID arg) {
+	while (true) {
+		framework.AwaitStartGameEvent();
+		framework.ProcessReady();
+		framework.CreatePlayerCharacters<CCharacter>();
+	}
+
+	return 0;
+}
+
+DWORD WINAPI SendRenderingsProcess(LPVOID arg) {
+	while (true) {
+		framework.AwaitSendRendersEvent(); // event_send_renders
+		framework.ProcessSync();
 	}
 
 	return 0;
@@ -306,12 +267,16 @@ void CCharacter::OnUpdate(double frame_advance) {
 	auto collide_bullet = framework.SeekCollision<CBullet>(this, "Bullet");
 
 	if (collide_bullet) {
-		GetHurt(1);
 		framework.Kill(collide_bullet);
-		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
+		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
+
+		GetHurt(1);
 	}
 
-	direction = point_direction(0, 0, hspeed, vspeed);
+	if (hspeed != 0.0 || vspeed != 0.0)
+		direction = point_direction(0, 0, hspeed, vspeed);
+
+	AssignRenderingInfo(direction);
 
 	GameInstance::OnUpdate(frame_advance);
 }
@@ -322,11 +287,13 @@ void CCharacter::GetHurt(int dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "í”Œë ˆì´ì–´ " << owner << " ì‚¬ë§." << endl;
+			cout << "ÇÃ·¹ÀÌ¾î " << owner << " »ç¸Á." << endl;
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;
 		}
+	} else {
+		inv_time -= FRAME_TIME;
 	}
 }
 
@@ -349,6 +316,8 @@ void CBullet::OnUpdate(double frame_advance) {
 	}
 
 	image_angle = point_direction(0, 0, hspeed, vspeed);
+	AssignRenderingInfo(image_angle);
+
 	GameInstance::OnUpdate(frame_advance);
 }
 
