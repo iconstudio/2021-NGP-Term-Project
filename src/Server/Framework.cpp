@@ -198,6 +198,8 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 		SendData(client_socket, PACKETS::SERVER_SET_CAPTAIN);
 	}
 
+	SendTerrainSeed(client_socket);
+
 	players.push_back(client);
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", ++players_number);
