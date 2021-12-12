@@ -10,6 +10,7 @@ GameSprite player_damaged(L"../../res/PlayerGetDamaged_strip3.png", 3, 16, 50);
 GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
 GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
 GameSprite QTEbutton_sprite(L"../../res/QTEbutton.png", 1, 0, 0);
+GameSprite Startbutton_sprite(L"../../res/Start_button.png", 1, 0, 0);
 
 
 ClientFramework::ClientFramework()
@@ -65,125 +66,122 @@ void ClientFramework::Initialize() {
 }
 
 void ClientFramework::Update() {
-	background_color = COLOR_YELLOW;
+	background_color = COLOR_WHITE;
+
 	while (connect_status == false)
 	{
 		auto address_size = sizeof(server_address);
 		PACKETS packet = CLIENT_PING;
 		int result = connect(my_socket, reinterpret_cast<sockaddr*>(&server_address), address_size);
-		recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (packet == SERVER_SET_INDEX)
-		{
-			int result = recv((SOCKET)my_socket, reinterpret_cast<char*>(&me), sizeof(int), MSG_WAITALL);
-		}
-		if (me == 0)
-		{
-			Sleep(5000);
-			SendData(my_socket, CLIENT_GAME_START);
-		}
-		recv(my_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
-		if (packet == SERVER_GAME_START)
-		{
+		if (SOCKET_ERROR != result) {
 			connect_status = true;
-			CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 		}
-		if (SOCKET_ERROR == result) {
-			// 오류
-			ErrorAbort("connect error");
-			return;
-		}
-
+		CreateThread(NULL, 0, ::CommunicateProcess, (void*)my_socket, 0, NULL);
 	}
 
-	ZeroMemory(key_checkers, sizeof(key_checkers));
+	if (captain == true &&
+		mouse_x > VIEW_W / 2 - Startbutton_sprite.get_width() / 2 &&
+		mouse_x < VIEW_W / 2 + Startbutton_sprite.get_width() / 2 &&
+		mouse_y > VIEW_H / 2 - Startbutton_sprite.get_height() / 2 &&
+		mouse_y < VIEW_H / 2 + Startbutton_sprite.get_height() / 2 &&
+		SendGamestart == false)
+	{
+		SendData(my_socket, CLIENT_GAME_START);
+		SendGamestart = true;
+	}
 
-	if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState(VK_UP) & 0x8001)
-		key_checkers[0] = VK_UP;
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState(VK_DOWN) & 0x8001)
-		key_checkers[1] = VK_DOWN;
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState(VK_LEFT) & 0x8001)
-		key_checkers[2] = VK_LEFT;
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
-		key_checkers[3] = VK_RIGHT;
-	if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bullet_cooldown <= 0 && bullet_left > 0 && reload_cooldown <= 0) {
-		key_checkers[4] = 'A';
-		bullet_cooldown = 0.5;
-		if (get_buffed <= 0)
+	if (SendGamestart == true)
+	{
+		ZeroMemory(key_checkers, sizeof(key_checkers));
+
+		if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState(VK_UP) & 0x8001)
+			key_checkers[0] = VK_UP;
+		if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState(VK_DOWN) & 0x8001)
+			key_checkers[1] = VK_DOWN;
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState(VK_LEFT) & 0x8001)
+			key_checkers[2] = VK_LEFT;
+		if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8001)
+			key_checkers[3] = VK_RIGHT;
+		if ((GetAsyncKeyState('A') & 0x8000 || GetAsyncKeyState('A') & 0x8001) && bullet_cooldown <= 0 && bullet_left > 0 && reload_cooldown <= 0) {
+			key_checkers[4] = 'A';
+			bullet_cooldown = 0.5;
+			if (get_buffed <= 0)
+			{
+				--bullet_left;
+			}
+		}
+		if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flash_cooltime <= 0.0) {
+			key_checkers[5] = 'S';
+			flash_cooltime = 3.0;
+		}
+		if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001) {
+			if (QTEtime > 0)
+			{
+				get_buffed = 5.0;
+			}
+		}
+		if ((GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) && reloading == false) {
+			key_checkers[7] = 'F';
+			reload_cooldown = 2.0;
+			reloading = true;
+		}
+
+		SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
+
+		if (0 < bullet_cooldown) {
+			bullet_cooldown -= FRAME_TIME;
+		}
+
+		if (flash_cooltime > 0)
+			flash_cooltime -= FRAME_TIME;
+
+		if (reloading == true && reload_cooldown <= 0) {
+			bullet_left = 3;
+			reloading = false;
+		}
+
+		if (reload_cooldown > 0)
 		{
-			--bullet_left;
+			reload_cooldown -= FRAME_TIME;
 		}
-	}
-	if ((GetAsyncKeyState('S') & 0x8000 || GetAsyncKeyState('S') & 0x8001) && flash_cooltime <= 0.0)	{
-		key_checkers[5] = 'S';
-		flash_cooltime = 3.0;
-	}
-	if (GetAsyncKeyState('D') & 0x8000 || GetAsyncKeyState('D') & 0x8001) {
-		if (QTEtime > 0)
+
+		if (QTE == true)
 		{
-			get_buffed = 5.0;
+			QTEtime = 1.0;
+			QTE = false;
 		}
+
+		if (QTEtime >= 0)
+		{
+			QTEtime -= FRAME_TIME;
+		}
+
+		if (get_buffed >= 0)
+		{
+			get_buffed -= FRAME_TIME;
+		}
+
+		if (player_info.player_hp <= 0)
+		{
+			dead = true;
+		}
+
+		else
+		{
+			dead = false;
+			ghost = 1.0;
+		}
+
+		if (win == true)
+		{
+			MessageBox(NULL, L"winner", L"winner", 0);
+			win = false;
+		}
+
+		sprintf(buffer, "%d", player_num);
+		int nLen = (int)strlen(buffer) + 1;
+		mbstowcs(str_for_player_num, buffer, nLen);
 	}
-	if ((GetAsyncKeyState('F') & 0x8000 || GetAsyncKeyState('F') & 0x8001) && reloading == false) {
-		key_checkers[7] = 'F';
-		reload_cooldown = 2.0;
-		reloading = true;
-	}
-
-	SendData(my_socket, CLIENT_KEY_INPUT, key_checkers, sizeof(key_checkers));
-
-	if (0 < bullet_cooldown) {
-		bullet_cooldown -= FRAME_TIME;
-	}
-
-	if (flash_cooltime > 0)
-		flash_cooltime -= FRAME_TIME;
-
-	if (reloading == true && reload_cooldown <= 0)	{
-		bullet_left = 3;
-		reloading = false;
-	}
-
-	if (reload_cooldown > 0)
-	{
-		reload_cooldown -= FRAME_TIME;
-	}
-
-	if (QTE == true)
-	{
-		QTEtime = 1.0;
-		QTE = false;
-	}
-
-	if (QTEtime >= 0)
-	{
-		QTEtime -= FRAME_TIME;
-	}
-
-	if (get_buffed >= 0)
-	{
-		get_buffed -= FRAME_TIME;
-	}
-
-	if (player_info.player_hp <= 0)
-	{
-		dead = true;
-	}
-
-	else
-	{
-		dead = false;
-		ghost = 1.0;
-	}
-
-	if (win == true)
-	{
-		MessageBox(NULL, L"winner", L"winner", 0);
-		win = false;
-	}
-
-	sprintf(buffer, "%d", player_num);
-	int nLen = (int)strlen(buffer) + 1;
-	mbstowcs(str_for_player_num, buffer, nLen);
 }
 
 void ClientFramework::Render(HWND window) {
@@ -206,8 +204,10 @@ void ClientFramework::Render(HWND window) {
 	//if (status == LOBBY)
 	//	sprites[2]->draw(surface_double, (VIEW_W - sprites[2]->get_width()) / 2, (VIEW_H - sprites[2]->get_height()) / 3 * 2, 0.0, 0.0, 1.0, 1.0, 1.0);
 
-
-	BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
+	if (SendGamestart == true)
+	{
+		BitBlt(surface_double, 0, 0, WORLD_W, WORLD_H, map_surface, 0, 0, SRCCOPY);
+	}
 	for (auto it = begin(last_render_info); it != end(last_render_info); it++) {
 		ghost = 1.0;
 		if (it->target_player == me && dead == true)
@@ -277,12 +277,17 @@ void ClientFramework::Render(HWND window) {
 	BitBlt(surface_back, 0, 0, view.w, view.h, surface_double, view.x, view.y, SRCCOPY);
 	Render::draw_end(surface_double, m_oldhBit, m_hBit);
 
-	// UI
-	if (connect_status == true && dead == false)
+	// Lobby UI
+	if (captain == true && SendGamestart == false)
+	{
+		Startbutton_sprite.draw(surface_back, VIEW_W / 2 - Startbutton_sprite.get_width() / 2, VIEW_H / 2 - Startbutton_sprite.get_height() / 2, 0, 0, 1.0, 1.0);
+	}
+
+	// UI//////////
+	if (connect_status == true && dead == false && SendGamestart == true)
 	{
 		health_sprite.draw(surface_back, 0, 0, 4 - player_info.player_hp / 31, 0, 0.5, 0.5);		//체력
 
-		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
 
 		for (int curbullet = 0; curbullet < bullet_left; ++curbullet) {			//남은 총알 수
 			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
@@ -294,7 +299,12 @@ void ClientFramework::Render(HWND window) {
 		}
 
 	}
-
+	if (str_for_player_num[0] != NULL)
+	{
+		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
+	} 
+	///////////////
+	
 	// 백 버퍼 -> 화면 버퍼
 	StretchBlt(surface_app, port.x, port.y, port.w, port.h
 		, surface_back, 0, 0, view.w, view.h, SRCCOPY);

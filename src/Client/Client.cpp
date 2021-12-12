@@ -167,6 +167,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			}
 
 		}
+
 		if (SERVER_GAME_DONE == packet) {
 			framework.win = true;
 			break;
@@ -197,6 +198,16 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			}
 
 			SetEvent(event_render);
+		}
+
+		if (SERVER_SET_CAPTAIN == packet)
+		{
+			framework.captain = true;
+		}
+
+		if (SERVER_GAME_START == packet)
+		{
+			framework.connect_status = true;
 		}
 	}
 	return 0;
