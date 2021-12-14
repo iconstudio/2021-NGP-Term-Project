@@ -230,7 +230,7 @@ void ServerFramework::ProceedContinuation() {
 				// 플레이어 사망
 				if (player->player_character && player->player_character->dead) {
 					//it = DisconnectClient(player);
-				} else {
+				} else if (player->player_character) {
 					survivor = player;
 					player_alives++;
 				}
