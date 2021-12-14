@@ -16,8 +16,7 @@ GameSprite Victory_sprite(L"res/Victory.png", 1, 0, 0);
 
 ClientFramework::ClientFramework()
 	: painter{}
-	, view{ 0, 0, VIEW_W, VIEW_H }, port{ 0, 0, PORT_W, PORT_H }
-	, view_track_enabled(false), view_target_player(-1) {
+	, view{ 0, 0, VIEW_W, VIEW_H }, port{ 0, 0, PORT_W, PORT_H } {
 	view.xoff = VIEW_W * 0.5;
 	view.yoff = VIEW_H * 0.5;
 	port.x = (CLIENT_W - PORT_W) * 0.5;
@@ -61,9 +60,6 @@ void ClientFramework::Initialize() {
 	SelectObject(map_surface, map_bitmap);
 
 	Render::draw_clear(map_surface, WORLD_W, WORLD_H, COLOR_BLACK);
-
-
-
 }
 
 void ClientFramework::Update() {
@@ -172,9 +168,10 @@ void ClientFramework::Update() {
 			ghost = 1.0;
 		}
 
-		sprintf(buffer, "%d", player_num);
+		sprintf_s(buffer, "%d", player_num);
 		int nLen = (int)strlen(buffer) + 1;
-		mbstowcs(str_for_player_num, buffer, nLen);
+		size_t nSize = 0;
+		mbstowcs_s(&nSize, str_for_player_num, buffer, nLen);
 	}
 }
 
