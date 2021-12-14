@@ -2,16 +2,16 @@
 #include "Framework.h"
 #include "Resource.h"
 
-GameSprite player_down(L"../../res/PlayerWalkDown_strip6.png", 6, 16, 50);
-GameSprite player_right(L"../../res/PlayerWalkRight_strip4.png", 4, 16, 50);
-GameSprite player_left(L"../../res/PlayerWalkLeft_strip4.png", 4, 16, 50);
-GameSprite player_up(L"../../res/PlayerWalkUp_strip4.png", 4, 16, 50);
-GameSprite player_damaged(L"../../res/PlayerGetDamaged_strip3.png", 3, 16, 50);
-GameSprite bullet_sprite(L"../../res/Snowball.png", 1, 17, 17);
-GameSprite health_sprite(L"../../res/health.png", 3, 0, 0);
-GameSprite QTEbutton_sprite(L"../../res/QTEbutton.png", 1, 0, 0);
-GameSprite Startbutton_sprite(L"../../res/Start_button.png", 1, 0, 0);
-GameSprite Victory_sprite(L"../../res/Victory.png", 1, 0, 0);
+GameSprite player_down(L"res/PlayerWalkDown_strip6.png", 6, 16, 50);
+GameSprite player_right(L"res/PlayerWalkRight_strip4.png", 4, 16, 50);
+GameSprite player_left(L"res/PlayerWalkLeft_strip4.png", 4, 16, 50);
+GameSprite player_up(L"res/PlayerWalkUp_strip4.png", 4, 16, 50);
+GameSprite player_damaged(L"res/PlayerGetDamaged_strip3.png", 3, 16, 50);
+GameSprite bullet_sprite(L"res/Snowball.png", 1, 17, 17);
+GameSprite health_sprite(L"res/health.png", 3, 0, 0);
+GameSprite QTEbutton_sprite(L"res/QTEbutton.png", 1, 0, 0);
+GameSprite Startbutton_sprite(L"res/Start_button.png", 1, 0, 0);
+GameSprite Victory_sprite(L"res/Victory.png", 1, 0, 0);
 
 
 ClientFramework::ClientFramework()
