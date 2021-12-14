@@ -3,7 +3,7 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework()
-	: status(SERVER_STATES::LOBBY), game_started(false)
+	: status(SERVER_STATES::LOBBY)
 	, players_survived(0)
 	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
@@ -181,7 +181,7 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 	EnterCriticalSection(&permission_client);
 
-	auto client = new ClientSession(client_socket, NULL, player_index_last);
+	auto client = new ClientSession(client_socket, player_index_last);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
@@ -454,9 +454,8 @@ void ServerFramework::CastQuitEvent() {
 	SetEvent(event_quit);
 }
 
-ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
-	: my_socket(sk), my_thread(th)
-	, player_index(id), player_character(nullptr) {}
+ClientSession::ClientSession(SOCKET sk, int id)
+	: my_socket(sk), player_index(id), player_character(nullptr) {}
 
 ClientSession::~ClientSession() {
 	player_index = -1;

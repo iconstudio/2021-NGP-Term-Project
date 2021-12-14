@@ -47,12 +47,11 @@ public:
 class ClientSession {
 public:
 	SOCKET my_socket;
-	HANDLE my_thread;
 
 	int player_index; // 플레이어 번호
 	CCharacter* player_character;
 
-	ClientSession(SOCKET sk, HANDLE th, int id);
+	ClientSession(SOCKET sk, int id);
 	~ClientSession();
 };
 
@@ -153,7 +152,6 @@ private:
 	int	players_survived; // 지금 살아있는 플레이어의 수
 
 	/* 게임 관련 속성 */
-	bool game_started;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE = 300; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 	double QTE_time;
