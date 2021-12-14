@@ -6,7 +6,6 @@ ServerFramework::ServerFramework()
 	: status(SERVER_STATES::LOBBY), game_started(false)
 	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
-	InitializeCriticalSection(&permission_client);
 	InitializeCriticalSection(&permission_print);
 
 	PLAYER_SPAWN_PLACES = new int* [CLIENT_NUMBER_MAX];
@@ -57,7 +56,6 @@ ServerFramework::~ServerFramework() {
 	instances.shrink_to_fit();
 	rendering_infos_last.shrink_to_fit();
 
-	DeleteCriticalSection(&permission_client);
 	DeleteCriticalSection(&permission_print);
 
 	CloseHandle(event_accept);
@@ -178,14 +176,11 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	EnterCriticalSection(&permission_client);
-
 	auto client = new ClientSession(client_socket, NULL, player_index_last);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
 		ErrorDisplay("CreateThread[GameProcess]");
-		LeaveCriticalSection(&permission_client);
 		return;
 	}
 	CloseHandle(th);
@@ -203,13 +198,9 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 
 	AtomicPrintLn("클라이언트 접속: ", client_socket, ", 수: ", ++players_number);
 	player_index_last++;
-
-	LeaveCriticalSection(&permission_client);
 }
 
 vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession* client) {
-	EnterCriticalSection(&permission_client);
-
 	auto iter = std::find(players.begin(), players.end(), client);
 	if (iter != players.end()) {
 		players_number--;
@@ -223,13 +214,10 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 		}
 	}
 
-	LeaveCriticalSection(&permission_client);
-
 	return iter;
 }
 
 void ServerFramework::ProceedContinuation() {
-	EnterCriticalSection(&permission_client);
 	if (players_number <= player_process_index++) {
 		// 플레이어 사망 확인
 		int player_alives = 0;
@@ -282,7 +270,6 @@ void ServerFramework::ProceedContinuation() {
 		// 수신
 		CastReceiveEvent(true);
 	}
-	LeaveCriticalSection(&permission_client);
 }
 
 bool ServerFramework::ValidateSocketMessage(int socket_state) {

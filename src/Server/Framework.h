@@ -86,10 +86,10 @@ public:
 	void SendGameInfosToAll();
 	void SendNotificationToTheWinner(SOCKET client_socket); // 승리 메시지
 
-	void CastAcceptEvent(bool flag);			// 클라이언트 접속 객체 신호
-	void CastReceiveEvent(bool flag);			    // 게임 프로세스 이벤트 객체 신호
-	void CastUpdateEvent(bool flag);			    // 게임 프로세스 이벤트 객체 신호
-	void CastQuitEvent();				// 게임 종료 이벤트 객체 신호
+	void CastAcceptEvent(bool flag);			// 클라이언트 접속 객체
+	void CastReceiveEvent(bool flag);			    // 게임 프로세스 이벤트 객체
+	void CastUpdateEvent(bool flag);			    // 게임 프로세스 이벤트 객체
+	void CastQuitEvent();				// 게임 종료 이벤트 객체
 
 	const int GetPlayerNumber() const;
 
@@ -143,7 +143,7 @@ private:
 	HANDLE event_game_communicate; // 입력 수신 신호
 	HANDLE event_game_update; // 게임 처리 신호
 	HANDLE event_quit; // 종료 신호
-	CRITICAL_SECTION permission_client, permission_print;
+	CRITICAL_SECTION permission_print;
 
 	/* 플레이어 관련 속성 */
 	vector<ClientSession*> players; // 플레이어 목록
