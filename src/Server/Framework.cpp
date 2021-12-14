@@ -245,12 +245,12 @@ void ServerFramework::ProceedContinuation() {
 
 			if (player) {
 				// 플레이어 사망
-				if (player->player_character && player->player_character->dead) {
-					//it = DisconnectClient(player);
-				} else {
+				if (player->player_character && !player->player_character->dead) {
 					survivor = player;
 					player_alives++;
-				}
+				}/* else {
+					it = DisconnectClient(player);
+				}*/
 			}
 
 			if (players_number <= 1) {
@@ -267,7 +267,7 @@ void ServerFramework::ProceedContinuation() {
 			}
 		}
 
-		 if (players.empty()) {
+		if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else if (1 == players_number) {
