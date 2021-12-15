@@ -53,8 +53,8 @@ public:
 
 	bool SendGamestart = false;
 	bool captain = false;
-private:
 
+private:
 	SOCKET my_socket;
 	SOCKADDR_IN	server_address;
 	HDC surface_double;
@@ -81,9 +81,6 @@ private:
 	bool win = false;
 
 	struct { int x, y, w, h, xoff, yoff; } view, port;
-	bool view_track_enabled;
-	int view_target_player;
-
 };
 
 

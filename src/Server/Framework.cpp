@@ -3,7 +3,8 @@
 #include "Framework.h"
 
 ServerFramework::ServerFramework()
-	: status(SERVER_STATES::LOBBY), game_started(false)
+	: status(SERVER_STATES::LOBBY)
+	, players_survived(0)
 	, QTE_time(QTE_PERIOD_MAX)
 	, randomizer(std::random_device{}()), random_distrubution() {
 	InitializeCriticalSection(&permission_print);
@@ -170,7 +171,11 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 		CastAcceptEvent(true);
 	}
 
-	auto client = new ClientSession(client_socket, NULL, player_index_last);
+	BOOL option = TRUE; // Nagle 알고리즘
+	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
+		, reinterpret_cast<const char*>(&option), sizeof(option));
+
+	auto client = new ClientSession(client_socket, player_index_last);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
 	if (NULL == th) {
@@ -203,6 +208,10 @@ vector<ClientSession*>::iterator ServerFramework::DisconnectClient(ClientSession
 		iter = players.erase(iter);
 		closesocket(client->my_socket);
 
+		if (client->player_character) {
+			Kill(client->player_character);
+		}
+
 		if (1 < players_number) {
 			CastUpdateEvent(true);
 		}
@@ -224,10 +233,12 @@ void ServerFramework::ProceedContinuation() {
 				// 플레이어 사망
 				if (player->player_character && player->player_character->dead) {
 					//it = DisconnectClient(player);
-				} else if (player->player_character) {
+				} else {
 					survivor = player;
 					player_alives++;
-				}
+				}/* else {
+					it = DisconnectClient(player);
+				}*/
 			}
 
 			if (players_number <= 1) {
@@ -244,7 +255,7 @@ void ServerFramework::ProceedContinuation() {
 			}
 		}
 
-		 if (players.empty()) {
+		if (players.empty()) {
 			// 종료
 			CastQuitEvent();
 		} else if (1 == players_number) {
@@ -291,6 +302,17 @@ void ServerFramework::CreatePlayerCharacters() {
 
 void ServerFramework::CreateRenderingInfos() {
 	if (!instances.empty()) {
+		players_survived = 0;
+		auto sz = players.size();
+		for (int i = 0; i < sz; ++i) {
+			auto player = players.at(i);
+			auto places = PLAYER_SPAWN_PLACES[i];
+			auto character = player->player_character;
+			if (character && !character->dead) {
+				players_survived++;
+			}
+		}
+
 		AtomicPrintLn("렌더링 정보 생성\n크기: ", instances.size());
 		if (!rendering_infos_last.empty()) {
 			rendering_infos_last.clear();
@@ -349,16 +371,18 @@ void ServerFramework::SendGameStatus(ClientSession* client) {
 	auto player_index = client->player_index;
 	auto player_character = client->player_character;
 
-	GameUpdateMessage state;
-	state.players_count = GetPlayerNumber();
-	state.player_hp = player_character->health;
-	state.player_inv = player_character->invincible;
-	state.player_x = player_character->x;
-	state.player_y = player_character->y;
-	state.player_direction = player_character->direction;
+	if (player_character) {
+		GameUpdateMessage state;
+		state.players_count = players_survived;
+		state.player_hp = player_character->health;
+		state.player_inv = player_character->invincible;
+		state.player_x = player_character->x;
+		state.player_y = player_character->y;
+		state.player_direction = player_character->direction;
 
-	SendData(client_socket, SERVER_GAME_STATUS
-			 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
+		SendData(client_socket, SERVER_GAME_STATUS
+				 , reinterpret_cast<char*>(&state), sizeof(GameUpdateMessage));
+	}
 }
 
 void ServerFramework::SendRenderingInfos(SOCKET client_socket) {
@@ -417,9 +441,8 @@ void ServerFramework::CastQuitEvent() {
 	SetEvent(event_quit);
 }
 
-ClientSession::ClientSession(SOCKET sk, HANDLE th, int id)
-	: my_socket(sk), my_thread(th)
-	, player_index(id), player_character(nullptr) {}
+ClientSession::ClientSession(SOCKET sk, int id)
+	: my_socket(sk), player_index(id), player_character(nullptr) {}
 
 ClientSession::~ClientSession() {
 	player_index = -1;

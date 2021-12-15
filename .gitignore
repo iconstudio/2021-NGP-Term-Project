@@ -18,6 +18,7 @@ shots/
 mono_crash.*
 
 # Build results
+results/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
