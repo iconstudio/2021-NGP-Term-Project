@@ -9,7 +9,7 @@
 
 HANDLE event_render;
 
-GameSprite tile_sprite(L"../../res/tiles.png", 2, 0, 0);
+GameSprite tile_sprite(L"res/tiles.png", 2, 0, 0);
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
