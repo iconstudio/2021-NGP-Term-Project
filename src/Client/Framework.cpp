@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Framework.h"
 #include "Resource.h"
 
@@ -20,9 +20,9 @@ char my_address_target[128];
 ClientFramework::ClientFramework()
 	: painter{}
 	, view{ 0, 0, VIEW_W, VIEW_H }, port{ 0, 0, PORT_W, PORT_H } {
-	view.xoff = VIEW_W * 0.5;
-	view.yoff = VIEW_H * 0.5;
-	port.x = (CLIENT_W - PORT_W) * 0.5;
+	view.xoff = VIEW_W / 2;
+	view.yoff = VIEW_H / 2;
+	port.x = (CLIENT_W - PORT_W) / 2;
 }
 
 ClientFramework::~ClientFramework() {
@@ -54,7 +54,8 @@ void ClientFramework::Initialize() {
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(COMMON_PORT);
 
-	auto my_addr_file = fopen(my_default_address_file, "r");
+	FILE* my_addr_file = nullptr;
+	auto my_addr_file_result = fopen_s(&my_addr_file, my_default_address_file, "r");
 	if (!my_addr_file) {
 		server_address.sin_addr.s_addr = inet_addr(DEFAULT_SERVER_IP);
 	} else {
@@ -298,7 +299,7 @@ void ClientFramework::Render(HWND window) {
 
 
 		for (int curbullet = 0; curbullet < bullet_left; ++curbullet) {			//남은 총알 수
-			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2.0 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2.0), 0, 0, 0.8, 0.8, 0.5);
+			bullet_sprite.draw(surface_back, VIEW_W - (int)(bullet_sprite.get_width() / 2.0 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (int)(bullet_sprite.get_height() / 2.0), 0, 0, 0.8, 0.8, 0.5);
 		}
 
 		if (QTEtime > 0)
