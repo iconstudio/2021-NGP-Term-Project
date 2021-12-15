@@ -175,8 +175,6 @@ void ServerFramework::ConnectClient(SOCKET client_socket) {
 	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
 		, reinterpret_cast<const char*>(&option), sizeof(option));
 
-	EnterCriticalSection(&permission_client);
-
 	auto client = new ClientSession(client_socket, player_index_last);
 
 	auto th = CreateThread(NULL, 0, GameProcess, (LPVOID)(client), 0, NULL);
