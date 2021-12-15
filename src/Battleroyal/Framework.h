@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "pch.h"
 #include "Sprite.h"
 #include "CommonDatas.h"
@@ -44,7 +44,6 @@ public:
 
 	void InputRegister(WPARAM virtual_button);
 	bool InputCheck(WPARAM virtual_button);
-	bool InputCheckPressed(WPARAM virtual_button);
 
 	void OnMouseDown(WPARAM button, LPARAM cursor);
 	void OnMouseUp(WPARAM button, LPARAM cursor);
@@ -70,7 +69,6 @@ public:
 	CLIENT_STATES status;
 
 	COLORREF background_color = COLOR_WHITE;
-	const int WORLD_W, WORLD_H;
 
 	InputStream keys[6];
 	bool player_captain = false;
@@ -103,8 +101,7 @@ private:
 		void on_none() { state = NONE; }
 		void on_press() { state = PRESS; }
 		void on_release() { state = RELEASE; }
-		bool is_pressing() const { return (0 <= time); }
-		bool is_pressed() const { return (0 == time); }
+		bool is_pressing() const { return (state == PRESS); }
 	};
 
 	map<WPARAM, CInputChecker> key_checkers;			//키 누른것 확인

@@ -196,7 +196,6 @@ private:
 	default_random_engine randomizer;
 	
 	bool game_started;
-	const int WORLD_W, WORLD_H;
 	int** PLAYER_SPAWN_PLACES; // 플레이어가 맨 처음에 생성될 위치의 배열
 	const int SPAWN_DISTANCE; // 플레이어 생성 위치를 정할 때 사용하는 거리 값
 };

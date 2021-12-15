@@ -299,12 +299,12 @@ void ClientFramework::Render(HWND window) {
 
 
 		for (int curbullet = 0; curbullet < bullet_left; ++curbullet) {			//남은 총알 수
-			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
+			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2.0 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2.0), 0, 0, 0.8, 0.8, 0.5);
 		}
 
 		if (QTEtime > 0)
 		{
-			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
+			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2.0 + 10), 0, 0, 0, 0.5, 0.5);
 		}
 
 	}

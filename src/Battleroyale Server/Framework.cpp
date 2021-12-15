@@ -1,11 +1,10 @@
-﻿#include "..\Server\Framework.h"
-#include "pch.h"
+﻿#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 
 
 ServerFramework::ServerFramework(int rw, int rh)
-	: WORLD_W(rw), WORLD_H(rh), SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
+	: SPAWN_DISTANCE(rh * 0.4), randomizer{ 0 }
 	, status(SERVER_STATES::LISTEN), game_started(false)
 	, my_socket(0), my_address(), client_number(0), my_process_index(0)
 	, rendering_infos_last(nullptr)

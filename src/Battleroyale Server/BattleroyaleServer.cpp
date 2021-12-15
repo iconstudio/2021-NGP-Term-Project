@@ -1,14 +1,14 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CommonDatas.h"
 #include "Framework.h"
 #include "BattleroyaleServer.h"
 
 
 /*
-	TODO: I/O Overlapped ¸ğµ¨·Î º¯°æÇÏ±â
+	TODO: I/O Overlapped ëª¨ë¸ë¡œ ë³€ê²½í•˜ê¸°
 
-	¿Ö³ÄÇÏ¸é °ÔÀÓÀÇ Áö¿¬¾øÀÌ ÇÑ¹ø¿¡ ¿©·¯ Å¬¶óÀÌ¾ğÆ®¸¦ Ã³¸®ÇÏ±â À§ÇØ¼­´Â µ¿½Ã ½ÇÇàÀÌ ÇÊ¼öÀûÀÌ´Ù.
-	IOCP ¸»°í ÀÌ ºÎºĞ¿¡¸¸ Overlapped ¸ğµ¨À» »ç¿ëÇÏ¸é ÁÁÀ» °Í °°´Ù.
+	ì™œëƒí•˜ë©´ ê²Œì„ì˜ ì§€ì—°ì—†ì´ í•œë²ˆì— ì—¬ëŸ¬ í´ë¼ì´ì–¸íŠ¸ë¥¼ ì²˜ë¦¬í•˜ê¸° ìœ„í•´ì„œëŠ” ë™ì‹œ ì‹¤í–‰ì´ í•„ìˆ˜ì ì´ë‹¤.
+	IOCP ë§ê³  ì´ ë¶€ë¶„ì—ë§Œ Overlapped ëª¨ë¸ì„ ì‚¬ìš©í•˜ë©´ ì¢‹ì„ ê²ƒ ê°™ë‹¤.
 */
 ServerFramework framework{ WORLD_W, WORLD_H };
 
@@ -57,7 +57,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					break;
 				}
 
-				// ¹æÀåÀÇ °ÔÀÓ ½ÃÀÛ ¸Ş½ÃÁö
+				// ë°©ì¥ì˜ ê²Œì„ ì‹œì‘ ë©”ì‹œì§€
 				if (packet == PACKETS::CLIENT_GAME_START) {
 					if (framework.CheckClientNumber()) {
 						framework.CastStartGame(true);
@@ -65,7 +65,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						Sleep(500);
 						break;
 					}
-				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 				break;
 			} break;
 
@@ -76,8 +76,8 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					framework.SetStatus(LISTEN);
 					break;
 				}
-				
-				// ²ÙÁØÇÑ Åë½Å
+
+				// ê¾¸ì¤€í•œ í†µì‹ 
 				framework.AwaitReceiveEvent();
 
 				result = recv(client_socket, reinterpret_cast<char*>(&packet), sizeof(PACKETS), MSG_WAITALL);
@@ -86,9 +86,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					break;
 				}
 
-				framework.AtomicPrintLn("¹ŞÀº ÆĞÅ¶ Á¤º¸: ", packet, ", Å©±â: ", result);
+				framework.AtomicPrintLn("ë°›ì€ íŒ¨í‚· ì •ë³´: ", packet, ", í¬ê¸°: ", result);
 
-				// ¸¸¾à ÇÎ ¸Ş½ÃÁö°¡ ¿À¸é µ¥ÀÌÅÍ¸¦ ¹ŞÁö ¾Ê´Â´Ù.
+				// ë§Œì•½ í•‘ ë©”ì‹œì§€ê°€ ì˜¤ë©´ ë°ì´í„°ë¥¼ ë°›ì§€ ì•ŠëŠ”ë‹¤.
 				if (packet == PACKETS::CLIENT_KEY_INPUT) {
 					auto key_storage = new InputStream[SEND_INPUT_COUNT];
 					data_size = SEND_INPUT_COUNT * sizeof(InputStream);
@@ -120,9 +120,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 									case VK_RIGHT: { check_rt = false; } break;
 									case VK_UP: { check_up = false; } break;
 									case VK_DOWN: { check_dw = false; } break;
-									case VK_SPACE: { check_blink = false; }	 break; // Æ¯´É
-									case 'A': case 'a': { check_shoot = false; } break; // °ø°İ
-									case 'R': case 'r': { check_reload = false; } break; // ÀçÀåÀü
+									case VK_SPACE: { check_blink = false; }	 break; // íŠ¹ëŠ¥
+									case 'A': case 'a': { check_shoot = false; } break; // ê³µê²©
+									case 'R': case 'r': { check_reload = false; } break; // ì¬ì¥ì „
 									default: break;
 								}
 							}
@@ -135,9 +135,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 									case VK_RIGHT: { check_rt = true; } break;
 									case VK_UP: { check_up = true; } break;
 									case VK_DOWN: { check_dw = true; } break;
-									case VK_SPACE: { check_blink = true; }	 break; // Æ¯´É
-									case 'A': case 'a': { check_shoot = true; } break; // °ø°İ
-									case 'R': case 'r': { check_reload = true; } break; // ÀçÀåÀü
+									case VK_SPACE: { check_blink = true; }	 break; // íŠ¹ëŠ¥
+									case 'A': case 'a': { check_shoot = true; } break; // ê³µê²©
+									case 'R': case 'r': { check_reload = true; } break; // ì¬ì¥ì „
 									default: break;
 								}
 							}
@@ -150,9 +150,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 									case VK_RIGHT: { check_rt = false; } break;
 									case VK_UP: { check_up = false; } break;
 									case VK_DOWN: { check_dw = false; } break;
-									case VK_SPACE: { check_blink = false; }	 break; // Æ¯´É
-									case 'A': case 'a': { check_shoot = false; } break; // °ø°İ
-									case 'R': case 'r': { check_reload = false; } break; // ÀçÀåÀü
+									case VK_SPACE: { check_blink = false; }	 break; // íŠ¹ëŠ¥
+									case 'A': case 'a': { check_shoot = false; } break; // ê³µê²©
+									case 'R': case 'r': { check_reload = false; } break; // ì¬ì¥ì „
 									default: break;
 								}
 							}
@@ -161,9 +161,9 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 					}
 
 					auto pchar = reinterpret_cast<CCharacter*>(client_info->player_character);
-					if (pchar && !pchar->dead) { // °ÔÀÓ »óÅÂ
-						int check_horz = check_rt - check_lt; // ÁÂ¿ì ÀÌµ¿
-						int check_vert = check_dw - check_up; // »óÇÏ ÀÌµ¿
+					if (pchar && !pchar->dead) { // ê²Œì„ ìƒíƒœ
+						int check_horz = check_rt - check_lt; // ì¢Œìš° ì´ë™
+						int check_vert = check_dw - check_up; // ìƒí•˜ ì´ë™
 
 						if (0 != check_horz) {
 							pchar->x += FRAME_TIME * PLAYER_MOVE_SPEED * check_horz;
@@ -186,10 +186,10 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 						if (check_reload) {
 
 						}
-					} else if (pchar && pchar->dead) { // °üÀü »óÅÂ
+					} else if (pchar && pchar->dead) { // ê´€ì „ ìƒíƒœ
 
 					}
-				} // ´Ù¸¥ ¸Ş½ÃÁö´Â ¹ö¸°´Ù.
+				} // ë‹¤ë¥¸ ë©”ì‹œì§€ëŠ” ë²„ë¦°ë‹¤.
 
 				framework.ProcessGame();
 			}
@@ -219,7 +219,7 @@ DWORD WINAPI CommunicateProcess(LPVOID arg) {
 			break;
 
 			default:
-				break;
+			break;
 		}
 	}
 
@@ -268,7 +268,7 @@ void CCharacter::OnUpdate(double frame_advance) {
 
 	if (collide_bullet) {
 		framework.Kill(collide_bullet);
-		cout << "ÇÃ·¹ÀÌ¾î " << owner << "ÀÇ ÃÑ¾Ë Ãæµ¹" << endl;
+		cout << "í”Œë ˆì´ì–´ " << owner << "ì˜ ì´ì•Œ ì¶©ëŒ" << endl;
 
 		GetHurt(1);
 	}
@@ -287,7 +287,7 @@ void CCharacter::GetHurt(int dmg) {
 	if (inv_time <= 0) {
 		health -= dmg;
 		if (health <= 0) {
-			cout << "ÇÃ·¹ÀÌ¾î " << owner << " »ç¸Á." << endl;
+			cout << "í”Œë ˆì´ì–´ " << owner << " ì‚¬ë§." << endl;
 			Die();
 		} else {
 			inv_time = PLAYER_INVINCIBLE_DURATION;

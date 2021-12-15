@@ -33,7 +33,6 @@ void ErrorDisplay(const char* msg) {
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
-	, WORLD_W(rw), WORLD_H(rh)
 	, view{ 0, 0, vw, vh }, port{ 0, 0, pw, ph }
 	, view_track_enabled(false), view_target_player(-1) {
 	view.xoff = vw * 0.5;
@@ -263,15 +262,6 @@ bool ClientFramework::InputCheck(const WPARAM virtual_button) {
 
 	if (checker != key_checkers.end()) {
 		return checker->second.is_pressing();
-	}
-
-	return false;
-}
-
-bool ClientFramework::InputCheckPressed(const WPARAM virtual_button) {
-	auto checker = key_checkers.find(virtual_button);
-	if (checker != key_checkers.end()) {
-		return checker->second.is_pressed();
 	}
 
 	return false;
