@@ -13,13 +13,16 @@ GameSprite QTEbutton_sprite(L"res/QTEbutton.png", 1, 0, 0);
 GameSprite Startbutton_sprite(L"res/Start_button.png", 1, 0, 0);
 GameSprite Victory_sprite(L"res/Victory.png", 1, 0, 0);
 
+const char* my_default_address_file = "ip.txt";
+char my_address_target[128];
+
 
 ClientFramework::ClientFramework()
 	: painter{}
 	, view{ 0, 0, VIEW_W, VIEW_H }, port{ 0, 0, PORT_W, PORT_H } {
-	view.xoff = VIEW_W * 0.5;
-	view.yoff = VIEW_H * 0.5;
-	port.x = (CLIENT_W - PORT_W) * 0.5;
+	view.xoff = VIEW_W / 2;
+	view.yoff = VIEW_H / 2;
+	port.x = (CLIENT_W - PORT_W) / 2;
 }
 
 ClientFramework::~ClientFramework() {
@@ -45,10 +48,27 @@ void ClientFramework::Initialize() {
 			   , reinterpret_cast<const char*>(&option), sizeof(option));
 
 	auto address_size = sizeof(server_address);
+
+	// 주소 불러오기
 	ZeroMemory(&server_address, address_size);
 	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = inet_addr(SERVER_IP);
 	server_address.sin_port = htons(COMMON_PORT);
+
+	FILE* my_addr_file = nullptr;
+	auto my_addr_file_result = fopen_s(&my_addr_file, my_default_address_file, "r");
+	if (!my_addr_file) {
+		server_address.sin_addr.s_addr = inet_addr(DEFAULT_SERVER_IP);
+	} else {
+		ZeroMemory(my_address_target, 128);
+
+		auto result = fread(my_address_target, sizeof(char), 128, my_addr_file);
+		if (0 == result) {
+			server_address.sin_addr.s_addr = inet_addr(DEFAULT_SERVER_IP);
+		} else {
+			server_address.sin_addr.s_addr = inet_addr(my_address_target);
+		}
+		fclose(my_addr_file);
+	}
 	
 	for (int t = 0; t < 40; ++t) {
 		last_render_info[t].instance_type = BLANK;
@@ -168,10 +188,7 @@ void ClientFramework::Update() {
 			ghost = 1.0;
 		}
 
-		sprintf_s(buffer, "%d", player_num);
-		int nLen = (int)strlen(buffer) + 1;
-		size_t nSize = 0;
-		mbstowcs_s(&nSize, str_for_player_num, buffer, nLen);
+		wsprintf(players_count_buffer, L"%d", player_num);
 	}
 }
 
@@ -205,6 +222,7 @@ void ClientFramework::Render(HWND window) {
 		{
 			ghost = 0.5;
 		}
+
 		if (it) {
 			auto angle = static_cast<int>(it->angle);
 			switch (it->instance_type) {
@@ -281,18 +299,18 @@ void ClientFramework::Render(HWND window) {
 
 
 		for (int curbullet = 0; curbullet < bullet_left; ++curbullet) {			//남은 총알 수
-			bullet_sprite.draw(surface_back, VIEW_W - (bullet_sprite.get_width() / 2 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (bullet_sprite.get_height() / 2), 0, 0, 0.8, 0.8, 0.5);
+			bullet_sprite.draw(surface_back, VIEW_W - (int)(bullet_sprite.get_width() / 2.0 + 10) * curbullet - (bullet_sprite.get_width() / 2), VIEW_H - (int)(bullet_sprite.get_height() / 2.0), 0, 0, 0.8, 0.8, 0.5);
 		}
 
 		if (QTEtime > 0)
 		{
-			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2 + 10), 0, 0, 0, 0.5, 0.5);
+			QTEbutton_sprite.draw(surface_back, VIEW_W - (QTEbutton_sprite.get_width() / 2.0 + 10), 0, 0, 0, 0.5, 0.5);
 		}
 
 	}
-	if (str_for_player_num[0] != NULL)
+	if (players_count_buffer != NULL)
 	{
-		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
+		TextOut(surface_back, VIEW_W / 2, 0, players_count_buffer, 1);				//플레이어 수
 	} 
 	if(win == true)
 	{

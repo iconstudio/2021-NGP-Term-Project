@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "stdafx.h"
 #include "Sprite.h"
 
@@ -9,9 +9,9 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 	if (raw.IsNull()) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, L"ÀÚ¿ø ½ºÇÁ¶óÀÌÆ® %uÀ»(¸¦) ºÒ·¯¿À´Â Áß¿¡ ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.", resource);
+		swprintf_s(temp, L"ìì› ìŠ¤í”„ë¼ì´íŠ¸ %uì„(ë¥¼) ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ì— ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.", resource);
 
-		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "¿À·ù", MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCWSTR>(temp), L"ì˜¤ë¥˜", MB_OK);
 
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
@@ -26,9 +26,9 @@ GameSprite::GameSprite(HINSTANCE instance, UINT resource, UINT number, int xoff,
 	if (!result) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, L"ÀÚ¿ø ½ºÇÁ¶óÀÌÆ® %uÀÌ(°¡) ¿Ã¹Ù¸¥ Å©±â¸¦ °®°í ÀÖÁö ¾Ê½À´Ï´Ù.", resource);
+		swprintf_s(temp, L"ìì› ìŠ¤í”„ë¼ì´íŠ¸ %uì´(ê°€) ì˜¬ë°”ë¥¸ í¬ê¸°ë¥¼ ê°–ê³  ìˆì§€ ì•ŠìŠµë‹ˆë‹¤.", resource);
 
-		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "¿À·ù", MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCWSTR>(temp), L"ì˜¤ë¥˜", MB_OK);
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
 		}
@@ -41,9 +41,9 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 	if (raw.IsNull()) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, L"°æ·Î %s¿¡¼­ ½ºÇÁ¶óÀÌÆ®¸¦ ºÒ·¯¿Ã ¼ö ¾ø½À´Ï´Ù.", path);
+		swprintf_s(temp, L"ê²½ë¡œ %sì—ì„œ ìŠ¤í”„ë¼ì´íŠ¸ë¥¼ ë¶ˆëŸ¬ì˜¬ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", path);
 
-		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "¿À·ù", MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCWSTR>(temp), L"ì˜¤ë¥˜", MB_OK);
 
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
@@ -58,9 +58,9 @@ GameSprite::GameSprite(LPCTSTR path, UINT number, int xoff, int yoff)
 	if (!result) {
 		WCHAR temp[256];
 
-		swprintf_s(temp, L"%s¿¡ À§Ä¡ÇÑ ±×¸² ÆÄÀÏÀÌ ¿Ã¹Ù¸¥ Å©±â¸¦ °®°í ÀÖÁö ¾Ê½À´Ï´Ù.", path);
+		swprintf_s(temp, L"%sì— ìœ„ì¹˜í•œ ê·¸ë¦¼ íŒŒì¼ì´ ì˜¬ë°”ë¥¸ í¬ê¸°ë¥¼ ê°–ê³  ìˆì§€ ì•ŠìŠµë‹ˆë‹¤.", path);
 
-		int error = MessageBox(NULL, reinterpret_cast<LPCSTR>(temp), "¿À·ù", MB_OK);
+		int error = MessageBox(NULL, reinterpret_cast<LPCWSTR>(temp), L"ì˜¤ë¥˜", MB_OK);
 		if (error) {
 			SendMessage(NULL, WM_CLOSE, 0, 0);
 		}
@@ -104,7 +104,7 @@ const int GameSprite::get_height() const {
 
 bool GameSprite::__process_image(CImage& image, size_t width, size_t height) {
 	if (0 < width && 0 < height) {
-		if (1 < number) { // ¾Ö´Ï¸ŞÀÌ¼ÇÀ» À§ÇØ¼­´Â °¡·Î·Î ±æÂßÇÑ ±×¸²ÀÌ ÇÊ¿äÇÕ´Ï´Ù.
+		if (1 < number) { // ì• ë‹ˆë©”ì´ì…˜ì„ ìœ„í•´ì„œëŠ” ê°€ë¡œë¡œ ê¸¸ì­‰í•œ ê·¸ë¦¼ì´ í•„ìš”í•©ë‹ˆë‹¤.
 			int slice_w, temp_w;
 			if (1 == width) {
 				slice_w = 1;
@@ -117,26 +117,26 @@ bool GameSprite::__process_image(CImage& image, size_t width, size_t height) {
 				}
 			}
 
-			// ¿¹¾à
+			// ì˜ˆì•½
 			frames.reserve(number);
 
 			auto raw_bitlevel = raw.GetBPP();
 
-			for (UINT i = 0; i < number; ++i) { // ÇÁ·¹ÀÓ »ğÀÔ
-				// 1. »ğÀÔÇÒ ±×¸² »ı¼º
+			for (UINT i = 0; i < number; ++i) { // í”„ë ˆì„ ì‚½ì…
+				// 1. ì‚½ì…í•  ê·¸ë¦¼ ìƒì„±
 				auto image_slice = new CImage(); // make_shared<CImage>();
 				image_slice->Create(slice_w, height, raw_bitlevel);
 				image_slice->SetHasAlphaChannel(true);
 
 				auto slice_buffer = image_slice->GetDC();
 
-				// 2. ¿øº» ±×¸²ÀÇ (i * slice_width, 0)¿¡ À§Ä¡ÇÑ ³»¿ëÀ» Á¶°¢ ±×¸²ÀÇ (0, 0) À§Ä¡¿¡ º¹»ç
+				// 2. ì›ë³¸ ê·¸ë¦¼ì˜ (i * slice_width, 0)ì— ìœ„ì¹˜í•œ ë‚´ìš©ì„ ì¡°ê° ê·¸ë¦¼ì˜ (0, 0) ìœ„ì¹˜ì— ë³µì‚¬
 				raw.BitBlt(slice_buffer, 0, 0, slice_w, height, i * slice_w, 0, SRCCOPY);
 
-				// 3. ¸Ş¸ğ¸® ÃÖÀûÈ­
-				image_slice->ReleaseDC(); // slice_buffer ÇØÁ¦
+				// 3. ë©”ëª¨ë¦¬ ìµœì í™”
+				image_slice->ReleaseDC(); // slice_buffer í•´ì œ
 
-				// 4. ³¹Àå »ğÀÔ (¼ÒÀ¯±Ç ÀÌÀüÀ¸·Î ÀÌÁ¦ ¼öÁ¤ ºÒ°¡)
+				// 4. ë‚±ì¥ ì‚½ì… (ì†Œìœ ê¶Œ ì´ì „ìœ¼ë¡œ ì´ì œ ìˆ˜ì • ë¶ˆê°€)
 				frames.emplace_back(image_slice);
 			}
 
@@ -160,7 +160,7 @@ void GameSprite::__draw_single(HDC surface, CImage& image, double dx, double dy,
 	float cosine = static_cast<float>(lengthdir_x(1, angle));
 	float sine = static_cast<float>(lengthdir_y(1, angle));
 
-	// ½ÇÁ¦¿Í´Â ´Ş¸® y ÁÂÇ¥°¡ µÚÁıÈû
+	// ì‹¤ì œì™€ëŠ” ë‹¬ë¦¬ y ì¢Œí‘œê°€ ë’¤ì§‘í˜
 	XFORM xform;
 	if (0.0 != angle) {
 		xform.eM11 = cosine * xscale;

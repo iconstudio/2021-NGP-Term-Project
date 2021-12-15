@@ -2,10 +2,10 @@
 #include "Framework.h"
 #include "resource.h"
 
-GameSprite player_sprite("../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
-GameSprite bullet_sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
-GameSprite player2sprite("../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
-GameSprite buttonsprite("../../res/Start_button.png", 1, 0, 0);
+GameSprite player_sprite(L"../../res/PlayerWalkDown_strip6.png", 6, 0, 0);
+GameSprite bullet_sprite(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite player2sprite(L"../../res/PlayerWalkRight_strip4.png", 4, 0, 0);
+GameSprite buttonsprite(L"../../res/Start_button.png", 1, 0, 0);
 
 
 void ErrorAbort(const char* msg) {
@@ -14,7 +14,7 @@ void ErrorAbort(const char* msg) {
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPTSTR>(&lpMsgBuf), 0, nullptr);
 
-	MessageBox(nullptr, static_cast<LPCTSTR>(lpMsgBuf), msg, MB_ICONERROR);
+	MessageBox(nullptr, static_cast<LPCWSTR>(lpMsgBuf), reinterpret_cast<LPCWSTR>(msg), MB_ICONERROR);
 
 	LocalFree(lpMsgBuf);
 	exit(true);
@@ -33,7 +33,6 @@ void ErrorDisplay(const char* msg) {
 
 ClientFramework::ClientFramework(int rw, int rh, int vw, int vh, int pw, int ph)
 	: painter{}
-	, WORLD_W(rw), WORLD_H(rh)
 	, view{ 0, 0, vw, vh }, port{ 0, 0, pw, ph }
 	, view_track_enabled(false), view_target_player(-1) {
 	view.xoff = vw * 0.5;
@@ -268,15 +267,6 @@ bool ClientFramework::InputCheck(const WPARAM virtual_button) {
 	return false;
 }
 
-bool ClientFramework::InputCheckPressed(const WPARAM virtual_button) {
-	auto checker = key_checkers.find(virtual_button);
-	if (checker != key_checkers.end()) {
-		return checker->second.is_pressed();
-	}
-
-	return false;
-}
-
 void ClientFramework::ViewTrackEnable(bool flag) {
 	view_track_enabled = flag;
 }
@@ -310,12 +300,12 @@ BOOL WindowsClient::initialize(HINSTANCE handle, WNDPROC procedure, LPCWSTR titl
 	properties.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	properties.hbrBackground = CreateSolidBrush(0);
 	properties.lpszMenuName = NULL;
-	properties.lpszClassName = reinterpret_cast<LPCSTR>(id);
+	properties.lpszClassName = reinterpret_cast<LPCWSTR>(id);
 	properties.hIconSm = LoadIcon(properties.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&properties);
 
 	DWORD window_attributes = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-	HWND hWnd = CreateWindow(reinterpret_cast<LPCSTR>(id), reinterpret_cast<LPCSTR>(title), window_attributes
+	HWND hWnd = CreateWindow(reinterpret_cast<LPCWSTR>(id), reinterpret_cast<LPCWSTR>(title), window_attributes
 		, CW_USEDEFAULT, 0, width, height
 		, nullptr, nullptr, instance, nullptr);
 	instance = handle;
