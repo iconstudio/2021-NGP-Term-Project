@@ -168,13 +168,7 @@ SOCKET ServerFramework::AcceptClient() {
 void ServerFramework::ConnectClient(SOCKET client_socket) {
 	if (GetStatus() == SERVER_STATES::LOBBY) {
 		CastAcceptEvent(true);
-	} else {
-
 	}
-
-	BOOL option = TRUE; // Nagle 알고리즘
-	setsockopt(my_socket, IPPROTO_TCP, TCP_NODELAY
-		, reinterpret_cast<const char*>(&option), sizeof(option));
 
 	auto client = new ClientSession(client_socket, NULL, player_index_last);
 
