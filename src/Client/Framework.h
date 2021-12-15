@@ -3,8 +3,7 @@
 #include "Sprite.h"
 #include "CommonDatas.h"
 
-//#define SERVER_IP "220.126.238.108"
-#define SERVER_IP "127.0.0.1"
+#define DEFAULT_SERVER_IP "127.0.0.1"
 
 DWORD WINAPI CommunicateProcess(LPVOID arg);			//스레드 함수
 
