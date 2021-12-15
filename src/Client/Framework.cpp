@@ -172,9 +172,7 @@ void ClientFramework::Update() {
 			ghost = 1.0;
 		}
 
-		sprintf(buffer, "%d", player_num);
-		int nLen = (int)strlen(buffer) + 1;
-		mbstowcs(str_for_player_num, buffer, nLen);
+		wsprintf(players_count_buffer, L"%d", player_num);
 	}
 }
 
@@ -208,6 +206,7 @@ void ClientFramework::Render(HWND window) {
 		{
 			ghost = 0.5;
 		}
+
 		if (it) {
 			auto angle = static_cast<int>(it->angle);
 			switch (it->instance_type) {
@@ -293,9 +292,9 @@ void ClientFramework::Render(HWND window) {
 		}
 
 	}
-	if (str_for_player_num[0] != NULL)
+	if (players_count_buffer != NULL)
 	{
-		TextOut(surface_back, VIEW_W / 2, 0, str_for_player_num, 1);				//플레이어 수
+		TextOut(surface_back, VIEW_W / 2, 0, players_count_buffer, 1);				//플레이어 수
 	} 
 	if(win == true)
 	{

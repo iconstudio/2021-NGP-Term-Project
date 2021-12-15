@@ -39,8 +39,7 @@ public:
 	int mouse_x;
 	int mouse_y;
 
-	char buffer[80];	//플레이어 수 표기용 배열
-	wchar_t str_for_player_num[80];
+	wchar_t players_count_buffer[80];	//플레이어 수 표기용 배열
 
 	bool connect_status = false;		//접속 상황 확인
 
